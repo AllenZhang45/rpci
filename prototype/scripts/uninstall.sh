@@ -5,8 +5,9 @@ BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-rm -f "$BIN_DIR/ime-probe" "$BIN_DIR/ime-settings"
+rm -f "$BIN_DIR/ime-probe" "$BIN_DIR/ime-settings" "$BIN_DIR/ime-settings-gui"
 rm -f "$CONFIG_HOME/autostart/rpci-ime.desktop"
+rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/rpci-settings.desktop"
 
 if [ "${1:-}" = "--purge" ]; then
     rm -rf "$CONFIG_HOME/rpci" "$DATA_HOME/rpci"

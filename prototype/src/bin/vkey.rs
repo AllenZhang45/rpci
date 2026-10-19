@@ -111,6 +111,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 15, 1);
         state.vk.key(0, 15, 0);
         println!("sent Tab");
+    } else if mode == "settings-backup" {
+        state.vk.key(0, 48, 1);
+        state.vk.key(0, 48, 0);
+        println!("sent b");
+    } else if mode == "settings" {
+        for keycode in [108u32, 106, 31] {
+            state.vk.key(0, keycode, 1);
+            state.vk.key(0, keycode, 0);
+        }
+        println!("sent Down + Right + s");
     } else if mode == "backspace" {
         for keycode in [17u32, 16, 23, 21] {
             state.vk.key(0, keycode, 1);
