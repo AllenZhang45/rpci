@@ -177,6 +177,13 @@
 - 第二个 `ime-probe` 收到 `Unavailable` 后打印提示并退出，不再留下僵尸实例。
 - 避免 RIME userdb 被多个进程同时占用。
 
+#### 主题结果（2026-10-20）
+
+- 候选条支持明暗两套颜色：读取 COSMIC `com.system76.CosmicTheme.Mode/v1/is_dark`，也可用 `IME_POPUP_THEME=light/dark` 覆盖。
+- 浅色主题实测输出见下图。
+
+![浅色候选条](assets/candidate-popup-light.png)
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -219,6 +226,7 @@
 | LibreOffice Writer | ✅ | wqiy → 你，ODT content.xml 含 你 |
 | Firefox | ❌ 未激活 | 需查 text-input/焦点兼容 |
 | XDG 词库目录 | ✅ | ~/.local/share/rpci/rime |
+| 候选条明暗主题 | ✅ | 浅色截图验证 |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
 | 拼音兜底 | ✅ 已验证 | nihao → "你好"；第 5 码自动切换 |

@@ -12,6 +12,7 @@
 - `input_popup_surface` 候选条，cosmic-text 渲染
 - 释放 grab + `zwp_virtual_keyboard_v1` 注入的按键透传：方向键、Ctrl 组合、功能键（F1/Right/Ctrl+C 已验证）
 - 中文标点：`.` → 。、`,` → ，、`?` → ？
+- 候选条明暗主题：读 COSMIC `is_dark` 配置，也可用 `IME_POPUP_THEME=light/dark` 覆盖
 - 中英切换：F2 / Ctrl+Space；英文模式下所有按键透传
 
 ## 应用矩阵（当前）
@@ -104,6 +105,7 @@ cargo run -p ime-probe --bin textinput
 
 - 同一 seat 只能有一个 input method 实例；第二个实例会收到 `Unavailable` 并直接退出
 - Tab、Alt/Super 组合的透传尚未完善
+- 候选条 HiDPI、屏幕边缘翻转尚未验证
 - 候选条在真实应用中的位置、屏幕边缘翻转、HiDPI 尚未验证
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - 无临时拼音键、无设置界面
