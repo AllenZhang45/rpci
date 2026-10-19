@@ -33,11 +33,14 @@ Firefox 测试页可用 `scripts/firefox-test-server.py` 启动，访问 `http:/
 - `src/main.rs`：Wayland 协议、状态与主循环
 - `src/engine.rs`：五笔/拼音策略、RIME 会话、按键透传判定
 - `src/popup.rs`：候选条渲染（cosmic-text + wl_shm）
+- `src/config.rs`：配置读写与校验
+- `src/bin/ime-settings.rs`：设置 CLI
 - `src/bin/textinput.rs`：最小 `zwp_text_input_v3` 测试窗口，打印收到的提交文本
 - `src/bin/vkey.rs`：虚拟键盘注入工具（`a` / `abc` / `wubi` / `pinyin` / `preview` / `f1` / `alt-tab`）
 - `src/bin/focus.rs`：通过 COSMIC toplevel 协议聚焦窗口
 - `src/bin/rimeprobe.rs`：独立 RIME 候选探针
 - `scripts/setup-rime.sh`：准备本地 RIME 用户数据
+- `scripts/install.sh` / `uninstall.sh`：安装、自启动、卸载
 
 ## 依赖
 
@@ -102,13 +105,54 @@ cargo run -p ime-probe --bin textinput
 ./target/debug/vkey preview  # wqiy，只出候选不上屏
 ```
 
+## 安装与自启动
+
+```bash
+./prototype/scripts/install.sh
+```
+
+默认安装到 `~/.local/bin`，并写入 XDG autostart：
+
+```
+~/.config/autostart/rpci-ime.desktop
+```
+
+卸载：
+
+```bash
+./prototype/scripts/uninstall.sh           # 保留配置和词库
+./prototype/scripts/uninstall.sh --purge   # 全部删除
+```
+
+开发时可用 `IME_PROFILE=debug IME_SKIP_BUILD=1` 复用已有 debug 构建。
+
+## 设置
+
+```bash
+ime-settings show
+ime-settings set candidate_count 5
+ime-settings set theme light
+ime-settings set pinyin_fallback off
+ime-settings get theme
+ime-settings reset
+```
+
+配置文件位于 `$XDG_CONFIG_HOME/rpci/config.toml`。修改在下次启动输入法时生效。
+
+| key | 取值 |
+|---|---|
+| `ascii_mode_default` | `true` / `false` |
+| `pinyin_fallback` | `true` / `false` |
+| `candidate_count` | `1`–`9` |
+| `theme` | `auto` / `dark` / `light` |
+
 ## 已知限制
 
 - 同一 seat 只能有一个 input method 实例；第二个实例会收到 `Unavailable` 并直接退出
 - Tab、Alt/Super 组合的透传尚未完善
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
-- 无临时拼音键、无设置界面
+- 设置只有 CLI，独立设置窗口尚未实现
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 
 ## 路线图

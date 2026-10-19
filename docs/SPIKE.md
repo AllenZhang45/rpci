@@ -202,6 +202,15 @@
 
 ![2x 候选条](assets/candidate-popup-2x.png)
 
+#### 安装与设置结果（2026-10-20）
+
+- `scripts/install.sh` 在临时 HOME 下验证：二进制、`autostart/rpci-ime.desktop`、RIME 数据、配置文件均生成；`uninstall.sh` 保留词库，`--purge` 清理全部。
+- `ime-settings` 的 `show/get/set/reset` 均可用；非法 key/value 返回非零。
+- `ascii_mode_default = true` 实测启动即英文，`a` 透传；切回中文后 `wqiy` 仍提交「你」。
+- `pinyin_fallback = false` 实测 `nihao` 不再走拼音兜底。
+- `candidate_count = 1` + `theme = "light"` 实测只渲染一个浅色候选。
+- `cargo test -p ime-probe`：21 个测试通过。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
