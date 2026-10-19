@@ -64,6 +64,17 @@ fn should_passthrough(keysym: u32, text: &str, mods: u32, composing: bool) -> bo
     }
 }
 
+fn status_label_for(ascii_mode: bool, mode: Mode) -> &'static str {
+    if ascii_mode {
+        "英"
+    } else {
+        match mode {
+            Mode::Wubi => "中 五",
+            Mode::Pinyin => "中 拼",
+        }
+    }
+}
+
 fn choose_mode(letters_len: usize, wubi_candidate_count: usize) -> Mode {
     if letters_len > 4 || wubi_candidate_count == 0 {
         Mode::Pinyin
@@ -187,6 +198,10 @@ impl HybridEngine {
         self.feed_pinyin(0xff1b);
         self.letters.clear();
         self.mode = Mode::Wubi;
+    }
+
+    pub fn status_label(&self) -> String {
+        status_label_for(self.ascii_mode, self.mode).to_string()
     }
 
     pub fn handle(&mut self, keysym: u32, text: &str, mods: u32) -> EngineOutput {
@@ -433,5 +448,17 @@ mod fallback_tests {
     fn disabled_fallback_keeps_wubi() {
         assert_eq!(choose_mode_with_fallback(5, 0, false), Mode::Wubi);
         assert_eq!(choose_mode_with_fallback(5, 0, true), Mode::Pinyin);
+    }
+}
+
+#[cfg(test)]
+mod status_tests {
+    use super::*;
+
+    #[test]
+    fn labels_reflect_mode() {
+        assert_eq!(status_label_for(false, Mode::Wubi), "中 五");
+        assert_eq!(status_label_for(false, Mode::Pinyin), "中 拼");
+        assert_eq!(status_label_for(true, Mode::Wubi), "英");
     }
 }

@@ -44,6 +44,11 @@ fn cosmic_is_dark() -> Option<bool> {
     std::fs::read_to_string(path).ok()?.trim().parse().ok()
 }
 
+pub fn theme_colors(preference: ThemePreference) -> ([u8; 4], Color) {
+    let theme = Theme::detect(preference);
+    (theme.background(), theme.text_color())
+}
+
 impl Theme {
     fn detect(preference: ThemePreference) -> Self {
         let env = std::env::var("IME_POPUP_THEME").ok();
