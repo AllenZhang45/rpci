@@ -2,7 +2,11 @@
 set -euo pipefail
 
 SHARED_DIR="${IME_RIME_SHARED_DIR:-/usr/share/rime-data}"
-USER_DIR="${IME_RIME_USER_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/rpci/rime}"
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+case "$DATA_HOME" in /*) ;; *) DATA_HOME="$HOME/.local/share" ;; esac
+case "$CACHE_HOME" in /*) ;; *) CACHE_HOME="$HOME/.cache" ;; esac
+USER_DIR="${IME_RIME_USER_DIR:-$DATA_HOME/rpci/rime}"
 
 if [ ! -d "$SHARED_DIR" ]; then
     echo "missing RIME shared data: $SHARED_DIR" >&2
@@ -39,4 +43,14 @@ patch:
     - schema: wubi86
 EOF
 
+# Keep compiled RIME artifacts in XDG_CACHE_HOME, not in the data directory.
+CACHE_BUILD="$CACHE_HOME/rpci/rime-build"
+mkdir -p "$CACHE_BUILD"
+if [ -d "$USER_DIR/build" ] && [ ! -L "$USER_DIR/build" ]; then
+    cp -a "$USER_DIR/build/." "$CACHE_BUILD/" 2>/dev/null || true
+    rm -rf "$USER_DIR/build"
+fi
+ln -sfn "$CACHE_BUILD" "$USER_DIR/build"
+
 echo "RIME user data prepared at $USER_DIR"
+echo "RIME build cache: $CACHE_BUILD"

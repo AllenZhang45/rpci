@@ -13,18 +13,10 @@ pub struct Paths {
 }
 
 pub fn default_paths() -> Paths {
-    let data_home = std::env::var_os("XDG_DATA_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/share")))
-        .unwrap_or_else(|| PathBuf::from("/tmp"));
-    let rime = std::env::var_os("IME_RIME_USER_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| data_home.join("rpci/rime"));
-
     Paths {
-        rime,
-        config: crate::config::config_path(),
-        backups: data_home.join("rpci/backups"),
+        rime: crate::paths::rime_user_dir(),
+        config: crate::paths::config_path(),
+        backups: crate::paths::backups_dir().unwrap_or_else(|| PathBuf::from("/tmp/rpci/backups")),
     }
 }
 

@@ -134,12 +134,7 @@ fn parse_bool(value: &str) -> Result<bool, String> {
     }
 }
 
-pub fn config_path() -> Option<PathBuf> {
-    let base = std::env::var_os("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))?;
-    Some(base.join("rpci/config.toml"))
-}
+pub use crate::paths::config_path;
 
 #[cfg(test)]
 mod tests {
