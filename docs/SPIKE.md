@@ -72,9 +72,17 @@
 - 已发送 `commit_string("测试")` + `commit(serial=1)`；客户端未收到协议错误，上屏效果待视觉确认。
 - 探针为方便验证，对每个 Key 事件都提交"测试"；这不是最终行为。
 
+#### Day 3–4 补充（2026-10-20）
+
+- 用 `zcosmic_toplevel_manager_v1.activate` 聚焦窗口成功；终端 toplevel state=[2]（Activated）。
+- 在 Activate 后发送 `commit_string("测试")` + `commit(serial=1)`；客户端未收协议错误，但终端里用 `cat > /tmp/ime-commit.txt` 做接收端时没有收到文本。
+- 结论：commit 请求已发出，但"是否真正上屏"仍未确认。需要写一个最小的 `zwp_text_input_v3` 测试客户端直接打印 CommitString，才能区分是终端不接收 IME 提交，还是 commit 本身没生效。
+- 虚拟键盘注入在 IME grab 时能被 IME 收到；没有 IME 时，未观察到目标终端收到按键，普通客户端的投递行为需进一步确认。
+
 ### Day 4：提交与 popup
 
 - [ ] `commit_string("测试")` + `commit`，在 GTK4 应用中确认上屏。
+- [ ] 写一个最小 `zwp_text_input_v3` 客户端，直接打印 CommitString，确认上屏路径。
 - [ ] 在 Qt、VS Code、浏览器地址栏重复。
 - [ ] 创建 input_popup_surface，画一个纯色矩形，确认位置跟随光标。
 - [ ] 在屏幕底部测试翻转/裁切；有条件时在 HiDPI 下测试缩放。
@@ -109,8 +117,8 @@
 |---|---|---|
 | 激活 | ✅ 已验证 | Activate/Deactivate 均收到 |
 | grab | ✅ 已验证 | keymap/modifiers/key 均收到 |
-| commit（GTK4/Qt/Electron/浏览器） | 已发送，待视觉确认 | `commit_string("测试")` + `commit(serial=1)` |
+| commit（GTK4/Qt/Electron/浏览器） | 已发送，未确认上屏 | 终端 `cat` 接收端未收到文本；需 text-input 测试客户端 |
 | popup 定位/翻转 | 待实测 |  |
-| 按键透传 | virtual-keyboard 可用，待实测 | 注入 keycode 30 成功 |
+| 按键透传 | IME 侧可用，普通客户端投递待确认 | 注入 keycode 30 可被 IME grab 收到 |
 | HiDPI | 待实测 |  |
 | RIME 接入（第 2 周） | librime 1.10.0 已安装，待接入 |  |
