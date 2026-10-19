@@ -242,6 +242,7 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
                 std::process::exit(1);
             }
             zwp_input_method_v2::Event::Deactivate => {
+                state.rime.cancel();
                 state.forwarded_keys.clear();
                 state.popup_renderer.draw("");
                 if let Some(grab) = state.grab.take() {

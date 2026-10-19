@@ -180,6 +180,11 @@ impl HybridEngine {
         self.mode = Mode::Wubi;
     }
 
+    /// Clear any in-progress composition without changing the language mode.
+    pub fn cancel(&mut self) {
+        self.reset();
+    }
+
     pub fn status_label(&self) -> String {
         status_label_for(self.ascii_mode, self.mode).to_string()
     }
@@ -279,7 +284,7 @@ impl HybridEngine {
                     passthrough: false,
                 }
             }
-            0xff1b | 0xff0d => {
+            0xff1b => {
                 self.reset();
                 EngineOutput {
                     mode: Mode::Wubi,
@@ -287,6 +292,19 @@ impl HybridEngine {
                     candidates: Vec::new(),
                     commit: None,
                     passthrough: false,
+                }
+            }
+            0xff0d => {
+                // Enter while composing cancels the composition and is still
+                // delivered to the application, otherwise users lose newline
+                // in multi-line fields.
+                self.reset();
+                EngineOutput {
+                    mode: Mode::Wubi,
+                    preedit: String::new(),
+                    candidates: Vec::new(),
+                    commit: None,
+                    passthrough: true,
                 }
             }
             _ => EngineOutput {
@@ -347,6 +365,8 @@ mod passthrough_tests {
     fn navigation_keys_pass_through() {
         assert!(should_passthrough(0xff53, "", 0, true));
         assert!(should_passthrough(0xffbe, "", 0, false));
+        // Enter must reach multi-line applications when not composing.
+        assert!(should_passthrough(0xff0d, "\r", 0, false));
     }
 
     #[test]
