@@ -80,5 +80,26 @@ fn main() {
     }
     pinyin.close().expect("close pinyin session");
 
+    let mut punct = create_session().expect("create punctuation session");
+    punct.select_schema("wubi86").expect("select wubi86");
+    for seq in [".", ",", "?"] {
+        println!("--- punctuation {seq:?}");
+        punct.simulate_key_sequence(seq).expect("punct keys");
+        if let Some(ctx) = punct.context() {
+            let composition = ctx.composition();
+            println!("preedit = {:?}", composition.preedit);
+            let menu = ctx.menu();
+            println!("candidates = {}", menu.num_candidates);
+            for (i, candidate) in menu.candidates.iter().enumerate() {
+                println!("  {i}: {} {:?}", candidate.text, candidate.comment);
+            }
+        }
+        if let Some(commit) = punct.commit() {
+            println!("commit = {:?}", commit.text());
+        }
+        punct.process_key(KeyEvent::new(0xff1b, 0));
+    }
+    punct.close().expect("close punctuation session");
+
     rime_api::finalize();
 }

@@ -46,11 +46,18 @@ const MOD_CTRL: u32 = 1 << 2;
 const MOD_ALT: u32 = 1 << 3;
 const MOD_SUPER: u32 = 1 << 6;
 
+fn is_punctuation(keysym: u32) -> bool {
+    matches!(keysym, 0x21..=0x2f | 0x3a..=0x40 | 0x5b..=0x60 | 0x7b..=0x7e)
+}
+
 fn should_passthrough(keysym: u32, text: &str, mods: u32, composing: bool) -> bool {
     if mods & (MOD_CTRL | MOD_ALT | MOD_SUPER) != 0 {
         return true;
     }
     if !text.is_empty() && text.chars().all(|c| c.is_ascii_alphabetic()) {
+        return false;
+    }
+    if is_punctuation(keysym) {
         return false;
     }
     match keysym {
@@ -177,6 +184,23 @@ impl HybridEngine {
                 candidates,
                 commit: None,
                 passthrough: false,
+            };
+        }
+
+        if is_punctuation(keysym) {
+            self.feed(self.active(), keysym);
+            let commit = self.active().commit().map(|c| c.text().to_string());
+            let passthrough = commit.is_none();
+            if commit.is_some() {
+                self.letters.clear();
+                self.mode = Mode::Wubi;
+            }
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit,
+                passthrough,
             };
         }
 
@@ -790,5 +814,25 @@ mod passthrough_tests {
         assert!(!should_passthrough(0x20, " ", 0, true));
         assert!(should_passthrough(0x31, "1", 0, false));
         assert!(!should_passthrough(0x31, "1", 0, true));
+    }
+}
+
+#[cfg(test)]
+mod punctuation_tests {
+    use super::*;
+
+    #[test]
+    fn punctuation_is_handled_unless_shortcut() {
+        assert!(!should_passthrough(0x2e, ".", 0, false));
+        assert!(!should_passthrough(0x3f, "?", 0, true));
+        assert!(should_passthrough(0x2e, ".", MOD_CTRL, false));
+    }
+
+    #[test]
+    fn punctuation_ranges() {
+        assert!(is_punctuation(0x2e));
+        assert!(is_punctuation(0x3f));
+        assert!(!is_punctuation(0x20));
+        assert!(!is_punctuation(0x61));
     }
 }
