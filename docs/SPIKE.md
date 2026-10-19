@@ -195,6 +195,13 @@
 - `wqiy` + Esc + `wqiy` + space：Esc 取消组合，重新输入后提交「你」。
 - 说明退格与取消路径不会破坏输入状态。
 
+#### HiDPI 结果（2026-10-20）
+
+- 候选条按 2x 像素渲染，逻辑尺寸仍是 520×48；`wl_surface.set_buffer_scale(2)` 交给合成器缩放。
+- 调试 PNG 为 1040×96，文字清晰；浅色/深色主题均可用。
+
+![2x 候选条](assets/candidate-popup-2x.png)
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -240,6 +247,7 @@
 | Firefox | ❌ 未激活 | 需查 text-input/焦点兼容 |
 | XDG 词库目录 | ✅ | ~/.local/share/rpci/rime |
 | 候选条明暗主题 | ✅ | 浅色截图验证 |
+| HiDPI | ✅ | 2x 渲染，逻辑 520×48 |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
 | 拼音兜底 | ✅ 已验证 | nihao → "你好"；第 5 码自动切换 |
