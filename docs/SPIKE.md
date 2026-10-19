@@ -82,11 +82,18 @@
 ### Day 4：提交与 popup
 
 - [ ] `commit_string("测试")` + `commit`，在 GTK4 应用中确认上屏。
-- [ ] 写一个最小 `zwp_text_input_v3` 客户端，直接打印 CommitString，确认上屏路径。
+- [x] 写一个最小 `zwp_text_input_v3` 客户端，直接打印 CommitString，确认上屏路径。
 - [ ] 在 Qt、VS Code、浏览器地址栏重复。
 - [ ] 创建 input_popup_surface，画一个纯色矩形，确认位置跟随光标。
 - [ ] 在屏幕底部测试翻转/裁切；有条件时在 HiDPI 下测试缩放。
 - [ ] 记录：哪些应用提交失败，popup 是否正常。
+
+#### Day 4 结果（2026-10-20）
+
+- 最小 `zwp_text_input_v3` 客户端（SCTK 窗口）已收到 `COMMIT: "测试"`。
+- 文件 `/tmp/ime-commit.txt` 内容为 6 字节：`e6 b5 8b e8 af 95`（UTF-8 "测试"）。
+- 结论：**激活 → grab → commit 上屏链路已打通**。
+- 本次 `cosmic-term` 的 `cat` 接收端没有收到提交，可能是终端不把 IME 提交写入 PTY；属于应用侧差异，应用矩阵里要单独记录。
 
 ### Day 5：透传与结论
 
@@ -117,7 +124,8 @@
 |---|---|---|
 | 激活 | ✅ 已验证 | Activate/Deactivate 均收到 |
 | grab | ✅ 已验证 | keymap/modifiers/key 均收到 |
-| commit（GTK4/Qt/Electron/浏览器） | 已发送，未确认上屏 | 终端 `cat` 接收端未收到文本；需 text-input 测试客户端 |
+| commit（协议路径） | ✅ 已验证 | text-input 客户端收到 "测试"（6 字节 UTF-8） |
+| commit（GTK4/Qt/Electron/浏览器） | 待测 | 应用矩阵 |
 | popup 定位/翻转 | 待实测 |  |
 | 按键透传 | IME 侧可用，普通客户端投递待确认 | 注入 keycode 30 可被 IME grab 收到 |
 | HiDPI | 待实测 |  |
