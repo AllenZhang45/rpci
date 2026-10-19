@@ -31,6 +31,7 @@
 | release 安装 + systemd autostart | ✅ |
 | iced 设置界面 + 应用菜单入口 | ✅ |
 | 保存并应用（systemd 重启） | ✅ |
+| 安全项热加载 | ✅ 候选数量/主题，重新聚焦后生效 |
 | 词库备份 / 导出 / 导入 | ✅ CLI；GUI 备份 + 恢复 |
 | layer-shell 状态胶囊 | ✅ |
 
@@ -65,7 +66,7 @@ cargo test -p rpci-settings-iced  # 2 passed
 - 真正的 COSMIC panel applet 尚未实现；当前是 layer-shell 胶囊。
 - 候选窗未接 fractional scale；屏幕边缘翻转未验证。
 - 每个 seat 只能有一个输入法对象；与 `cosmic-osk` 的长期仲裁需要上游确认。
-- 没有配置热加载；“保存”下次启动生效，“保存并应用”通过 systemd 重启。
+- 仅候选数量/主题热加载；拼音兜底、默认英文模式仍需“保存并应用”或重启。
 - 词库恢复已支持 iced GUI；仍无配置热加载。
 - libcosmic 未采用，设置使用 iced 0.14。
 

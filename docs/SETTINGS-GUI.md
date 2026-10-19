@@ -56,7 +56,7 @@ cargo run -p rpci-settings-iced
 ### 词库恢复流程
 
 1. 在“词库”卡片选择备份（时间戳目录）。
-2. 点击“恢复所选”。
+2. 点击“恢复所选”，再次点击“确认恢复”。
 3. 设置窗口先停止 systemd 输入法单元，避免 LevelDB 写入冲突。
 4. `import_from` 恢复备份；恢复前会自动备份当前词库。
 5. 重新启动输入法，状态栏显示结果。
@@ -101,7 +101,7 @@ cargo test -p ime-probe
 35 passed
 
 cargo test -p rpci-settings-iced
-3 passed
+4 passed
 ```
 
 已验证：
@@ -111,6 +111,7 @@ cargo test -p rpci-settings-iced
 - `ime-settings apply` 实测会更换输入法 PID
 - 备份/导入的底层逻辑由 `backup` 模块测试覆盖
 - 已用等价 CLI 流程验证恢复：停止单元 → `ime-settings import <backup>` → 启动单元 → 输入「你」
+- 候选数量/主题热加载：设置后切换焦点再聚焦，候选条立即变化
 - GUI“恢复所选”调用同一 `import_from` + stop/start 逻辑
 
 未验证：
@@ -120,7 +121,7 @@ cargo test -p rpci-settings-iced
 
 ## 限制
 
-- 没有配置热加载；“保存并应用”通过 systemd 重启。
+- 仅候选数量/主题热加载；拼音兜底/默认英文需要“保存并应用”或重启。
 - 恢复依赖 systemd 单元；没有单元时需要手动重启。
 - iced 窗口是普通 xdg_toplevel，不是 libcosmic 控件。
 - SCTK 回退只支持键盘，且没有恢复 UI。
@@ -128,6 +129,6 @@ cargo test -p rpci-settings-iced
 
 ## 后续
 
-- 增加配置热加载。
+- 增加拼音兜底/默认英文模式热加载。
 - 增加恢复确认对话框和失败回滚提示。
 - 评估 libcosmic 迁移。
