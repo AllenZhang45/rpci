@@ -91,7 +91,9 @@
 - [x] 写一个最小 `zwp_text_input_v3` 客户端，直接打印 CommitString，确认上屏路径。
 - [ ] 在 Qt、VS Code、浏览器地址栏重复。
 - [x] 创建 input_popup_surface，画一个纯色矩形，确认位置跟随光标。
-  - 已验证 surface 创建、220x64 buffer 提交、`TextInputRectangle { x: 0, y: 0, width: 200, height: 24 }` 事件；视觉确认待补。
+  - 已验证 surface 创建、220x64 buffer 提交、`TextInputRectangle { x: 0, y: 0, width: 200, height: 24 }` 事件。
+- [x] 用 cosmic-text 把预编辑和候选渲染进 popup（520x48）。
+  - 调试 PNG 显示 `wqiy 1.你 2.仰泳`，见 [候选条渲染](assets/candidate-popup.png)。
 - [ ] 在屏幕底部测试翻转/裁切；有条件时在 HiDPI 下测试缩放。
 - [ ] 记录：哪些应用提交失败，popup 是否正常。
 
@@ -100,6 +102,14 @@
 - 创建了 input_popup_surface，附加 220x64 的纯色 buffer，提交无协议错误。
 - 收到 `TextInputRectangle { x: 0, y: 0, width: 200, height: 24 }`，说明合成器给出了文本输入区域。
 - 未做视觉确认；屏幕底部翻转、边缘裁切、HiDPI 还未测。
+
+#### 候选渲染结果（2026-10-20）
+
+- popup 改为 520x48，用 cosmic-text 排版、手动 alpha blend 写入 ARGB buffer。
+- 调试输出 `assets/candidate-popup.png` 显示：`wqiy 1.你 2.仰泳`。
+- 说明候选内容已正确绘制到 popup buffer；屏幕上的实际位置/可见性仍建议肉眼确认。
+
+![候选条渲染](assets/candidate-popup.png)
 
 #### Day 4 commit 结果（2026-10-20）
 
@@ -157,7 +167,7 @@
 | grab | ✅ 已验证 | keymap/modifiers/key 均收到 |
 | commit（协议路径） | ✅ 已验证 | text-input 客户端收到 "测试"（6 字节 UTF-8） |
 | commit（GTK4/Qt/Electron/浏览器） | 待测 | 应用矩阵 |
-| popup 定位/翻转 | 部分验证 | surface 创建、rectangle 事件；翻转/裁切/HiDPI 待测 |
+| popup 定位/翻转 | 部分验证 | surface、rectangle、文本渲染已验证；翻转/裁切/HiDPI 待测 |
 | 按键透传 | IME 侧可用，普通客户端投递待确认 | 注入 keycode 30 可被 IME grab 收到 |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
