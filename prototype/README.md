@@ -128,6 +128,14 @@ cargo run -p ime-probe --bin textinput
 
 开发时可用 `IME_PROFILE=debug IME_SKIP_BUILD=1` 复用已有 debug 构建。
 
+安装后验证：
+
+```bash
+./prototype/scripts/verify-install.sh
+```
+
+autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs/INSTALL-VERIFICATION.md](../docs/INSTALL-VERIFICATION.md)。
+
 ## 设置
 
 ```bash
