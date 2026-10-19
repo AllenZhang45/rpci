@@ -289,7 +289,7 @@ impl App {
 
         container(
             scrollable(
-                column![title, general, candidates, dictionary, footer]
+                column![title, general, dictionary, candidates, footer]
                     .spacing(20)
                     .width(Length::Fill),
             )
