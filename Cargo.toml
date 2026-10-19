@@ -1,0 +1,3 @@
+[workspace]
+members = ["prototype"]
+resolver = "3"
