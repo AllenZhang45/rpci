@@ -110,10 +110,12 @@ cargo test -p rpci-settings-iced
 - 配置修改写入 `config.toml`
 - `ime-settings apply` 实测会更换输入法 PID
 - 备份/导入的底层逻辑由 `backup` 模块测试覆盖
+- 已用等价 CLI 流程验证恢复：停止单元 → `ime-settings import <backup>` → 启动单元 → 输入「你」
+- GUI“恢复所选”调用同一 `import_from` + stop/start 逻辑
 
 未验证：
 
-- 通过鼠标实际点击“恢复所选”完成一次恢复（UI 逻辑已接好，底层导入已有测试）
+- 通过鼠标实际点击“恢复所选”完成一次恢复（UI 逻辑已接好）
 - 恢复后重启失败时的完整回滚演练
 
 ## 限制
