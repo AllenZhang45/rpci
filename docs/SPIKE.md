@@ -108,6 +108,16 @@
 - 结论：**激活 → grab → commit 上屏链路已打通**。
 - 本次 `cosmic-term` 的 `cat` 接收端没有收到提交，可能是终端不把 IME 提交写入 PTY；属于应用侧差异，应用矩阵里要单独记录。
 
+#### RIME 接入结果（2026-10-20）
+
+- Wubi86 schema 部署成功，候选示例：
+  - `w` → 人 / 你 / 他 / 个 / 会
+  - `wq` → 你 / 低 / 像 / 爸 / 爷
+  - `wqiy` → 你 / 仰泳
+- 按空格选第一个候选，提交"你"；text-input 客户端收到 `COMMIT: "你"`，文件为 `e4 bd a0`。
+- 端到端链路：虚拟键盘 → COSMIC → IME grab → xkb → RIME wubi86 → `commit_string` → 文本输入框。
+- 仍未做：拼音兜底、候选 popup 内容、真实应用矩阵、透传。
+
 ### Day 5：透传与结论
 
 - [ ] 测试英文模式/未处理按键：字母、方向键、Ctrl+C。
@@ -143,4 +153,5 @@
 | popup 定位/翻转 | 部分验证 | surface 创建、rectangle 事件；翻转/裁切/HiDPI 待测 |
 | 按键透传 | IME 侧可用，普通客户端投递待确认 | 注入 keycode 30 可被 IME grab 收到 |
 | HiDPI | 待实测 |  |
-| RIME 接入（第 2 周） | librime 1.10.0 已安装，待接入 |  |
+| RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
+| 拼音兜底 | 待做 | 第二个 RIME 会话或混合 schema |
