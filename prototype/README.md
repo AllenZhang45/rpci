@@ -20,6 +20,7 @@
 |---|---|---|
 | 合成 text-input 客户端 | ✅ | 收到 `COMMIT "你"` |
 | cosmic-edit | ✅ | `wqiy` + space 后 Ctrl+S，文件内容为 `你` |
+| LibreOffice Writer | ✅ | `wqiy` + space 后 Ctrl+S，ODT 的 `content.xml` 含 `你` |
 | cosmic-term | ⚠️ | 能激活，但提交未写入 PTY |
 | Firefox（Wayland） | ❌ | 页面已聚焦，但未收到 `Activate`，待查 text-input/焦点兼容 |
 

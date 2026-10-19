@@ -160,6 +160,7 @@
 #### 应用矩阵结果（2026-10-20）
 
 - cosmic-edit（`com.system76.CosmicEdit`）：`wqiy` + space 提交「你」；再 Ctrl+S，`/tmp/ime-app.txt` 为 `e4 bd a0`。真实应用链路成立。
+- LibreOffice Writer（GTK3/Wayland）：Activate 成功；`wqiy` + space 后 Ctrl+S，`/tmp/ime-app.odt` 的 `content.xml` 含「你」。
 - Firefox（158，Wayland，测试页已聚焦）：进程已加载 `libwayland-client`，但 COSMIC 只暴露 `zwp_text_input_manager_v3` v1；未收到 `Activate`，推测是 Firefox 与 COSMIC 的 text-input 协议版本/实现不匹配，不是 IME 自身能单独修复的问题。
 - cosmic-term：此前能激活，但提交没有写入 PTY；属于应用侧差异。
 - 合成 `zwp_text_input_v3` 客户端：✅。
@@ -210,6 +211,7 @@
 | 中文标点 | ✅ 已验证 | . , ? → 。，？ |
 | 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
 | 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
+| LibreOffice Writer | ✅ | wqiy → 你，ODT content.xml 含 你 |
 | Firefox | ❌ 未激活 | 需查 text-input/焦点兼容 |
 | XDG 词库目录 | ✅ | ~/.local/share/rpci/rime |
 | HiDPI | 待实测 |  |
