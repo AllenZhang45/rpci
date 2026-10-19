@@ -111,6 +111,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 15, 1);
         state.vk.key(0, 15, 0);
         println!("sent Tab");
+    } else if mode == "select2" {
+        for keycode in [17u32, 16, 23, 21] {
+            state.vk.key(0, keycode, 1);
+            state.vk.key(0, keycode, 0);
+        }
+        state.vk.key(0, 3, 1);
+        state.vk.key(0, 3, 0);
+        println!("sent wqiy + digit 2");
     } else if mode == "enter" {
         state.vk.key(0, 28, 1);
         state.vk.key(0, 28, 0);
