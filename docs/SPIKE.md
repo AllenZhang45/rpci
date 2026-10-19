@@ -135,6 +135,13 @@
 - 端到端链路与 Wubi 相同；确认规则"超过 4 码或无五笔候选时转拼音"可用。
 - 限制：1–4 码的拼音词如果存在五笔候选，仍会走五笔；需要显式拼音/临时拼音键才能覆盖（后续再做）。
 
+#### 透传结果（2026-10-20）
+
+- 在键盘 grab 状态下收到 F1 后：释放 grab → `zwp_virtual_keyboard_v1` 注入 F1 → 重新 grab。
+- text-input 客户端收到 F1 press/release，说明"释放 + 虚拟键盘注入 + 重新 grab"的透传机制成立。
+- 注意：只能有一个 input method 实例；多实例会收到 `Unavailable`，RIME userdb 也会锁冲突。测试前先清理旧进程。
+- 待做：通用键（方向键、Ctrl/Alt/Super 组合、Tab、功能键、标点）的转发策略与中文标点。
+
 ### Day 5：透传与结论
 
 - [ ] 测试英文模式/未处理按键：字母、方向键、Ctrl+C。
@@ -168,7 +175,7 @@
 | commit（协议路径） | ✅ 已验证 | text-input 客户端收到 "测试"（6 字节 UTF-8） |
 | commit（GTK4/Qt/Electron/浏览器） | 待测 | 应用矩阵 |
 | popup 定位/翻转 | 部分验证 | surface、rectangle、文本渲染已验证；翻转/裁切/HiDPI 待测 |
-| 按键透传 | IME 侧可用，普通客户端投递待确认 | 注入 keycode 30 可被 IME grab 收到 |
+| 按键透传 | 机制已验证（F1） | 释放 grab + vk 注入 + 重新 grab；通用键待做 |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
 | 拼音兜底 | ✅ 已验证 | nihao → "你好"；第 5 码自动切换 |
