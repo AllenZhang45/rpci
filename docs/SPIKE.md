@@ -157,6 +157,13 @@
 - Ctrl+Space 走同一套 toggle 逻辑，尚未单独实测。
 - 英文模式下列表/标点/方向键都按透传处理，不再交给 RIME。
 
+#### 应用矩阵结果（2026-10-20）
+
+- cosmic-edit（`com.system76.CosmicEdit`）：`wqiy` + space 提交「你」；再 Ctrl+S，`/tmp/ime-app.txt` 为 `e4 bd a0`。真实应用链路成立。
+- Firefox（Wayland，测试页已聚焦）：未收到 `Activate`，输入法没有接管；需继续排查 Firefox 的 text-input-v3 支持或页面焦点。
+- cosmic-term：此前能激活，但提交没有写入 PTY；属于应用侧差异。
+- 合成 `zwp_text_input_v3` 客户端：✅。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -194,7 +201,9 @@
 | popup 定位/翻转 | 部分验证 | surface、rectangle、文本渲染已验证；翻转/裁切/HiDPI 待测 |
 | 按键透传 | ✅ 通用规则已接入 | F1/Right/Ctrl+C 已验证；英文模式待做 |
 | 中文标点 | ✅ 已验证 | . , ? → 。，？ |
-| 中英切换 | ✅ F2 已验证 | Ctrl+Space 同一逻辑，待实测 |
+| 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
+| 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
+| Firefox | ❌ 未激活 | 需查 text-input/焦点兼容 |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
 | 拼音兜底 | ✅ 已验证 | nihao → "你好"；第 5 码自动切换 |

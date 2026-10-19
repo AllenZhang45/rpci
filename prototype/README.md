@@ -14,6 +14,17 @@
 - 中文标点：`.` → 。、`,` → ，、`?` → ？
 - 中英切换：F2 / Ctrl+Space；英文模式下所有按键透传
 
+## 应用矩阵（当前）
+
+| 应用 | 结果 | 验证方式 |
+|---|---|---|
+| 合成 text-input 客户端 | ✅ | 收到 `COMMIT "你"` |
+| cosmic-edit | ✅ | `wqiy` + space 后 Ctrl+S，文件内容为 `你` |
+| cosmic-term | ⚠️ | 能激活，但提交未写入 PTY |
+| Firefox（Wayland） | ❌ | 页面已聚焦，但未收到 `Activate`，待查 text-input/焦点兼容 |
+
+Firefox 测试页可用 `scripts/firefox-test-server.py` 启动，访问 `http://127.0.0.1:8765/`。
+
 ## 目录
 
 - `src/main.rs`：IME 主程序
@@ -94,3 +105,4 @@ cargo run -p ime-probe --bin textinput
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - 用户词库/配置仍使用 `/tmp/rime-user` 默认路径，尚未接入 XDG 目录
 - 无临时拼音键、无设置界面
+- Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
