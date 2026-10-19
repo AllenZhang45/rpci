@@ -172,6 +172,11 @@
 - 用默认路径实测 `wqiy` + space 仍提交「你」。
 - `/tmp/rime-user` 只作为没有 HOME/XDG 时的最后回退。
 
+#### 单实例保护（2026-10-20）
+
+- 第二个 `ime-probe` 收到 `Unavailable` 后打印提示并退出，不再留下僵尸实例。
+- 避免 RIME userdb 被多个进程同时占用。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。

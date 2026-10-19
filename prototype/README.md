@@ -102,7 +102,7 @@ cargo run -p ime-probe --bin textinput
 
 ## 已知限制
 
-- 同一 seat 只能有一个 input method 实例；多开会收到 `Unavailable`，RIME userdb 也会锁冲突
+- 同一 seat 只能有一个 input method 实例；第二个实例会收到 `Unavailable` 并直接退出
 - Tab、Alt/Super 组合的透传尚未完善
 - 候选条在真实应用中的位置、屏幕边缘翻转、HiDPI 尚未验证
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
