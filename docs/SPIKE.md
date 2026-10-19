@@ -160,7 +160,7 @@
 #### 应用矩阵结果（2026-10-20）
 
 - cosmic-edit（`com.system76.CosmicEdit`）：`wqiy` + space 提交「你」；再 Ctrl+S，`/tmp/ime-app.txt` 为 `e4 bd a0`。真实应用链路成立。
-- Firefox（Wayland，测试页已聚焦）：未收到 `Activate`，输入法没有接管；需继续排查 Firefox 的 text-input-v3 支持或页面焦点。
+- Firefox（158，Wayland，测试页已聚焦）：进程已加载 `libwayland-client`，但 COSMIC 只暴露 `zwp_text_input_manager_v3` v1；未收到 `Activate`，推测是 Firefox 与 COSMIC 的 text-input 协议版本/实现不匹配，不是 IME 自身能单独修复的问题。
 - cosmic-term：此前能激活，但提交没有写入 PTY；属于应用侧差异。
 - 合成 `zwp_text_input_v3` 客户端：✅。
 
