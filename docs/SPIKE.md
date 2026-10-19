@@ -144,10 +144,18 @@
 - 注意：只能有一个 input method 实例；多实例会收到 `Unavailable`，RIME userdb 也会锁冲突。测试前先清理旧进程。
 - 仍未做：英文模式、Tab、中文标点、Alt/Super 组合。
 
+#### 中文标点结果（2026-10-20）
+
+- RIME wubi86 的 punctuator：`.` → 。，`,` → ，，`?` → ？。
+- IME 将 ASCII 标点交给 RIME，提交中文标点；text-input 客户端依次收到 `COMMIT "。"` / `COMMIT "，"`。
+- Ctrl/Alt/Super + 标点仍走透传。
+- 英文模式尚未实现；标点目前固定走中文。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
-- [ ] 测试英文模式与中文标点。
+- [x] 测试中文标点。
+- [ ] 测试英文模式。
 - [ ] 若按键被吞，尝试 virtual-keyboard 转发，记录是否可行。
 - [ ] 填"协议能力表"：激活、grab、commit、popup、透传、HiDPI。
 - [ ] 写结论：继续 / 降级 / 转 Fcitx5 前端。
@@ -178,7 +186,8 @@
 | commit（协议路径） | ✅ 已验证 | text-input 客户端收到 "测试"（6 字节 UTF-8） |
 | commit（GTK4/Qt/Electron/浏览器） | 待测 | 应用矩阵 |
 | popup 定位/翻转 | 部分验证 | surface、rectangle、文本渲染已验证；翻转/裁切/HiDPI 待测 |
-| 按键透传 | ✅ 通用规则已接入 | F1/Right/Ctrl+C 已验证；英文模式/标点待做 |
+| 按键透传 | ✅ 通用规则已接入 | F1/Right/Ctrl+C 已验证；英文模式待做 |
+| 中文标点 | ✅ 已验证 | . , ? → 。，？ |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
 | 拼音兜底 | ✅ 已验证 | nihao → "你好"；第 5 码自动切换 |
