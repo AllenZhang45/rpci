@@ -107,6 +107,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 56, 0);
         state.vk.modifiers(0, 0, 0, 0);
         println!("sent alt+tab");
+    } else if mode == "tab" {
+        state.vk.key(0, 15, 1);
+        state.vk.key(0, 15, 0);
+        println!("sent Tab");
+    } else if mode == "ctrl-s" {
+        state.vk.key(0, 29, 1);
+        state.vk.key(0, 31, 1);
+        state.vk.key(0, 31, 0);
+        state.vk.key(0, 29, 0);
+        println!("sent Ctrl+S");
+    } else if mode == "ctrl-space" {
+        state.vk.key(0, 29, 1);
+        state.vk.key(0, 57, 1);
+        state.vk.key(0, 57, 0);
+        state.vk.key(0, 29, 0);
+        println!("sent Ctrl+Space");
     } else if mode == "toggle" {
         state.vk.key(0, 60, 1);
         state.vk.key(0, 60, 0);

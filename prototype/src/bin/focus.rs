@@ -149,15 +149,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
+    let filter = std::env::args().nth(1).map(|s| s.to_lowercase());
     let target = state
         .toplevels
         .iter()
         .find(|t| {
             let hay = format!("{:?} {:?}", t.app_id, t.title).to_lowercase();
-            hay.contains("cosmicterm")
-                || hay.contains("terminal")
-                || hay.contains("终端")
-                || hay.contains("cosmic-edit")
+            match &filter {
+                Some(filter) => hay.contains(filter),
+                None => {
+                    hay.contains("cosmicterm")
+                        || hay.contains("terminal")
+                        || hay.contains("终端")
+                        || hay.contains("cosmic-edit")
+                }
+            }
         })
         .map(|t| (t.handle.clone(), t.title.clone()));
 
