@@ -219,6 +219,13 @@
 - 临时目录实测：备份、导出、删除后导入，`user.yaml` 与 `wubi86.userdb/CURRENT` 均恢复。
 - `cargo test -p ime-probe`：25 个测试通过。
 
+#### 候选窗显示修复（2026-10-20）
+
+- 用户反馈候选窗不显示；调试 PNG 正常，说明渲染内容没有问题。
+- 根因：buffer 只在初始化时 attach，后续 draw 只 commit，COSMIC 没有重新读取 shm。
+- 修复：每帧重新 attach buffer；首次 attach 前设置 buffer scale 2。
+- 实测 release：屏幕截图可见 `wqiy 1.你 2.仰泳` 候选窗。
+
 #### 状态指示结果（2026-10-20）
 
 - 用 `zwlr_layer_shell_v1` 在右上角创建一个 140×28 的逻辑状态胶囊，2x 渲染。

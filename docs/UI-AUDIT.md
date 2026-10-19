@@ -45,6 +45,17 @@ cargo test -p rpci-settings-iced
 
 ![HIG 候选窗](assets/popup-hig.png)
 
+### 候选窗不显示修复（2026-10-20）
+
+用户反馈候选窗不显示。实际根因不是圆角/配色，而是 buffer 生命周期：
+
+- 初始化时 `attach` 了 buffer，但后续 `PopupRenderer::draw` 只写 mmap + `damage` + `commit`，没有重新 `attach`。
+- COSMIC 不会在只 damage 的情况下重新读取同一块 shm 内容，候选窗一直停留在初始化时的透明帧。
+- 修复：每次 draw 都 `attach(buffer)` + `damage_buffer` + `commit`；并把 `set_buffer_scale(2)` 移到首次 attach 之前。
+- 实测：release 输入法在测试窗口中显示 `wqiy 1.你 2.仰泳`，见下方屏幕截图。
+
+![候选窗实际显示](assets/popup-visible.png)
+
 边界：
 
 - 未实现屏幕边缘翻转验证。
