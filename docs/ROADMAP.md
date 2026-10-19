@@ -33,19 +33,7 @@
 
 按优先级排列。每项完成后更新 [STATUS.md](STATUS.md)，不要只改本文件。
 
-### 1. 提交 Firefox 上游 Issue
-
-**为什么**：Firefox 158 在 COSMIC 下不发送 `Activate`，这是当前最大的应用缺口。
-
-**做什么**：
-
-- 按 [FIREFOX.md](FIREFOX.md) 的草案收集日志与版本
-- 提交 Mozilla Bugzilla / COSMIC 上游
-- 跟进回复，测试修复版本
-
-**验收**：issue 有链接；得到确认/修复；或形成有依据的“暂不支持”结论。
-
-### 2. 设置界面收尾
+### 1. 设置界面收尾
 
 **为什么**：iced 主入口已可用，但仍有明显缺口。
 
@@ -57,7 +45,7 @@
 
 **验收**：热加载或一键重启可用；恢复流程已在 GUI 完成；真实 COSMIC 会话目视通过。
 
-### 3. 应用矩阵补齐
+### 2. 应用矩阵补齐
 
 **为什么**：Qt6、Electron、Chromium、Flatpak 没有样本。
 
@@ -70,7 +58,7 @@
 
 **验收**：四类应用各有明确结论；失败项有日志与 workaround。
 
-### 4. 真正的 COSMIC Panel Applet
+### 3. 真正的 COSMIC Panel Applet
 
 **为什么**：当前是 layer-shell 胶囊，不参与面板布局。
 
@@ -84,7 +72,7 @@
 
 **风险**：上游 applet API 未确认；引入 IPC 需要重新评审单进程架构。
 
-### 5. XWayland / XIM
+### 4. XWayland / XIM
 
 **为什么**：xterm 390 在 XWayland 下没有 `Activate`。
 
@@ -97,7 +85,7 @@
 
 **风险**：XIM 是另一套协议栈，不建议在当前 Wayland 原型内直接实现。
 
-### 6. 打包与升级
+### 5. 打包与升级
 
 **为什么**：目前只有 `install.sh`，没有 `.deb`/升级/回滚流程。
 
@@ -109,14 +97,17 @@
 
 **验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。
 
+## 暂不执行
+
+- **提交 Firefox 上游 issue**：当前输入法仅个人使用，暂不向上游提交。问题、复现步骤和 issue 草案保留在 [FIREFOX.md](FIREFOX.md)，需要时可直接使用。
+
 ## 执行顺序
 
-1. Firefox 上游 issue（成本低、影响大）
-2. 设置界面收尾
-3. 应用矩阵补齐
-4. 打包与升级
-5. Panel applet（依赖上游）
-6. XWayland/XIM（最后评估）
+1. 设置界面收尾
+2. 应用矩阵补齐
+3. 打包与升级
+4. Panel applet（依赖上游）
+5. XWayland/XIM（最后评估）
 
 ## 非目标
 
