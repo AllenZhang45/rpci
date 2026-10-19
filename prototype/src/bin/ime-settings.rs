@@ -1,5 +1,7 @@
+use std::path::Path;
 use std::process::ExitCode;
 
+use ime_probe::backup::{self, KEEP_BACKUPS, default_paths};
 use ime_probe::config::{Config, config_path};
 
 fn main() -> ExitCode {
@@ -16,6 +18,47 @@ fn main() -> ExitCode {
                 }
             }
             ExitCode::SUCCESS
+        }
+        [cmd] if cmd == "backup" => {
+            let paths = default_paths();
+            eprintln!("tip: stop the input method before backup for a consistent userdb");
+            match backup::backup_now(&paths, KEEP_BACKUPS) {
+                Ok(path) => {
+                    println!("{}", path.display());
+                    ExitCode::SUCCESS
+                }
+                Err(err) => fail(err),
+            }
+        }
+        [cmd] if cmd == "backups" => match backup::list_backups(&default_paths()) {
+            Ok(backups) => {
+                for path in backups {
+                    println!("{}", path.display());
+                }
+                ExitCode::SUCCESS
+            }
+            Err(err) => fail(err),
+        },
+        [cmd, dir] if cmd == "export" => {
+            let paths = default_paths();
+            eprintln!("tip: stop the input method before export for a consistent userdb");
+            match backup::export_to(&paths, Path::new(dir)) {
+                Ok(()) => {
+                    println!("exported to {dir}");
+                    ExitCode::SUCCESS
+                }
+                Err(err) => fail(err),
+            }
+        }
+        [cmd, dir] if cmd == "import" => {
+            let paths = default_paths();
+            match backup::import_from(&paths, Path::new(dir)) {
+                Ok(()) => {
+                    println!("imported from {dir}");
+                    ExitCode::SUCCESS
+                }
+                Err(err) => fail(err),
+            }
         }
         [cmd] if cmd == "reset" => {
             let config = Config::default();
@@ -57,6 +100,7 @@ fn main() -> ExitCode {
         _ => {
             eprintln!(
                 "usage: ime-settings [show|path|reset|get <key>|set <key> <value>]\n\
+                 ime-settings [backup|backups|export <dir>|import <dir>]\n\
                  keys: ascii_mode_default, pinyin_fallback, candidate_count, theme"
             );
             ExitCode::FAILURE
