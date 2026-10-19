@@ -200,6 +200,7 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
             }
             zwp_input_method_v2::Event::Deactivate => {
                 state.forwarded_keys.clear();
+                state.popup_renderer.draw("");
                 if let Some(grab) = state.grab.take() {
                     grab.release();
                     println!("  -> released grab");
