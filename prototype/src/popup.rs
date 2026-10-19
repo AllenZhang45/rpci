@@ -4,8 +4,13 @@ use std::path::PathBuf;
 use memmap2::MmapMut;
 use wayland_client::protocol::{wl_buffer, wl_shm_pool, wl_surface};
 
+/// Logical size in surface coordinates.
 pub const POPUP_W: u32 = 520;
 pub const POPUP_H: u32 = 48;
+/// Render at 2x for HiDPI; the compositor scales down on 1x outputs.
+pub const POPUP_SCALE: u32 = 2;
+pub const POPUP_PIXEL_W: u32 = POPUP_W * POPUP_SCALE;
+pub const POPUP_PIXEL_H: u32 = POPUP_H * POPUP_SCALE;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Theme {
@@ -72,7 +77,11 @@ impl PopupRenderer {
         mmap: MmapMut,
     ) -> Self {
         let mut font_system = FontSystem::new();
-        let text_buffer = Buffer::new(&mut font_system, Metrics::new(17.0, 22.0));
+        let text_buffer = Buffer::new(
+            &mut font_system,
+            Metrics::new(17.0 * POPUP_SCALE as f32, 22.0 * POPUP_SCALE as f32),
+        );
+        surface.set_buffer_scale(POPUP_SCALE as i32);
         Self {
             font_system,
             swash_cache: SwashCache::new(),
@@ -102,8 +111,8 @@ impl PopupRenderer {
     }
 
     pub fn draw(&mut self, text: &str) {
-        let width = POPUP_W as usize;
-        let height = POPUP_H as usize;
+        let width = POPUP_PIXEL_W as usize;
+        let height = POPUP_PIXEL_H as usize;
         let mut canvas = vec![0u8; width * height * 4];
 
         if text.is_empty() {
@@ -111,7 +120,7 @@ impl PopupRenderer {
             Self::save_debug_png(&canvas, width, height);
             self.mmap.copy_from_slice(&canvas);
             self.surface
-                .damage_buffer(0, 0, POPUP_W as i32, POPUP_H as i32);
+                .damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
             self.surface.commit();
             return;
         }
@@ -163,7 +172,7 @@ impl PopupRenderer {
         Self::save_debug_png(&canvas, width, height);
         self.mmap.copy_from_slice(&canvas);
         self.surface
-            .damage_buffer(0, 0, POPUP_W as i32, POPUP_H as i32);
+            .damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
         self.surface.commit();
     }
 }

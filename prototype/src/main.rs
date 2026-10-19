@@ -26,7 +26,7 @@ mod engine;
 mod popup;
 
 use engine::{EngineOutput, HybridEngine};
-use popup::{POPUP_H, POPUP_W, PopupRenderer};
+use popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
 
 struct State {
     _seat: wl_seat::WlSeat,
@@ -334,8 +334,8 @@ fn create_popup_buffer(
     shm: &wl_shm::WlShm,
     qh: &QueueHandle<State>,
 ) -> Result<(wl_shm_pool::WlShmPool, wl_buffer::WlBuffer, MmapMut), Box<dyn std::error::Error>> {
-    let stride = POPUP_W as i32 * 4;
-    let size = stride * POPUP_H as i32;
+    let stride = POPUP_PIXEL_W as i32 * 4;
+    let size = stride * POPUP_PIXEL_H as i32;
 
     let cname = std::ffi::CString::new("ime-popup")?;
     let fd = unsafe { libc::memfd_create(cname.as_ptr(), libc::MFD_CLOEXEC) };
@@ -351,8 +351,8 @@ fn create_popup_buffer(
     let pool = shm.create_pool(file.as_fd(), size, qh, ());
     let buffer = pool.create_buffer(
         0,
-        POPUP_W as i32,
-        POPUP_H as i32,
+        POPUP_PIXEL_W as i32,
+        POPUP_PIXEL_H as i32,
         stride,
         wl_shm::Format::Argb8888,
         qh,
@@ -402,7 +402,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (pool, buffer, mmap) = create_popup_buffer(&shm, &qh)?;
 
     popup_surface.attach(Some(&buffer), 0, 0);
-    popup_surface.damage_buffer(0, 0, POPUP_W as i32, POPUP_H as i32);
+    popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
     popup_surface.commit();
     let popup_renderer = PopupRenderer::new(popup_surface.clone(), buffer, pool, mmap);
 
