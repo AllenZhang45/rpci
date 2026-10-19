@@ -17,11 +17,24 @@
 ## 前置条件
 
 - Pop!_OS 24.04 / COSMIC，Wayland 会话。
-- Rust 工具链（当前环境未安装 cargo，需先装 rustup）。
+- Rust 工具链（已安装 rustup；非交互 shell 需把 `$HOME/.cargo/bin` 加入 PATH）。
 - Wayland/xkb 开发库（`libwayland-dev`、`libxkbcommon-dev`）。
 - librime 开发包，或从源码构建。
 - 测试应用：GTK4 应用、Qt 应用、VS Code、Firefox/Chromium。
 - 能查看会话日志（journalctl 或临时开 debug 日志）。
+
+### 当前环境检查（2026-10-20）
+
+- 系统：Pop!_OS 24.04 LTS，COSMIC，Wayland socket `/run/user/1000/wayland-1`。
+- Rust：1.99.1（`~/.cargo/bin`，当前非交互 shell 的 PATH 未包含）。
+- 已具备：`libwayland-dev`、`wayland-scanner`、`gcc`、`pkg-config`；crates.io 可访问。
+- 缺少：`libxkbcommon-dev`、`wayland-protocols`、`librime-dev`、`wayland-utils`。
+- 当前没有 fcitx5/ibus 在跑。
+- 安装命令（需要 sudo 密码）：
+
+  ```bash
+  sudo apt install libxkbcommon-dev wayland-protocols librime-dev wayland-utils
+  ```
 
 ## 第 1 周：协议最小闭环
 
