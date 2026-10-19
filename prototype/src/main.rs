@@ -259,6 +259,23 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
 }
 
 fn forward_key(state: &mut State, qh: &QueueHandle<State>, keycode: u32, pressed: bool) {
+    // Enter (and keypad Enter) are sent as a complete tap. Re-grabbing between
+    // press and release can make the application miss the key-up, so the
+    // editor never inserts a newline.
+    if matches!(keycode, 28 | 96) {
+        if !pressed {
+            return;
+        }
+        if let Some(grab) = state.grab.take() {
+            grab.release();
+        }
+        state.vk.key(0, keycode, 1);
+        state.vk.key(0, keycode, 0);
+        state.grab = Some(state.im.grab_keyboard(qh, ()));
+        println!("PASSTHROUGH keycode={keycode} tap");
+        return;
+    }
+
     if let Some(grab) = state.grab.take() {
         grab.release();
     }
