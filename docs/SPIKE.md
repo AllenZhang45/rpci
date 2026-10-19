@@ -184,6 +184,11 @@
 
 ![浅色候选条](assets/candidate-popup-light.png)
 
+#### 数字选词结果（2026-10-20）
+
+- `wqiy` 后按数字 2，提交「仰泳」；文件为 `e4 bb b0 e6 b3 b3`。
+- 说明数字 1–9 选词路径可用，不只是空格选第一个。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -221,6 +226,7 @@
 | popup 定位/翻转 | 部分验证 | surface、rectangle、文本渲染已验证；翻转/裁切/HiDPI 待测 |
 | 按键透传 | ✅ 通用规则已接入 | F1/Right/Ctrl+C 已验证；英文模式待做 |
 | 中文标点 | ✅ 已验证 | . , ? → 。，？ |
+| 数字选词 | ✅ 已验证 | wqiy + 2 → 仰泳 |
 | 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
 | 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
 | LibreOffice Writer | ✅ | wqiy → 你，ODT content.xml 含 你 |
