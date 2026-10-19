@@ -107,7 +107,10 @@ cargo run -p ime-probe --bin textinput
 - 同一 seat 只能有一个 input method 实例；第二个实例会收到 `Unavailable` 并直接退出
 - Tab、Alt/Super 组合的透传尚未完善
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
-- 候选条在真实应用中的位置、屏幕边缘翻转、HiDPI 尚未验证
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - 无临时拼音键、无设置界面
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
+
+## 路线图
+
+下一阶段优先级见 [docs/ROADMAP.md](../docs/ROADMAP.md)。
