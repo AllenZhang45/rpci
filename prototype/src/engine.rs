@@ -1,0 +1,395 @@
+use std::path::{Path, PathBuf};
+
+use rime_api::{Session, Traits};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Mode {
+    Wubi,
+    Pinyin,
+}
+
+pub struct EngineOutput {
+    pub mode: Mode,
+    pub preedit: String,
+    pub candidates: Vec<String>,
+    pub commit: Option<String>,
+    pub passthrough: bool,
+}
+
+const MOD_CTRL: u32 = 1 << 2;
+const MOD_ALT: u32 = 1 << 3;
+const MOD_SUPER: u32 = 1 << 6;
+
+fn rime_user_dir_from(xdg_data_home: Option<&Path>, home: Option<&Path>) -> PathBuf {
+    if let Some(xdg) = xdg_data_home {
+        xdg.join("rpci/rime")
+    } else if let Some(home) = home {
+        home.join(".local/share/rpci/rime")
+    } else {
+        PathBuf::from("/tmp/rime-user")
+    }
+}
+
+fn default_rime_user_dir() -> PathBuf {
+    let xdg = std::env::var_os("XDG_DATA_HOME").map(PathBuf::from);
+    let home = std::env::var_os("HOME").map(PathBuf::from);
+    rime_user_dir_from(xdg.as_deref(), home.as_deref())
+}
+
+fn should_toggle(keysym: u32, mods: u32) -> bool {
+    (keysym == 0x20 && mods & MOD_CTRL != 0) || keysym == 0xffbf
+}
+
+fn is_punctuation(keysym: u32) -> bool {
+    matches!(keysym, 0x21..=0x2f | 0x3a..=0x40 | 0x5b..=0x60 | 0x7b..=0x7e)
+}
+
+fn should_passthrough(keysym: u32, text: &str, mods: u32, composing: bool) -> bool {
+    if mods & (MOD_CTRL | MOD_ALT | MOD_SUPER) != 0 {
+        return true;
+    }
+    if !text.is_empty() && text.chars().all(|c| c.is_ascii_alphabetic()) {
+        return false;
+    }
+    if is_punctuation(keysym) {
+        return false;
+    }
+    match keysym {
+        0x20 | 0x31..=0x39 => !composing,
+        0xff08 => !composing,
+        0xff1b | 0xff0d => !composing,
+        _ => true,
+    }
+}
+
+fn choose_mode(letters_len: usize, wubi_candidate_count: usize) -> Mode {
+    if letters_len > 4 || wubi_candidate_count == 0 {
+        Mode::Pinyin
+    } else {
+        Mode::Wubi
+    }
+}
+
+pub struct HybridEngine {
+    _traits: Traits,
+    wubi: Session,
+    pinyin: Session,
+    letters: String,
+    mode: Mode,
+    ascii_mode: bool,
+}
+
+impl HybridEngine {
+    pub fn new() -> Self {
+        let shared_dir = std::env::var("IME_RIME_SHARED_DIR")
+            .unwrap_or_else(|_| "/usr/share/rime-data".to_string());
+        let user_dir = std::env::var("IME_RIME_USER_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| default_rime_user_dir());
+        let log_dir = user_dir.join("log");
+        let user_dir = user_dir.to_string_lossy().into_owned();
+        let log_dir = log_dir.to_string_lossy().into_owned();
+
+        let mut traits = Traits::new();
+        traits
+            .set_shared_data_dir(&shared_dir)
+            .set_user_data_dir(&user_dir)
+            .set_distribution_name("ime-probe")
+            .set_distribution_code_name("ime-probe")
+            .set_distribution_version("0.0.1")
+            .set_log_dir(&log_dir)
+            .set_min_log_level(3);
+
+        rime_api::setup(&mut traits);
+        rime_api::initialize(&mut traits);
+        let deploy = rime_api::full_deploy_and_wait();
+        println!("RIME deploy: {deploy:?}");
+
+        let wubi = rime_api::create_session().expect("wubi session");
+        wubi.select_schema("wubi86").expect("select wubi86");
+        let pinyin = rime_api::create_session().expect("pinyin session");
+        pinyin
+            .select_schema("pinyin_simp")
+            .expect("select pinyin_simp");
+
+        Self {
+            _traits: traits,
+            wubi,
+            pinyin,
+            letters: String::new(),
+            mode: Mode::Wubi,
+            ascii_mode: false,
+        }
+    }
+
+    fn feed(&self, session: &Session, keysym: u32) {
+        session.process_key(rime_api::KeyEvent::new(keysym, 0));
+    }
+
+    fn candidates_of(&self, session: &Session) -> (String, Vec<String>) {
+        if let Some(ctx) = session.context() {
+            let preedit = ctx.composition().preedit.unwrap_or_default().to_string();
+            let candidates = ctx
+                .menu()
+                .candidates
+                .iter()
+                .map(|c| c.text.to_string())
+                .collect();
+            (preedit, candidates)
+        } else {
+            (String::new(), Vec::new())
+        }
+    }
+
+    fn recur_mode(&mut self) {
+        let (_, wubi_candidates) = self.candidates_of(&self.wubi);
+        self.mode = choose_mode(self.letters.len(), wubi_candidates.len());
+    }
+
+    fn active(&self) -> &Session {
+        match self.mode {
+            Mode::Wubi => &self.wubi,
+            Mode::Pinyin => &self.pinyin,
+        }
+    }
+
+    fn reset(&mut self) {
+        self.feed(&self.wubi, 0xff1b);
+        self.feed(&self.pinyin, 0xff1b);
+        self.letters.clear();
+        self.mode = Mode::Wubi;
+    }
+
+    pub fn handle(&mut self, keysym: u32, text: &str, mods: u32) -> EngineOutput {
+        if should_toggle(keysym, mods) {
+            self.reset();
+            self.ascii_mode = !self.ascii_mode;
+            let label = if self.ascii_mode { "English" } else { "中文" };
+            return EngineOutput {
+                mode: self.mode,
+                preedit: label.to_string(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: false,
+            };
+        }
+
+        if self.ascii_mode {
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: true,
+            };
+        }
+
+        if should_passthrough(keysym, text, mods, !self.letters.is_empty()) {
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: true,
+            };
+        }
+
+        if !text.is_empty() && text.chars().all(|c| c.is_ascii_alphabetic()) {
+            self.feed(&self.wubi, keysym);
+            self.feed(&self.pinyin, keysym);
+            self.letters.push_str(text);
+            self.recur_mode();
+            let (preedit, candidates) = self.candidates_of(self.active());
+            return EngineOutput {
+                mode: self.mode,
+                preedit,
+                candidates,
+                commit: None,
+                passthrough: false,
+            };
+        }
+
+        if is_punctuation(keysym) {
+            self.feed(self.active(), keysym);
+            let commit = self.active().commit().map(|c| c.text().to_string());
+            let passthrough = commit.is_none();
+            if commit.is_some() {
+                self.letters.clear();
+                self.mode = Mode::Wubi;
+            }
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit,
+                passthrough,
+            };
+        }
+
+        match keysym {
+            0x20 | 0x31..=0x39 => {
+                self.feed(self.active(), keysym);
+                let commit = self.active().commit().map(|c| c.text().to_string());
+                if commit.is_some() {
+                    self.reset();
+                }
+                EngineOutput {
+                    mode: self.mode,
+                    preedit: String::new(),
+                    candidates: Vec::new(),
+                    commit,
+                    passthrough: false,
+                }
+            }
+            0xff08 => {
+                self.feed(&self.wubi, keysym);
+                self.feed(&self.pinyin, keysym);
+                self.letters.pop();
+                self.recur_mode();
+                let (preedit, candidates) = self.candidates_of(self.active());
+                EngineOutput {
+                    mode: self.mode,
+                    preedit,
+                    candidates,
+                    commit: None,
+                    passthrough: false,
+                }
+            }
+            0xff1b | 0xff0d => {
+                self.reset();
+                EngineOutput {
+                    mode: Mode::Wubi,
+                    preedit: String::new(),
+                    candidates: Vec::new(),
+                    commit: None,
+                    passthrough: false,
+                }
+            }
+            _ => EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: true,
+            },
+        }
+    }
+}
+
+impl Drop for HybridEngine {
+    fn drop(&mut self) {
+        let _ = self.wubi.close();
+        let _ = self.pinyin.close();
+        rime_api::finalize();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fallback_after_five_letters() {
+        assert_eq!(choose_mode(4, 2), Mode::Wubi);
+        assert_eq!(choose_mode(5, 2), Mode::Pinyin);
+    }
+
+    #[test]
+    fn fallback_without_wubi_candidates() {
+        assert_eq!(choose_mode(2, 0), Mode::Pinyin);
+        assert_eq!(choose_mode(2, 1), Mode::Wubi);
+    }
+}
+
+#[cfg(test)]
+mod passthrough_tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_shortcuts_pass_through() {
+        assert!(should_passthrough(0x63, "c", MOD_CTRL, false));
+        assert!(should_passthrough(0x76, "v", MOD_CTRL, true));
+    }
+
+    #[test]
+    fn plain_letters_are_handled() {
+        assert!(!should_passthrough(0x77, "w", 0, false));
+        assert!(!should_passthrough(0x57, "W", 0, true));
+    }
+
+    #[test]
+    fn navigation_keys_pass_through() {
+        assert!(should_passthrough(0xff53, "", 0, true));
+        assert!(should_passthrough(0xffbe, "", 0, false));
+    }
+
+    #[test]
+    fn space_and_digits_depend_on_composition() {
+        assert!(should_passthrough(0x20, " ", 0, false));
+        assert!(!should_passthrough(0x20, " ", 0, true));
+        assert!(should_passthrough(0x31, "1", 0, false));
+        assert!(!should_passthrough(0x31, "1", 0, true));
+    }
+}
+
+#[cfg(test)]
+mod punctuation_tests {
+    use super::*;
+
+    #[test]
+    fn punctuation_is_handled_unless_shortcut() {
+        assert!(!should_passthrough(0x2e, ".", 0, false));
+        assert!(!should_passthrough(0x3f, "?", 0, true));
+        assert!(should_passthrough(0x2e, ".", MOD_CTRL, false));
+    }
+
+    #[test]
+    fn punctuation_ranges() {
+        assert!(is_punctuation(0x2e));
+        assert!(is_punctuation(0x3f));
+        assert!(!is_punctuation(0x20));
+        assert!(!is_punctuation(0x61));
+    }
+}
+
+#[cfg(test)]
+mod toggle_tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_space_and_f2_toggle() {
+        assert!(should_toggle(0x20, MOD_CTRL));
+        assert!(should_toggle(0xffbf, 0));
+        assert!(!should_toggle(0x20, 0));
+        assert!(!should_toggle(0x61, 0));
+    }
+}
+
+#[cfg(test)]
+mod rime_path_tests {
+    use super::*;
+
+    #[test]
+    fn xdg_takes_precedence() {
+        assert_eq!(
+            rime_user_dir_from(Some(Path::new("/xdg")), Some(Path::new("/home/u"))),
+            PathBuf::from("/xdg/rpci/rime")
+        );
+    }
+
+    #[test]
+    fn home_fallback() {
+        assert_eq!(
+            rime_user_dir_from(None, Some(Path::new("/home/u"))),
+            PathBuf::from("/home/u/.local/share/rpci/rime")
+        );
+    }
+
+    #[test]
+    fn tmp_fallback() {
+        assert_eq!(
+            rime_user_dir_from(None, None),
+            PathBuf::from("/tmp/rime-user")
+        );
+    }
+}
