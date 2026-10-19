@@ -176,3 +176,5 @@ ime-settings import <dir>        # 从目录恢复
 ## 路线图
 
 下一阶段优先级见 [docs/ROADMAP.md](../docs/ROADMAP.md)。
+
+应用兼容性见 [docs/APP-MATRIX.md](../docs/APP-MATRIX.md)，Firefox 问题见 [docs/FIREFOX.md](../docs/FIREFOX.md)。

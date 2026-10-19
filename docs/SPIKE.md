@@ -228,6 +228,19 @@
 ![状态：中五](assets/status-zh.png)
 ![状态：英](assets/status-en.png)
 
+#### XWayland 结果（2026-10-20）
+
+- 用 XWayland 下的 xterm 390 测试：窗口聚焦后仍没有 `Activate`。
+- 虚拟键盘注入也没有观察到写入 xterm 的 `cat` 目标；X11 应用通常需要 XIM，而当前原型只实现 Wayland 协议。
+- 结论：XWayland 暂不支持，记录为范围外/待设计 XIM 路径。详见 [APP-MATRIX.md](APP-MATRIX.md)。
+
+#### Qt / Electron / Flatpak 环境限制（2026-10-20）
+
+- 系统有 Qt6 运行库，但没有可用 Qt6 应用；featherpad 是 Qt5 且缺 Qt5 库。
+- Electron/VS Code、Chromium 未安装。
+- Flatpak 已安装但没有已安装应用，无法测试。
+- 这些项在矩阵中标记为“未测”，不记为通过或失败。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -268,6 +281,8 @@
 | 数字选词 | ✅ 已验证 | wqiy + 2 → 仰泳 |
 | 编辑键 | ✅ 已验证 | Backspace / Esc 组合测试 |
 | 状态指示 | ✅ layer-shell 胶囊 | 中五 / 英 切换 |
+| XWayland（xterm 390） | ❌ 未激活 | 需要 XIM，当前不支持 |
+| Qt6/Electron/Chromium/Flatpak | 未测 | 环境无可用样本 |
 | 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
 | 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
 | LibreOffice Writer | ✅ | wqiy → 你，ODT content.xml 含 你 |

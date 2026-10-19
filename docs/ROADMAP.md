@@ -12,6 +12,8 @@
 - 2026-10-20：M1 的安装/卸载脚本、XDG 自启动、配置 CLI 已完成；独立设置 GUI 仍待做。
 - 2026-10-20：M2 的备份、导出、导入与保留策略已完成，含自动备份与恢复测试。
 - 2026-10-20：M3 以 layer-shell 状态胶囊实现（显示中/英、五笔/拼音）；COSMIC 第三方 panel applet API 未确认，暂不阻塞。
+- 2026-10-20：M4 应用矩阵扩展：cosmic-edit/LibreOffice 通过，Firefox/XWayland 未激活；Qt6/Electron/Flatpak 环境无样本，见 [APP-MATRIX.md](APP-MATRIX.md)。
+- 2026-10-20：M5 Firefox 证据与 issue 草案已整理，尚未向上游提交，见 [FIREFOX.md](FIREFOX.md)。
 
 ## 优先级总览
 
