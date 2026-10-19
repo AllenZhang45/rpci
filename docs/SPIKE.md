@@ -219,6 +219,15 @@
 - 临时目录实测：备份、导出、删除后导入，`user.yaml` 与 `wubi86.userdb/CURRENT` 均恢复。
 - `cargo test -p ime-probe`：25 个测试通过。
 
+#### 状态指示结果（2026-10-20）
+
+- 用 `zwlr_layer_shell_v1` 在右上角创建一个 140×28 的逻辑状态胶囊，2x 渲染。
+- 内容随输入法状态更新：中文五笔 `中 五`、中文拼音 `中 拼`、英文 `英`。
+- COSMIC 的第三方 panel applet API 尚未确认；这里先用 layer-shell 胶囊作为可用替代。
+
+![状态：中五](assets/status-zh.png)
+![状态：英](assets/status-en.png)
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -258,6 +267,7 @@
 | 中文标点 | ✅ 已验证 | . , ? → 。，？ |
 | 数字选词 | ✅ 已验证 | wqiy + 2 → 仰泳 |
 | 编辑键 | ✅ 已验证 | Backspace / Esc 组合测试 |
+| 状态指示 | ✅ layer-shell 胶囊 | 中五 / 英 切换 |
 | 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
 | 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
 | LibreOffice Writer | ✅ | wqiy → 你，ODT content.xml 含 你 |
