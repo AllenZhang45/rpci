@@ -137,7 +137,7 @@ cargo run -p ime-probe --bin textinput
 ./prototype/scripts/verify-install.sh
 ```
 
-autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs/INSTALL-VERIFICATION.md](../docs/INSTALL-VERIFICATION.md)。
+autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs/history/INSTALL-VERIFICATION.md](../docs/history/INSTALL-VERIFICATION.md)。
 
 ## 设置
 
@@ -198,12 +198,12 @@ ime-settings import <dir>        # 从目录恢复
 - 状态指示是 layer-shell 胶囊，不是 COSMIC panel applet；第三方 applet API 尚未确认
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 
-## 路线图
+## 文档
 
-下一阶段优先级见 [docs/ROADMAP.md](../docs/ROADMAP.md)。
-
-应用兼容性见 [docs/APP-MATRIX.md](../docs/APP-MATRIX.md)，Firefox 问题见 [docs/FIREFOX.md](../docs/FIREFOX.md)。
-
-架构约定见 [ADR 0004](../docs/adr/0004-three-layer.md)；协议/XDG/UI 审计见 [PROTOCOL-AUDIT](../docs/PROTOCOL-AUDIT.md)、[XDG-AUDIT](../docs/XDG-AUDIT.md)、[UI-AUDIT](../docs/UI-AUDIT.md)。
-
-后续 6 条建议见 [docs/NEXT-STEPS.md](../docs/NEXT-STEPS.md)。
+- 文档索引：[docs/README.md](../docs/README.md)
+- 当前状态：[docs/STATUS.md](../docs/STATUS.md)
+- 路线图：[docs/ROADMAP.md](../docs/ROADMAP.md)
+- 应用矩阵：[docs/APP-MATRIX.md](../docs/APP-MATRIX.md)
+- Firefox：[docs/FIREFOX.md](../docs/FIREFOX.md)
+- 架构：[ADR 0004](../docs/adr/0004-three-layer.md)、[ARCHITECTURE.md](../docs/ARCHITECTURE.md)
+- 审计：[PROTOCOL-AUDIT](../docs/PROTOCOL-AUDIT.md)、[XDG-AUDIT](../docs/XDG-AUDIT.md)、[UI-AUDIT](../docs/UI-AUDIT.md)

@@ -61,7 +61,7 @@
 
 ## 下一步
 
-1. 做协议 spike（第 1 周验证清单见 [SPIKE.md](SPIKE.md)）：COSMIC 激活 + grab + popup + commit。
+1. 做协议 spike（第 1 周验证清单见 [history/SPIKE.md](history/SPIKE.md)）：COSMIC 激活 + grab + popup + commit。
 2. 接入 RIME，跑通 86 五笔 + 拼音兜底。
 3. 按应用矩阵验收，记录指标。
 

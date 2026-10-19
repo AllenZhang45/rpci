@@ -251,7 +251,7 @@
 
 - 用 XWayland 下的 xterm 390 测试：窗口聚焦后仍没有 `Activate`。
 - 虚拟键盘注入也没有观察到写入 xterm 的 `cat` 目标；X11 应用通常需要 XIM，而当前原型只实现 Wayland 协议。
-- 结论：XWayland 暂不支持，记录为范围外/待设计 XIM 路径。详见 [APP-MATRIX.md](APP-MATRIX.md)。
+- 结论：XWayland 暂不支持，记录为范围外/待设计 XIM 路径。详见 [APP-MATRIX.md](../APP-MATRIX.md)。
 
 #### Qt / Electron / Flatpak 环境限制（2026-10-20）
 

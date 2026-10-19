@@ -1,212 +1,144 @@
-# 下一阶段路线图
+# 路线图
 
-> 状态：优先级已确认（2026-10-20）；各阶段范围与验收标准为草案。
-> 前置：原型已完成，能力与限制见 [SPIKE.md](SPIKE.md)、[ARCHITECTURE.md](ARCHITECTURE.md)。
+> 状态：2026-10-20。当前事实以 [STATUS.md](STATUS.md) 为准；历史验证见 [history/](history/)。
+> 本文件是唯一的路线图；`NEXT-STEPS.md` 已合并到这里。
 
-## 目标
+## 已完成
 
-把现在的原型推进到“可安装、可日常使用、可维护”的 COSMIC 中文输入法，同时继续遵守 [PRINCIPLES.md](PRINCIPLES.md) 的四条原则：引擎独立、协议优先、质量优先、应用矩阵验收。
+### 原型能力
 
-## 当前进展
+| 项目 | 结果 |
+|---|---|
+| Wayland input-method 链路 | ✅ `zwp_input_method_v2` + `text_input_v3` + `input_popup_surface_v2` |
+| 五笔 + 拼音兜底 | ✅ |
+| 候选窗 | ✅ 显示、主题、HiDPI 2x、COSMIC HIG 圆角 |
+| 透传 / 中英切换 / 标点 | ✅ |
+| Enter 换行 | ✅ 中文模式经 `commit_string("\n")` |
+| 应用验证 | ✅ cosmic-edit、LibreOffice、合成 text-input 客户端 |
+| 测试 | ✅ `ime-probe` 34、`rpci-settings-iced` 2 |
 
-- 2026-10-20：M1 的安装/卸载脚本、XDG 自启动、配置 CLI 已完成；独立设置 GUI 仍待做。
-- 2026-10-20：M2 的备份、导出、导入与保留策略已完成，含自动备份与恢复测试。
-- 2026-10-20：M3 以 layer-shell 状态胶囊实现（显示中/英、五笔/拼音）；COSMIC 第三方 panel applet API 未确认，暂不阻塞。
-- 2026-10-20：M4 应用矩阵扩展：cosmic-edit/LibreOffice 通过，Firefox/XWayland 未激活；Qt6/Electron/Flatpak 环境无样本，见 [APP-MATRIX.md](APP-MATRIX.md)。
-- 2026-10-20：M5 Firefox 证据与 issue 草案已整理，尚未向上游提交，见 [FIREFOX.md](FIREFOX.md)。
-- 2026-10-20：第 1 条后续建议完成：release 安装、systemd autostart 单元启动与输入验证；用户重启后自动拉起（PID 1797），见 [INSTALL-VERIFICATION.md](INSTALL-VERIFICATION.md)。
-- 2026-10-20：第 2 条后续建议完成键盘版独立设置 GUI，覆盖四类配置与词库备份，见 [SETTINGS-GUI.md](SETTINGS-GUI.md)。
+### 产品化基础
 
-## 优先级总览
+| 项目 | 结果 |
+|---|---|
+| release 安装 | ✅ 真实 HOME 安装 |
+| autostart | ✅ systemd XDG autostart，重启后自动拉起 |
+| 配置 | ✅ XDG 路径 + CLI |
+| 设置界面 | ✅ iced 0.14 主入口；SCTK 回退 |
+| 词库备份/导出/导入 | ✅ CLI；GUI 支持备份 |
+| 状态指示 | ✅ layer-shell 胶囊（非 panel applet） |
+| 架构/审计 | ✅ ADR 0004、协议/XDG/UI 审计 |
 
-1. 安装/自启动与设置集成
-2. 词库持久化与备份
-3. 面板状态指示
-4. 更多应用矩阵
-5. Firefox 上游跟进
+## 下一阶段
 
----
+按优先级排列。每项完成后更新 [STATUS.md](STATUS.md)，不要只改本文件。
 
-## 1. 安装/自启动与设置集成
+### 1. 提交 Firefox 上游 Issue
 
-### 目标
+**为什么**：Firefox 158 在 COSMIC 下不发送 `Activate`，这是当前最大的应用缺口。
 
-让用户不需要手动编译、手动启动，就能在 COSMIC 会话里使用输入法，并能完成基本配置。
+**做什么**：
 
-### 范围
+- 按 [FIREFOX.md](FIREFOX.md) 的草案收集日志与版本
+- 提交 Mozilla Bugzilla / COSMIC 上游
+- 跟进回复，测试修复版本
 
-- 安装方式：优先 Pop!_OS/COSMIC 的 `.deb` 或 `install.sh`；不做 Flatpak 版输入法宿主（Flatpak 应用通过合成器接收输入）。
-- 自启动：XDG autostart 或 systemd user service，按 COSMIC 会话实际支持选择。
-- 单实例：沿用已有的 `Unavailable` 退出保护。
-- 设置入口：优先独立设置窗口，覆盖：
-  - 中/英默认状态
-  - 五笔/拼音模式与兜底开关
-  - 候选数量
-  - 明暗主题
-  - 词库路径与备份
-- COSMIC 设置集成：`cosmic-settings` 目前没有稳定的第三方设置页插件接口，需向上游确认；确认前不阻塞独立设置窗口。
-- 安装/升级/卸载脚本；卸载时保留用户词库。
+**验收**：issue 有链接；得到确认/修复；或形成有依据的“暂不支持”结论。
 
-### 验收标准
+### 2. 设置界面收尾
 
-- 新机器一条命令安装，登录 COSMIC 后输入法自动可用。
-- 注销/重启后仍然生效，不需要手动启动。
-- 设置修改即时生效并持久化。
-- 卸载后不残留服务/autostart，用户词库保留。
+**为什么**：iced 主入口已可用，但仍有明显缺口。
 
-### 风险
+**做什么**：
 
-- COSMIC 会话管理/输入源管理仍在演进。
-- 打包需要处理 RIME schema 数据与 `librime`/`libclang` 构建依赖。
+- 保存后自动重启输入法或热加载
+- 词库恢复 UI（当前只有 CLI 导入）
+- 鼠标交互与视觉细节验证
+- 如需完全 COSMIC 原生控件，评估 libcosmic 迁移
 
----
+**验收**：保存后不需要手动重启；恢复流程可在 GUI 完成；真实 COSMIC 会话目视通过。
 
-## 2. 词库持久化与备份
+### 3. 应用矩阵补齐
 
-### 目标
+**为什么**：Qt6、Electron、Chromium、Flatpak 没有样本。
 
-用户词库不丢、可迁移、可恢复。
+**做什么**：
 
-### 范围
+- 找到可安装/可分发的 Qt6、Electron、Chromium 应用
+- 准备至少一个 Flatpak 应用
+- 记录激活、候选位置、提交、预编辑、快捷键
+- 结果写回 [APP-MATRIX.md](APP-MATRIX.md)
 
-- 继续使用 XDG 路径（`$XDG_DATA_HOME/rpci/rime`）。
-- 单写者：依赖单实例保护，避免多进程写同一 userdb。
-- 导出/导入：用户词库 + 配置打包导出，导入后恢复候选与词频。
-- 自动备份：启动、退出或定时备份，保留最近 N 份。
-- 版本迁移与损坏恢复：schema/userdb 升级失败时可回滚。
-- 隐私：默认本地、不上传。
+**验收**：四类应用各有明确结论；失败项有日志与 workaround。
 
-### 验收标准
+### 4. 真正的 COSMIC Panel Applet
 
-- 异常退出、升级、重启后词库不丢。
-- 导出 → 清空 → 导入，候选与词频恢复。
-- 备份损坏时可回滚到上一份。
-- 备份文件路径、格式、保留策略有文档。
+**为什么**：当前是 layer-shell 胶囊，不参与面板布局。
 
----
+**做什么**：
 
-## 3. 面板状态指示
+- 确认 COSMIC panel 的第三方 applet 注册/通信机制
+- 定义 applet 与 IME 进程的状态通道
+- 实现中/英、五笔/拼音状态与点击切换
 
-### 目标
+**验收**：applet 出现在面板；状态实时同步；点击可切换。
 
-在 COSMIC 面板或状态区看到当前输入状态，并能快速切换。
+**风险**：上游 applet API 未确认；引入 IPC 需要重新评审单进程架构。
 
-### 范围
+### 5. XWayland / XIM
 
-- 基于 libcosmic 的 panel applet，或独立状态窗口（取决于 COSMIC panel 的第三方 applet 机制）。
-- 显示：中/英、五笔/拼音、当前候选页。
-- 交互：点击切换中英/模式；状态与输入法引擎同步。
-- 需要定义 applet 与 IME 进程之间的状态通道（IPC 或共享状态）；这会影响进程模型，需单独评审。
+**为什么**：xterm 390 在 XWayland 下没有 `Activate`。
 
-### 验收标准
+**做什么**：
 
-- 状态变化（中英切换、提交、取消）在 100ms 内反映到面板。
-- 点击切换后输入法行为立即变化。
-- 输入法退出/重启时面板状态不残留错误。
+- 评估 XIM 服务端方案，或
+- 明确“不支持 XWayland”，给出替代应用建议
 
-### 风险
+**验收**：XWayland 能输入中文；或文档明确不支持并说明原因。
 
-- COSMIC panel applet API 的稳定性。
-- 如果引入 IPC，需要重新评估单进程架构与延迟。
+**风险**：XIM 是另一套协议栈，不建议在当前 Wayland 原型内直接实现。
 
----
+### 6. 打包与升级
 
-## 4. 更多应用矩阵
+**为什么**：目前只有 `install.sh`，没有 `.deb`/升级/回滚流程。
 
-### 目标
+**做什么**：
 
-把“能输入”从单个测试窗口扩展到真实应用组合，并留下可回归的记录。
+- 评估 Pop!_OS/COSMIC 的 `.deb` 打包
+- 安装、升级、卸载、词库保留
+- 构建依赖（librime/libclang）处理
 
-### 当前结果
+**验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。
 
-- ✅ 合成 `zwp_text_input_v3` 客户端
-- ✅ cosmic-edit（文件保存验证）
-- ✅ LibreOffice Writer（ODT 保存验证）
-- ⚠️ cosmic-term（能激活，提交未进 PTY）
-- ❌ Firefox 158（未收到 `Activate`，疑似上游 text-input 版本不匹配）
+## 执行顺序
 
-### 范围
-
-按 [PRINCIPLES.md](PRINCIPLES.md) 的最小矩阵补齐：
-
-- GTK4、Qt6
-- Electron/VS Code
-- Chromium/Firefox 地址栏
-- LibreOffice
-- 终端（cosmic-term、foot/kitty 等）
-- XWayland 应用
-- Flatpak 应用
-
-每个应用记录：版本、激活、候选位置、提交、预编辑、快捷键、已知问题。
-
-### 验收标准
-
-- 每个矩阵应用有明确结论（通过/失败/需上游）。
-- 失败项有日志、复现步骤和 workaround。
-- 矩阵结果进入文档，作为后续版本回归清单。
-
----
-
-## 5. Firefox 上游跟进
-
-### 已确认
-
-- Firefox 158 在 COSMIC 下走 Wayland（已加载 `libwayland-client`）。
-- COSMIC 只暴露 `zwp_text_input_manager_v3` v1。
-- Firefox 测试页聚焦后仍未收到 `Activate`。
-- 推测为 Firefox 与 COSMIC 的 text-input 协议版本/实现不匹配，不是 IME 自身能单独修复的问题。
-
-### 行动
-
-1. 收集 COSMIC/Firefox 版本、`wayland-info`、Firefox 启动参数、协议日志。
-2. 查 Firefox Bugzilla 是否已有同类报告；没有则提交 issue。
-3. 跟进 COSMIC 的 text-input 支持进度。
-4. 测试新版本 Firefox/COSMIC 组合。
-5. 评估临时方案：XWayland + XIM、Fcitx5 前端、或明确“暂不支持 Firefox”。
-
-### 验收标准
-
-- Firefox 能正常激活并提交中文；或
-- 形成有依据的“暂不支持”结论，并给出可用替代方案。
-
-### 依赖
-
-- 上游 Firefox/COSMIC；本项目的 IME 代码不是阻塞点。
-
----
-
-## 里程碑
-
-| 里程碑 | 内容 | 退出条件 |
-|---|---|---|
-| M1 | 安装/自启动 + 独立设置窗口最小闭环 | 新机器安装后自动可用 |
-| M2 | 词库导出/导入/备份/恢复 | 备份回滚演练通过 |
-| M3 | 面板状态指示 | 状态同步与点击切换通过 |
-| M4 | 应用矩阵达标 | 最小矩阵有完整结论 |
-| M5 | Firefox 结论 | 支持或明确 workaround |
+1. Firefox 上游 issue（成本低、影响大）
+2. 设置界面收尾
+3. 应用矩阵补齐
+4. 打包与升级
+5. Panel applet（依赖上游）
+6. XWayland/XIM（最后评估）
 
 ## 非目标
 
-- Windows/macOS、云输入、AI 联想、多语言、皮肤市场。
-- Flatpak 版输入法宿主（IME 需在宿主侧运行）。
-- 与搜狗五笔 100% 行为一致。
+- Windows/macOS、云输入、AI 联想、多语言、皮肤市场
+- Flatpak 版输入法宿主（IME 需在宿主侧运行）
+- 与搜狗五笔 100% 行为一致
 
 ## 风险与依赖
 
-- COSMIC 输入法/面板/设置 API 仍在演进，可能需要上游配合。
-- RIME 构建依赖 `librime`/`libclang`，打包需处理。
-- “面板状态指示”可能迫使引入 IPC，需重新评审单进程架构。
-- 应用矩阵依赖环境里可用的 Qt/Electron/Flatpak 应用。
+- COSMIC 输入法/面板/设置 API 仍在演进。
+- 一个 seat 只能有一个 `zwp_input_method_v2` 对象；`cosmic-osk` 的长期仲裁需上游确认。
+- 候选窗受 `input_popup_surface` 协议约束，不能换成普通 iced 窗口。
+- 应用矩阵依赖环境中可用的 Qt/Electron/Flatpak 样本。
 
 ## 参考
 
-- [SPIKE.md](SPIKE.md)：已有验证记录与应用矩阵
-- [ARCHITECTURE.md](ARCHITECTURE.md)：v0.1 原型架构
-- [PROTOTYPE.md](PROTOTYPE.md)：原型范围与验收标准
-- [PRINCIPLES.md](PRINCIPLES.md)：四条项目原则
-
-## 后续建议
-
-验收后的 6 条具体建议见 [NEXT-STEPS.md](NEXT-STEPS.md)。
-
-- 2026-10-20：三层架构约定写入 [ADR 0004](adr/0004-three-layer.md)，并新增协议/XDG/UI 三项审计。
+- [STATUS.md](STATUS.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [ADR 0004](adr/0004-three-layer.md)
+- [PROTOCOL-AUDIT.md](PROTOCOL-AUDIT.md)
+- [XDG-AUDIT.md](XDG-AUDIT.md)
+- [UI-AUDIT.md](UI-AUDIT.md)
+- [APP-MATRIX.md](APP-MATRIX.md)
+- [FIREFOX.md](FIREFOX.md)

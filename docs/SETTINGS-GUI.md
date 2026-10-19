@@ -1,6 +1,6 @@
 # 独立设置 GUI
 
-> 状态：2026-10-20。对应 [NEXT-STEPS.md](NEXT-STEPS.md) 第 2 条。
+> 状态：2026-10-20。对应 [ROADMAP.md](ROADMAP.md) 的“设置界面收尾”。
 
 主入口是 iced 0.14 窗口 `rpci-settings-iced`；下面的截图展示自绘 SCTK 兼容回退窗口 `ime-settings-gui`（iced 窗口截图受 portal 限制，未产出文件）。
 
@@ -87,7 +87,10 @@ $XDG_CONFIG_HOME/rpci/config.toml
 
 ```
 cargo test -p ime-probe
-32 passed; 0 failed
+34 passed; 0 failed
+
+cargo test -p rpci-settings-iced
+2 passed; 0 failed
 ```
 
 端到端：

@@ -1,6 +1,6 @@
 # Release 安装与自启动验证
 
-> 日期：2026-10-20。对应 [NEXT-STEPS.md](NEXT-STEPS.md) 第 1 条。
+> 日期：2026-10-20。对应 [ROADMAP.md](../ROADMAP.md) 的已完成安装/自启动项。
 
 ## 结果
 

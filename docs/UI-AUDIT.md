@@ -1,6 +1,6 @@
 # UI 与 HIG 审计
 
-> 日期：2026-10-20。对应 [ADR 0004](../adr/0004-three-layer.md) 第三层。
+> 日期：2026-10-20。对应 [ADR 0004](adr/0004-three-layer.md) 第三层。
 
 ## 设置界面：iced
 
