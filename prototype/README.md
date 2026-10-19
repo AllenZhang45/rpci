@@ -15,7 +15,8 @@
 - 候选条明暗主题：读 COSMIC `is_dark` 配置，也可用 `IME_POPUP_THEME=light/dark` 覆盖
 - 候选条按 2x 像素渲染（逻辑 520×48），HiDPI 输出更清晰
 - 状态胶囊：layer-shell 顶层小窗，显示 `中 五` / `中 拼` / `英`
-- 中英切换：F2 / Ctrl+Space；英文模式下所有按键透传
+- 中英切换：F2 / Ctrl+Space
+- Enter 换行：组合中先取消组合，再把 Enter 透传给应用；英文模式下所有按键透传
 
 ## 应用矩阵（当前）
 

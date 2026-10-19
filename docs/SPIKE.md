@@ -219,6 +219,14 @@
 - 临时目录实测：备份、导出、删除后导入，`user.yaml` 与 `wubi86.userdb/CURRENT` 均恢复。
 - `cargo test -p ime-probe`：25 个测试通过。
 
+#### Enter / 换行修复（2026-10-20）
+
+- 用户反馈 Enter 不能换行。
+- 原因一：Enter 在组合中执行 `reset()` 后返回 `passthrough: false`，按键被吞。
+- 原因二：`Deactivate` 没有清空引擎组合，切换应用后残留的 letters 让下一次 Enter 仍被当作组合处理。
+- 修复：Enter 取消组合但仍 `passthrough: true`；`Deactivate` 调用 `cancel()`。
+- 验证：debug 与 release 日志均出现 `PASSTHROUGH keycode=28`，空闲和组合中都不再吞 Enter。
+
 #### 候选窗显示修复（2026-10-20）
 
 - 用户反馈候选窗不显示；调试 PNG 正常，说明渲染内容没有问题。
