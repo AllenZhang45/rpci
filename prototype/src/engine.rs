@@ -213,6 +213,20 @@ impl HybridEngine {
             };
         }
 
+        // Enter is committed as a newline through the input-method protocol.
+        // Forwarding it through the virtual keyboard loses the key-up on
+        // cosmic-edit, so the editor never inserts a line break.
+        if keysym == 0xff0d {
+            self.reset();
+            return EngineOutput {
+                mode: Mode::Wubi,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: Some("\n".to_string()),
+                passthrough: false,
+            };
+        }
+
         if should_passthrough(keysym, text, mods, !self.letters.is_empty()) {
             return EngineOutput {
                 mode: self.mode,
@@ -292,19 +306,6 @@ impl HybridEngine {
                     candidates: Vec::new(),
                     commit: None,
                     passthrough: false,
-                }
-            }
-            0xff0d => {
-                // Enter while composing cancels the composition and is still
-                // delivered to the application, otherwise users lose newline
-                // in multi-line fields.
-                self.reset();
-                EngineOutput {
-                    mode: Mode::Wubi,
-                    preedit: String::new(),
-                    candidates: Vec::new(),
-                    commit: None,
-                    passthrough: true,
                 }
             }
             _ => EngineOutput {
