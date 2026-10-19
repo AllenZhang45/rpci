@@ -125,6 +125,8 @@ rime-backend (librime)
 - RIME 表达力：schema 能否实现回退规则。
 - 性能：p99 延迟、内存、启动时间。
 
+具体第 1 周验证清单见 [SPIKE.md](SPIKE.md)。
+
 ## 7. 测试策略
 
 - core：单元测试覆盖回退规则、候选合并、模式切换。
