@@ -2,11 +2,13 @@
 
 > 状态：2026-10-20。对应 [NEXT-STEPS.md](NEXT-STEPS.md) 第 2 条。
 
-![设置窗口](assets/settings-gui.png)
+主入口是 iced 0.14 窗口 `rpci-settings-iced`；下面的截图展示自绘 SCTK 兼容回退窗口 `ime-settings-gui`（iced 窗口截图受 portal 限制，未产出文件）。
+
+![兼容回退设置窗口](assets/settings-gui.png)
 
 ## 启动
 
-安装后应用菜单会出现 **COSMIC IME 设置**：
+安装后应用菜单会出现 **COSMIC IME 设置**（iced）：
 
 ```bash
 ./prototype/scripts/install.sh
@@ -15,9 +17,16 @@
 也可以直接运行：
 
 ```bash
-./target/debug/ime-settings-gui
+cargo run -p rpci-settings-iced
 # 或安装后
-~/.local/bin/ime-settings-gui
+~/.local/bin/ime-settings-iced
+```
+
+兼容回退窗口：
+
+```bash
+./target/debug/ime-settings-gui
+# 安装后：~/.local/bin/ime-settings-gui
 ```
 
 启动器文件：
@@ -59,10 +68,18 @@ $XDG_CONFIG_HOME/rpci/config.toml
 
 ## 实现方式
 
-- 一个独立的 Wayland 窗口，使用 SCTK + `wl_shm` + cosmic-text 软件渲染。
-- 不引入 iced/libcosmic/GTK 依赖，避免当前环境的 GPU/GUI 工具链风险。
-- 复用 `Config` 与 `backup` 模块；保存使用 `Config::save` 的临时文件 + rename。
-- `B` 键调用 `backup_now`，保留最近 5 份，备份内容与 CLI 一致。
+### 主入口：iced
+
+- `settings-iced` 独立 crate，iced 0.14，普通 xdg_toplevel 窗口。
+- checkbox、slider、pick_list、button、card 容器，COSMIC 风格深色调色板。
+- 复用 `Config` 与 `backup` 模块；保存使用 `Config::save`。
+- 测试：`cargo test -p rpci-settings-iced`。
+
+### 兼容回退：自绘 SCTK
+
+- SCTK + `wl_shm` + cosmic-text 软件渲染，不依赖 GPU。
+- 键盘操作：↑↓ 选择、←→ 修改、Enter 切换、S 保存、B 备份、R 重载、Esc 关闭。
+- 当 iced/GPU 环境不可用时仍可配置。
 
 ## 验证
 

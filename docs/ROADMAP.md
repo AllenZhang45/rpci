@@ -208,3 +208,5 @@
 ## 后续建议
 
 验收后的 6 条具体建议见 [NEXT-STEPS.md](NEXT-STEPS.md)。
+
+- 2026-10-20：三层架构约定写入 [ADR 0004](adr/0004-three-layer.md)，并新增协议/XDG/UI 三项审计。

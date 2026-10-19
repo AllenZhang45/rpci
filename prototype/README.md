@@ -140,15 +140,15 @@ autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs
 
 ## 设置
 
-独立设置窗口（键盘操作）：
+独立设置窗口（iced）：
 
 ```bash
-./target/debug/ime-settings-gui
+cargo run -p rpci-settings-iced
 # 安装后可从应用菜单打开 "COSMIC IME 设置"
 ```
 
-- ↑/↓ 选择，←/→ 修改，Enter 切换
-- S 保存，B 备份，R 重载，Esc 关闭
+- iced 0.14 窗口，覆盖默认中英、拼音兜底、候选数量、主题、词库备份
+- 兼容回退：`ime-settings-gui`（自绘、键盘操作）
 - 保存后需要重启输入法生效
 - 详见 [docs/SETTINGS-GUI.md](../docs/SETTINGS-GUI.md)
 
@@ -193,7 +193,7 @@ ime-settings import <dir>        # 从目录恢复
 - Tab、Alt/Super 组合的透传尚未完善
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
-- 设置 GUI 目前仅键盘操作，鼠标点击未实现；保存后需重启输入法
+- iced 设置窗口已验证启动；候选窗因 input_popup_surface 协议限制仍是自绘；保存后需重启输入法
 - 状态指示是 layer-shell 胶囊，不是 COSMIC panel applet；第三方 applet API 尚未确认
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 
@@ -202,5 +202,7 @@ ime-settings import <dir>        # 从目录恢复
 下一阶段优先级见 [docs/ROADMAP.md](../docs/ROADMAP.md)。
 
 应用兼容性见 [docs/APP-MATRIX.md](../docs/APP-MATRIX.md)，Firefox 问题见 [docs/FIREFOX.md](../docs/FIREFOX.md)。
+
+架构约定见 [ADR 0004](../docs/adr/0004-three-layer.md)；协议/XDG/UI 审计见 [PROTOCOL-AUDIT](../docs/PROTOCOL-AUDIT.md)、[XDG-AUDIT](../docs/XDG-AUDIT.md)、[UI-AUDIT](../docs/UI-AUDIT.md)。
 
 后续 6 条建议见 [docs/NEXT-STEPS.md](../docs/NEXT-STEPS.md)。

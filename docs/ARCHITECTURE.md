@@ -1,6 +1,7 @@
 # 架构（v0.1 原型）
 
 > 状态：已确认（2026-10-20）。与 [PRINCIPLES.md](PRINCIPLES.md)、[PROTOTYPE.md](PROTOTYPE.md) 配套；范围变更需更新本文件并提交。
+> 三层架构约定见 [ADR 0004](adr/0004-three-layer.md)；协议/XDG/UI 审计见 [PROTOCOL-AUDIT.md](PROTOCOL-AUDIT.md)、[XDG-AUDIT.md](XDG-AUDIT.md)、[UI-AUDIT.md](UI-AUDIT.md)。
 
 ## 1. 目标与约束
 
@@ -56,14 +57,16 @@ rime-backend (librime)
 ### 3.4 candidate-ui
 
 - 画进 compositor 提供的 input_popup_surface，不自己开 layer-shell 窗口。
-- raw wl_surface + wl_shm + cosmic-text + tiny-skia 软件渲染。
-- 处理 HiDPI（buffer scale/viewporter）、暗色主题、候选分页/高亮。
+- raw wl_surface + wl_shm + cosmic-text 软件渲染。
+- 已做 2x HiDPI、明暗主题、COSMIC HIG 圆角/颜色/间距。
 - 不用 iced：iced/winit 不暴露 raw wl_surface；`iced_layershell` 也不是 popup。
 
-### 3.5 cosmic-integration（原型不做）
+### 3.5 cosmic-integration
 
-- 自启动、设置页、面板指示器、输入源注册。
-- 原型用脚本或手动启动验证，不碰上游设置。
+- 自启动：systemd XDG autostart generator。
+- 设置：iced 0.14 独立窗口；保留自绘 SCTK 窗口作为兼容回退。
+- 面板指示器：layer-shell 胶囊；真正的 panel applet 待上游。
+- 输入源注册：未做。
 
 ## 4. 关键决策
 
