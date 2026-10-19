@@ -36,6 +36,8 @@ Firefox 测试页可用 `scripts/firefox-test-server.py` 启动，访问 `http:/
 - `src/popup.rs`：候选条渲染（cosmic-text + wl_shm）
 - `src/config.rs`：配置读写与校验
 - `src/status.rs`：layer-shell 状态胶囊
+- `src/settings_model.rs`：设置窗口状态机
+- `src/bin/ime-settings-gui.rs`：独立设置窗口
 - `src/bin/ime-settings.rs`：设置 CLI
 - `src/bin/textinput.rs`：最小 `zwp_text_input_v3` 测试窗口，打印收到的提交文本
 - `src/bin/vkey.rs`：虚拟键盘注入工具（`a` / `abc` / `wubi` / `pinyin` / `preview` / `f1` / `alt-tab`）
@@ -138,6 +140,20 @@ autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs
 
 ## 设置
 
+独立设置窗口（键盘操作）：
+
+```bash
+./target/debug/ime-settings-gui
+# 安装后可从应用菜单打开 "COSMIC IME 设置"
+```
+
+- ↑/↓ 选择，←/→ 修改，Enter 切换
+- S 保存，B 备份，R 重载，Esc 关闭
+- 保存后需要重启输入法生效
+- 详见 [docs/SETTINGS-GUI.md](../docs/SETTINGS-GUI.md)
+
+CLI：
+
 ```bash
 ime-settings show
 ime-settings set candidate_count 5
@@ -177,7 +193,7 @@ ime-settings import <dir>        # 从目录恢复
 - Tab、Alt/Super 组合的透传尚未完善
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
-- 设置只有 CLI，独立设置窗口尚未实现
+- 设置 GUI 目前仅键盘操作，鼠标点击未实现；保存后需重启输入法
 - 状态指示是 layer-shell 胶囊，不是 COSMIC panel applet；第三方 applet API 尚未确认
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 

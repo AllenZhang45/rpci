@@ -30,13 +30,12 @@
 
 ### 为什么
 
-目前只有 `ime-settings` CLI，普通用户配置需要终端。
+此前只有 `ime-settings` CLI，普通用户配置需要终端；现在已补上独立窗口。
 
 ### 要做什么
 
-- 基于 iced/libcosmic 或轻量 GTK 的独立设置窗口
-- 覆盖：中/英默认、五笔/拼音兜底、候选数量、主题、词库备份/恢复
-- 与 `config.toml` 双向同步；保存后提示重启输入法或热加载
+- 已完成：自绘 Wayland 独立窗口，覆盖中/英默认、五笔/拼音兜底、候选数量、主题、词库备份
+- 待做：鼠标点击、词库恢复 UI、热加载、libcosmic/iced 视觉
 
 ### 验收
 
@@ -46,7 +45,15 @@
 
 ### 风险
 
-iced/wgpu 在当前无 GPU 环境可能无法启动；需要准备软件渲染 fallback，或先做 CLI + 简单 TUI。
+iced/wgpu 在当前无 GPU 环境可能无法启动；因此先用 SCTK + cosmic-text 自绘，未引入 GUI 工具链依赖。
+
+### 当前状态
+
+键盘版独立窗口已完成：应用菜单入口 `COSMIC IME 设置`，↑↓/←→/Enter/S/B/R/Esc 操作，配置写入 `config.toml`，B 键调用词库备份。详见 [SETTINGS-GUI.md](SETTINGS-GUI.md)。
+
+已完成端到端验证：临时配置下把 `pinyin_fallback` 改为 false、`candidate_count` 改为 7、`theme` 改为 dark，并生成备份目录。`cargo test` 32 个测试通过。
+
+未完成：鼠标点击、保存后自动重启输入法、词库恢复 UI。
 
 ## 3. 真正的 COSMIC Panel Applet
 
