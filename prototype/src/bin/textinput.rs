@@ -366,7 +366,7 @@ impl KeyboardHandler for SimpleWindow {
             if let Some(ti) = &self.text_input {
                 ti.enable();
                 ti.set_content_type(ContentHint::empty(), ContentPurpose::Normal);
-                ti.set_cursor_rectangle(0, 0, 200, 24);
+                ti.set_cursor_rectangle(200, 200, 2, 24);
                 ti.commit();
                 println!("text-input: enabled on keyboard enter");
             }
@@ -508,7 +508,7 @@ impl Dispatch<ZwpTextInputV3, ()> for SimpleWindow {
                     if let Some(ti) = &state.text_input {
                         ti.enable();
                         ti.set_content_type(ContentHint::empty(), ContentPurpose::Normal);
-                        ti.set_cursor_rectangle(0, 0, 200, 24);
+                        ti.set_cursor_rectangle(200, 200, 2, 24);
                         ti.commit();
                         println!("text-input: enter");
                     }

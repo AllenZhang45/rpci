@@ -478,12 +478,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let popup = im.get_input_popup_surface(&popup_surface, &qh, ());
     let (pool, buffer, mmap) = create_popup_buffer(&shm, &qh)?;
     let config = Config::load();
+    let popup_renderer = PopupRenderer::new(
+        popup_surface.clone(),
+        buffer.clone(),
+        pool,
+        mmap,
+        config.theme,
+    );
 
     popup_surface.attach(Some(&buffer), 0, 0);
     popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
     popup_surface.commit();
-    let popup_renderer =
-        PopupRenderer::new(popup_surface.clone(), buffer, pool, mmap, config.theme);
 
     let (status_pool, status_buffer, status_mmap) = create_status_buffer(&shm, &qh)?;
     let status_surface = compositor.create_surface(&qh, ());

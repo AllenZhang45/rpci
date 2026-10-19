@@ -134,6 +134,7 @@ impl PopupRenderer {
             // Transparent: make the popup invisible.
             Self::save_debug_png(&canvas, width, height);
             self.mmap.copy_from_slice(&canvas);
+            self.surface.attach(Some(&self._buffer), 0, 0);
             self.surface
                 .damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
             self.surface.commit();
@@ -208,6 +209,7 @@ impl PopupRenderer {
 
         Self::save_debug_png(&canvas, width, height);
         self.mmap.copy_from_slice(&canvas);
+        self.surface.attach(Some(&self._buffer), 0, 0);
         self.surface
             .damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
         self.surface.commit();
