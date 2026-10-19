@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+case "$DATA_HOME" in /*) ;; *) DATA_HOME="$HOME/.local/share" ;; esac
 AUTOSTART_DIR="$CONFIG_HOME/autostart"
 PROFILE="${IME_PROFILE:-release}"
 SKIP_BUILD="${IME_SKIP_BUILD:-0}"
@@ -15,13 +18,15 @@ fi
 if [ "$SKIP_BUILD" != "1" ]; then
     if [ "$PROFILE" = "release" ]; then
         cargo build --release -p ime-probe --bin ime-probe --bin ime-settings --bin ime-settings-gui
+        cargo build --release -p rpci-settings-iced
     else
         cargo build -p ime-probe --bin ime-probe --bin ime-settings --bin ime-settings-gui
+        cargo build -p rpci-settings-iced
     fi
 fi
 
 TARGET_DIR="$ROOT/target/$PROFILE"
-for bin in ime-probe ime-settings ime-settings-gui; do
+for bin in ime-probe ime-settings ime-settings-gui rpci-settings-iced; do
     if [ ! -x "$TARGET_DIR/$bin" ]; then
         echo "missing $TARGET_DIR/$bin; build first or drop IME_SKIP_BUILD" >&2
         exit 1
@@ -31,6 +36,7 @@ done
 install -Dm755 "$TARGET_DIR/ime-probe" "$BIN_DIR/ime-probe"
 install -Dm755 "$TARGET_DIR/ime-settings" "$BIN_DIR/ime-settings"
 install -Dm755 "$TARGET_DIR/ime-settings-gui" "$BIN_DIR/ime-settings-gui"
+install -Dm755 "$TARGET_DIR/rpci-settings-iced" "$BIN_DIR/ime-settings-iced"
 
 if [ -x "$ROOT/prototype/scripts/setup-rime.sh" ]; then
     "$ROOT/prototype/scripts/setup-rime.sh"
@@ -40,18 +46,29 @@ if [ ! -f "$CONFIG_HOME/rpci/config.toml" ]; then
     "$BIN_DIR/ime-settings" reset
 fi
 
-APPS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+APPS_DIR="$DATA_HOME/applications"
 mkdir -p "$APPS_DIR"
 cat > "$APPS_DIR/rpci-settings.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=COSMIC IME 设置
 Comment=Configure the COSMIC Wubi/Pinyin input method
-Exec=$BIN_DIR/ime-settings-gui
+Exec=$BIN_DIR/ime-settings-iced
 Icon=preferences-desktop
 Terminal=false
 Categories=Settings;
 StartupNotify=true
+EOF
+
+cat > "$APPS_DIR/rpci-settings-fallback.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=COSMIC IME 设置（兼容模式）
+Comment=Keyboard-driven fallback settings window
+Exec=$BIN_DIR/ime-settings-gui
+Icon=preferences-desktop
+Terminal=false
+Categories=Settings;
 EOF
 
 mkdir -p "$AUTOSTART_DIR"
@@ -78,6 +95,8 @@ echo "installed:"
 echo "  $BIN_DIR/ime-probe"
 echo "  $BIN_DIR/ime-settings"
 echo "  $BIN_DIR/ime-settings-gui"
+echo "  $BIN_DIR/ime-settings-iced"
 echo "  $APPS_DIR/rpci-settings.desktop"
+echo "  $APPS_DIR/rpci-settings-fallback.desktop"
 echo "  $AUTOSTART_DIR/rpci-ime.desktop"
 echo "config: $(XDG_CONFIG_HOME="$CONFIG_HOME" "$BIN_DIR/ime-settings" path)"

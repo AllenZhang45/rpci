@@ -4,10 +4,13 @@ set -euo pipefail
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
+case "$DATA_HOME" in /*) ;; *) DATA_HOME="$HOME/.local/share" ;; esac
 
-rm -f "$BIN_DIR/ime-probe" "$BIN_DIR/ime-settings" "$BIN_DIR/ime-settings-gui"
+rm -f "$BIN_DIR/ime-probe" "$BIN_DIR/ime-settings" "$BIN_DIR/ime-settings-gui" "$BIN_DIR/ime-settings-iced"
 rm -f "$CONFIG_HOME/autostart/rpci-ime.desktop"
-rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/rpci-settings.desktop"
+rm -f "$DATA_HOME/applications/rpci-settings.desktop"
+rm -f "$DATA_HOME/applications/rpci-settings-fallback.desktop"
 
 if [ "${1:-}" = "--purge" ]; then
     rm -rf "$CONFIG_HOME/rpci" "$DATA_HOME/rpci"

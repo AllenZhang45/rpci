@@ -4,6 +4,8 @@ set -euo pipefail
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
+case "$DATA_HOME" in /*) ;; *) DATA_HOME="$HOME/.local/share" ;; esac
 DESKTOP="$CONFIG_HOME/autostart/rpci-ime.desktop"
 UNIT='app-rpci\x2dime@autostart.service'
 WANTS="/run/user/$(id -u)/systemd/generator.late/xdg-desktop-autostart.target.wants/$UNIT"
