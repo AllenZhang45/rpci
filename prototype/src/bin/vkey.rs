@@ -111,6 +111,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 15, 1);
         state.vk.key(0, 15, 0);
         println!("sent Tab");
+    } else if mode == "backspace" {
+        for keycode in [17u32, 16, 23, 21] {
+            state.vk.key(0, keycode, 1);
+            state.vk.key(0, keycode, 0);
+        }
+        state.vk.key(0, 14, 1);
+        state.vk.key(0, 14, 0);
+        state.vk.key(0, 57, 1);
+        state.vk.key(0, 57, 0);
+        println!("sent wqiy + backspace + space");
+    } else if mode == "escape" {
+        for keycode in [17u32, 16, 23, 21] {
+            state.vk.key(0, keycode, 1);
+            state.vk.key(0, keycode, 0);
+        }
+        state.vk.key(0, 1, 1);
+        state.vk.key(0, 1, 0);
+        for keycode in [17u32, 16, 23, 21, 57] {
+            state.vk.key(0, keycode, 1);
+            state.vk.key(0, keycode, 0);
+        }
+        println!("sent wqiy + escape + wubi");
     } else if mode == "select2" {
         for keycode in [17u32, 16, 23, 21] {
             state.vk.key(0, keycode, 1);
