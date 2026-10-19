@@ -224,8 +224,12 @@
 - 用户反馈 Enter 不能换行。
 - 原因一：Enter 在组合中执行 `reset()` 后返回 `passthrough: false`，按键被吞。
 - 原因二：`Deactivate` 没有清空引擎组合，切换应用后残留的 letters 让下一次 Enter 仍被当作组合处理。
-- 修复：Enter 取消组合但仍 `passthrough: true`；`Deactivate` 调用 `cancel()`。
-- 验证：debug 与 release 日志均出现 `PASSTHROUGH keycode=28`，空闲和组合中都不再吞 Enter。
+- 原因三：旧的透传把 Enter 的 press/release 分开注入，两次注入之间会重新 grab，cosmic-edit 可能收不到 key-up，因而不插入换行。
+- 修复：
+  - Enter 取消组合但仍 `passthrough: true`；
+  - `Deactivate` 调用 `cancel()`；
+  - Enter / keypad Enter 在 press 时发送完整 tap（press+release），release 不再重复注入。
+- 验证：临时 cosmic-edit 文件中 Enter 后保存，文件新增换行；物理键盘仍需用户最终确认。
 
 #### 候选窗显示修复（2026-10-20）
 
