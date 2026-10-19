@@ -24,15 +24,23 @@ clone_or_update() {
     fi
 }
 
-clone_or_update https://github.com/rime/rime-wubi.git /tmp/rime-wubi-src
-clone_or_update https://github.com/rime/rime-pinyin-simp.git /tmp/rime-pinyin-simp-src
-
 mkdir -p "$USER_DIR"
-cp /tmp/rime-wubi-src/wubi86.schema.yaml "$USER_DIR/"
-cp /tmp/rime-wubi-src/wubi86.dict.yaml "$USER_DIR/"
-cp /tmp/rime-wubi-src/wubi_pinyin.schema.yaml "$USER_DIR/"
-cp /tmp/rime-pinyin-simp-src/pinyin_simp.schema.yaml "$USER_DIR/"
-cp /tmp/rime-pinyin-simp-src/pinyin_simp.dict.yaml "$USER_DIR/"
+SCHEMA_SRC="${IME_RIME_SCHEMA_SRC:-}"
+if [ -n "$SCHEMA_SRC" ] && [ -d "$SCHEMA_SRC" ]; then
+    cp "$SCHEMA_SRC/wubi86.schema.yaml" "$USER_DIR/"
+    cp "$SCHEMA_SRC/wubi86.dict.yaml" "$USER_DIR/"
+    cp "$SCHEMA_SRC/wubi_pinyin.schema.yaml" "$USER_DIR/"
+    cp "$SCHEMA_SRC/pinyin_simp.schema.yaml" "$USER_DIR/"
+    cp "$SCHEMA_SRC/pinyin_simp.dict.yaml" "$USER_DIR/"
+else
+    clone_or_update https://github.com/rime/rime-wubi.git /tmp/rime-wubi-src
+    clone_or_update https://github.com/rime/rime-pinyin-simp.git /tmp/rime-pinyin-simp-src
+    cp /tmp/rime-wubi-src/wubi86.schema.yaml "$USER_DIR/"
+    cp /tmp/rime-wubi-src/wubi86.dict.yaml "$USER_DIR/"
+    cp /tmp/rime-wubi-src/wubi_pinyin.schema.yaml "$USER_DIR/"
+    cp /tmp/rime-pinyin-simp-src/pinyin_simp.schema.yaml "$USER_DIR/"
+    cp /tmp/rime-pinyin-simp-src/pinyin_simp.dict.yaml "$USER_DIR/"
+fi
 
 # A full default.yaml would shadow the shared presets (key_binder etc.).
 # Use default.custom.yaml to patch only the schema list.
