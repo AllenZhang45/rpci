@@ -1,6 +1,9 @@
 use std::fmt;
+use std::path::PathBuf;
 
-use iced::widget::{Space, button, checkbox, column, container, pick_list, row, slider, text};
+use iced::widget::{
+    Space, button, checkbox, column, container, pick_list, row, scrollable, slider, text,
+};
 use iced::{Alignment, Border, Color, Element, Length, Task, Theme};
 use ime_probe::backup::{self, KEEP_BACKUPS, default_paths};
 use ime_probe::config::{Config, ThemePreference};
@@ -13,7 +16,7 @@ fn main() -> iced::Result {
     iced::application(App::default, App::update, App::view)
         .title(|_: &App| "COSMIC IME 设置".to_string())
         .theme(App::theme)
-        .window_size((620.0, 500.0))
+        .window_size((620.0, 580.0))
         .run()
 }
 
@@ -61,22 +64,66 @@ enum Message {
     Save,
     Apply,
     Backup,
+    BackupSelected(Backup),
+    Restore,
     Reload,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Backup {
+    path: PathBuf,
+}
+
+impl fmt::Display for Backup {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = self
+            .path
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_else(|| self.path.display().to_string());
+        f.write_str(&name)
+    }
+}
+
+fn load_backups() -> Vec<Backup> {
+    backup::list_backups(&default_paths())
+        .unwrap_or_default()
+        .into_iter()
+        .rev()
+        .map(|path| Backup { path })
+        .collect()
 }
 
 struct App {
     model: SettingsModel,
+    backups: Vec<Backup>,
+    selected_backup: Option<Backup>,
 }
 
 impl Default for App {
     fn default() -> Self {
+        let backups = load_backups();
         Self {
             model: SettingsModel::new(Config::load()),
+            selected_backup: backups.first().cloned(),
+            backups,
         }
     }
 }
 
 impl App {
+    fn refresh_backups(&mut self, preferred: Option<PathBuf>) {
+        self.backups = load_backups();
+        self.selected_backup = preferred
+            .and_then(|path| {
+                self.backups
+                    .iter()
+                    .find(|backup| backup.path == path)
+                    .cloned()
+            })
+            .or_else(|| self.backups.first().cloned());
+    }
+
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::AsciiToggled(value) => {
@@ -110,9 +157,39 @@ impl App {
                 Err(err) => self.model.mark_error(err),
             },
             Message::Backup => match backup::backup_now(&default_paths(), KEEP_BACKUPS) {
-                Ok(path) => self.model.status = format!("已备份到 {}", path.display()),
+                Ok(path) => {
+                    self.model.status = format!("已备份到 {}", path.display());
+                    self.refresh_backups(Some(path));
+                }
                 Err(err) => self.model.mark_error(err),
             },
+            Message::BackupSelected(value) => {
+                self.selected_backup = Some(value);
+            }
+            Message::Restore => {
+                let Some(selected) = self.selected_backup.clone() else {
+                    self.model.status = "没有可恢复的备份".to_string();
+                    return Task::none();
+                };
+                let paths = default_paths();
+                let stopped = service::stop_input_method().is_ok();
+                match backup::import_from(&paths, &selected.path) {
+                    Ok(()) => {
+                        let started = service::start_input_method().is_ok();
+                        self.model.status = match (stopped, started) {
+                            (true, true) => "已恢复备份并重启输入法".to_string(),
+                            (true, false) => "已恢复备份；输入法启动失败，请手动启动".to_string(),
+                            (false, true) => "已恢复备份并启动输入法".to_string(),
+                            (false, false) => "已恢复备份；请手动重启输入法".to_string(),
+                        };
+                        self.refresh_backups(None);
+                    }
+                    Err(err) => {
+                        let _ = service::start_input_method();
+                        self.model.mark_error(err);
+                    }
+                }
+            }
             Message::Reload => self.model.mark_reloaded(Config::load()),
         }
         Task::none()
@@ -167,10 +244,30 @@ impl App {
             .spacing(14),
         );
 
+        let dictionary = card(
+            "词库",
+            column![
+                text(format!("{} 个备份（最近 5 个）", self.backups.len())).size(13),
+                row![
+                    pick_list(
+                        self.backups.clone(),
+                        self.selected_backup.clone(),
+                        Message::BackupSelected,
+                    )
+                    .placeholder("没有备份")
+                    .width(Length::Fill),
+                    button("立即备份").on_press(Message::Backup),
+                    button("恢复所选").on_press(Message::Restore),
+                ]
+                .spacing(10)
+                .align_y(Alignment::Center),
+            ]
+            .spacing(12),
+        );
+
         let actions = row![
             button("保存").on_press(Message::Save),
             button("保存并应用").on_press(Message::Apply),
-            button("备份词库").on_press(Message::Backup),
             button("重新加载").on_press(Message::Reload),
         ]
         .spacing(10);
@@ -191,9 +288,12 @@ impl App {
         .spacing(12);
 
         container(
-            column![title, general, candidates, footer]
-                .spacing(20)
-                .width(Length::Fill),
+            scrollable(
+                column![title, general, candidates, dictionary, footer]
+                    .spacing(20)
+                    .width(Length::Fill),
+            )
+            .height(Length::Fill),
         )
         .padding(24)
         .width(Length::Fill)
@@ -246,9 +346,19 @@ mod tests {
     }
 
     #[test]
+    fn backup_label_is_file_name() {
+        let backup = Backup {
+            path: PathBuf::from("/tmp/backups/1792451348"),
+        };
+        assert_eq!(backup.to_string(), "1792451348");
+    }
+
+    #[test]
     fn update_changes_config() {
         let mut app = App {
             model: SettingsModel::new(Config::default()),
+            backups: Vec::new(),
+            selected_backup: None,
         };
         let _ = app.update(Message::AsciiToggled(true));
         assert!(app.model.config.ascii_mode_default);
