@@ -146,6 +146,21 @@ ime-settings reset
 | `candidate_count` | `1`–`9` |
 | `theme` | `auto` / `dark` / `light` |
 
+## 词库备份与迁移
+
+```bash
+ime-settings backup              # 备份到 $XDG_DATA_HOME/rpci/backups/<时间戳>
+ime-settings backups             # 列出备份
+ime-settings export <dir>        # 导出到指定目录
+ime-settings import <dir>        # 从目录恢复
+```
+
+- 导出结构：`rime/`、`config.toml`、`manifest.txt`
+- 自动跳过 `build/`、`log/`、`sync/`、`LOCK`、`*.lock`
+- 备份保留最近 5 份
+- 导入前会自动备份当前状态
+- 建议先退出输入法再备份/导出，避免 LevelDB 仍在写入
+
 ## 已知限制
 
 - 同一 seat 只能有一个 input method 实例；第二个实例会收到 `Unavailable` 并直接退出

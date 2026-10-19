@@ -211,6 +211,14 @@
 - `candidate_count = 1` + `theme = "light"` 实测只渲染一个浅色候选。
 - `cargo test -p ime-probe`：21 个测试通过。
 
+#### 词库备份结果（2026-10-20）
+
+- `ime-settings backup` 生成 `$XDG_DATA_HOME/rpci/backups/<时间戳>`，保留最近 5 份。
+- `export` 结构为 `rime/` + `config.toml` + `manifest.txt`，跳过 `build/`、`log/`、`sync/`、`LOCK`、`*.lock`。
+- `import` 会先自动备份当前词库，再合并恢复。
+- 临时目录实测：备份、导出、删除后导入，`user.yaml` 与 `wubi86.userdb/CURRENT` 均恢复。
+- `cargo test -p ime-probe`：25 个测试通过。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
