@@ -52,6 +52,13 @@ X-GNOME-Autostart-enabled=true
 OnlyShowIn=COSMIC;
 EOF
 
+# XDG autostart is consumed by systemd-xdg-autostart-generator on COSMIC.
+# desktop-file-utils does not know the COSMIC name yet; the generator uses
+# OnlyShowIn=COSMIC and passes it as the ExecCondition.
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user daemon-reload 2>/dev/null || true
+fi
+
 echo "installed:"
 echo "  $BIN_DIR/ime-probe"
 echo "  $BIN_DIR/ime-settings"
