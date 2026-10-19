@@ -194,6 +194,10 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
                     println!("  -> grab_keyboard");
                 }
             }
+            zwp_input_method_v2::Event::Unavailable => {
+                eprintln!("another input method is already active on this seat; exiting");
+                std::process::exit(1);
+            }
             zwp_input_method_v2::Event::Deactivate => {
                 state.forwarded_keys.clear();
                 if let Some(grab) = state.grab.take() {
