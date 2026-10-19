@@ -107,6 +107,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 56, 0);
         state.vk.modifiers(0, 0, 0, 0);
         println!("sent alt+tab");
+    } else if mode == "arrow" {
+        state.vk.key(0, 106, 1);
+        state.vk.key(0, 106, 0);
+        println!("sent Right arrow");
+    } else if mode == "ctrl-c" {
+        state.vk.key(0, 29, 1);
+        state.vk.key(0, 46, 1);
+        state.vk.key(0, 46, 0);
+        state.vk.key(0, 29, 0);
+        println!("sent Ctrl+C");
     } else if mode == "f1" {
         state.vk.key(0, 59, 1);
         state.vk.key(0, 59, 0);

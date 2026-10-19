@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io::Write;
 use std::os::fd::{AsFd, FromRawFd};
 
@@ -38,6 +39,26 @@ struct EngineOutput {
     preedit: String,
     candidates: Vec<String>,
     commit: Option<String>,
+    passthrough: bool,
+}
+
+const MOD_CTRL: u32 = 1 << 2;
+const MOD_ALT: u32 = 1 << 3;
+const MOD_SUPER: u32 = 1 << 6;
+
+fn should_passthrough(keysym: u32, text: &str, mods: u32, composing: bool) -> bool {
+    if mods & (MOD_CTRL | MOD_ALT | MOD_SUPER) != 0 {
+        return true;
+    }
+    if !text.is_empty() && text.chars().all(|c| c.is_ascii_alphabetic()) {
+        return false;
+    }
+    match keysym {
+        0x20 | 0x31..=0x39 => !composing,
+        0xff08 => !composing,
+        0xff1b | 0xff0d => !composing,
+        _ => true,
+    }
 }
 
 fn choose_mode(letters_len: usize, wubi_candidate_count: usize) -> Mode {
@@ -133,7 +154,17 @@ impl HybridEngine {
         self.mode = Mode::Wubi;
     }
 
-    fn handle(&mut self, keysym: u32, text: &str) -> EngineOutput {
+    fn handle(&mut self, keysym: u32, text: &str, mods: u32) -> EngineOutput {
+        if should_passthrough(keysym, text, mods, !self.letters.is_empty()) {
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: true,
+            };
+        }
+
         if !text.is_empty() && text.chars().all(|c| c.is_ascii_alphabetic()) {
             self.feed(&self.wubi, keysym);
             self.feed(&self.pinyin, keysym);
@@ -145,6 +176,7 @@ impl HybridEngine {
                 preedit,
                 candidates,
                 commit: None,
+                passthrough: false,
             };
         }
 
@@ -160,6 +192,7 @@ impl HybridEngine {
                     preedit: String::new(),
                     candidates: Vec::new(),
                     commit,
+                    passthrough: false,
                 }
             }
             0xff08 => {
@@ -173,6 +206,7 @@ impl HybridEngine {
                     preedit,
                     candidates,
                     commit: None,
+                    passthrough: false,
                 }
             }
             0xff1b | 0xff0d => {
@@ -182,6 +216,7 @@ impl HybridEngine {
                     preedit: String::new(),
                     candidates: Vec::new(),
                     commit: None,
+                    passthrough: false,
                 }
             }
             _ => EngineOutput {
@@ -189,6 +224,7 @@ impl HybridEngine {
                 preedit: String::new(),
                 candidates: Vec::new(),
                 commit: None,
+                passthrough: true,
             },
         }
     }
@@ -212,6 +248,8 @@ struct State {
     popup_renderer: PopupRenderer,
     xkb_context: xkbcommon::xkb::Context,
     xkb_state: Option<xkbcommon::xkb::State>,
+    mods: u32,
+    forwarded_keys: HashSet<u32>,
     rime: HybridEngine,
     vk: ZwpVirtualKeyboardV1,
 }
@@ -367,6 +405,7 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
                 }
             }
             zwp_input_method_v2::Event::Deactivate => {
+                state.forwarded_keys.clear();
                 if let Some(grab) = state.grab.take() {
                     grab.release();
                     println!("  -> released grab");
@@ -425,6 +464,7 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                 group,
                 ..
             } => {
+                state.mods = mods_depressed | mods_latched | mods_locked;
                 if let Some(xkb_state) = &mut state.xkb_state {
                     xkb_state.update_mask(mods_depressed, mods_latched, mods_locked, group, 0, 0);
                 }
@@ -435,48 +475,59 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                 ..
             } => {
                 let pressed = matches!(&key_state, WEnum::Value(wl_keyboard::KeyState::Pressed));
-                if key == 59 {
-                    forward_key(state, qh, key, pressed);
-                    return;
-                }
-                if let WEnum::Value(wl_keyboard::KeyState::Pressed) = key_state {
-                    if let Some(xkb_state) = &state.xkb_state {
+                if pressed {
+                    let (sym, name, text) = {
+                        let Some(xkb_state) = state.xkb_state.as_ref() else {
+                            return;
+                        };
                         let sym = xkb_state.key_get_one_sym((key + 8).into());
                         let name = xkbcommon::xkb::keysym_get_name(sym);
                         let text = xkb_state.key_get_utf8((key + 8).into());
-                        let sym_raw = u32::from(sym);
-                        let EngineOutput {
-                            mode,
-                            preedit,
-                            candidates,
-                            commit,
-                        } = state.rime.handle(sym_raw, &text);
+                        (sym, name, text)
+                    };
+                    let sym_raw = u32::from(sym);
+                    let mods = state.mods;
 
-                        if let Some(commit) = commit {
-                            if !commit.is_empty() {
-                                state.im.commit_string(commit.clone());
-                                state.im.commit(state.done_count);
-                                println!("COMMIT = {commit:?}");
-                            }
-                        }
+                    let EngineOutput {
+                        mode,
+                        preedit,
+                        candidates,
+                        commit,
+                        passthrough,
+                    } = state.rime.handle(sym_raw, &text, mods);
 
-                        let mut popup_text = String::new();
-                        if !preedit.is_empty() {
-                            popup_text.push_str(&preedit);
-                            popup_text.push_str("   ");
-                        }
-                        for (i, candidate) in candidates.iter().take(6).enumerate() {
-                            if i > 0 {
-                                popup_text.push_str("  ");
-                            }
-                            popup_text.push_str(&format!("{}.{}", i + 1, candidate));
-                        }
-                        state.popup_renderer.draw(&popup_text);
-
-                        println!(
-                            "KEY keycode={key} sym={name} mode={mode:?} preedit={preedit:?} candidates={candidates:?}"
-                        );
+                    if passthrough {
+                        state.forwarded_keys.insert(key);
+                        forward_key(state, qh, key, true);
+                        return;
                     }
+
+                    if let Some(commit) = commit {
+                        if !commit.is_empty() {
+                            state.im.commit_string(commit.clone());
+                            state.im.commit(state.done_count);
+                            println!("COMMIT = {commit:?}");
+                        }
+                    }
+
+                    let mut popup_text = String::new();
+                    if !preedit.is_empty() {
+                        popup_text.push_str(&preedit);
+                        popup_text.push_str("   ");
+                    }
+                    for (i, candidate) in candidates.iter().take(6).enumerate() {
+                        if i > 0 {
+                            popup_text.push_str("  ");
+                        }
+                        popup_text.push_str(&format!("{}.{}", i + 1, candidate));
+                    }
+                    state.popup_renderer.draw(&popup_text);
+
+                    println!(
+                        "KEY keycode={key} sym={name} mode={mode:?} preedit={preedit:?} candidates={candidates:?}"
+                    );
+                } else if state.forwarded_keys.remove(&key) {
+                    forward_key(state, qh, key, false);
                 }
             }
             _ => {}
@@ -683,6 +734,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         popup_renderer,
         xkb_context: xkbcommon::xkb::Context::new(xkbcommon::xkb::CONTEXT_NO_FLAGS),
         xkb_state: None,
+        mods: 0,
+        forwarded_keys: HashSet::new(),
         rime: HybridEngine::new(),
         vk,
     };
@@ -706,5 +759,36 @@ mod tests {
     fn fallback_without_wubi_candidates() {
         assert_eq!(choose_mode(2, 0), Mode::Pinyin);
         assert_eq!(choose_mode(2, 1), Mode::Wubi);
+    }
+}
+
+#[cfg(test)]
+mod passthrough_tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_shortcuts_pass_through() {
+        assert!(should_passthrough(0x63, "c", MOD_CTRL, false));
+        assert!(should_passthrough(0x76, "v", MOD_CTRL, true));
+    }
+
+    #[test]
+    fn plain_letters_are_handled() {
+        assert!(!should_passthrough(0x77, "w", 0, false));
+        assert!(!should_passthrough(0x57, "W", 0, true));
+    }
+
+    #[test]
+    fn navigation_keys_pass_through() {
+        assert!(should_passthrough(0xff53, "", 0, true));
+        assert!(should_passthrough(0xffbe, "", 0, false));
+    }
+
+    #[test]
+    fn space_and_digits_depend_on_composition() {
+        assert!(should_passthrough(0x20, " ", 0, false));
+        assert!(!should_passthrough(0x20, " ", 0, true));
+        assert!(should_passthrough(0x31, "1", 0, false));
+        assert!(!should_passthrough(0x31, "1", 0, true));
     }
 }
