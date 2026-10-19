@@ -116,7 +116,9 @@ cargo run -p ime-probe --bin textinput
 ./prototype/scripts/install.sh
 ```
 
-默认安装到 `~/.local/bin`，并写入 XDG autostart：
+### 用户级安装
+
+`install.sh` 安装到 `~/.local/bin`，并写入 XDG autostart：
 
 ```
 ~/.config/autostart/rpci-ime.desktop
@@ -138,6 +140,18 @@ cargo run -p ime-probe --bin textinput
 ```
 
 autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs/history/INSTALL-VERIFICATION.md](../docs/history/INSTALL-VERIFICATION.md)。
+
+### Debian 包
+
+```bash
+./prototype/packaging/build-deb.sh
+sudo apt install ./dist/rpci-ime_0.1.0_amd64.deb
+```
+
+包内包含 iced/SCTK 设置入口、系统级 autostart 和 RIME schema。构建、验证、卸载说明见
+[docs/PACKAGING.md](../docs/PACKAGING.md)。
+
+> 不要同时保留用户级 `~/.config/autostart/rpci-ime.desktop` 和系统包 autostart。
 
 ## 设置
 

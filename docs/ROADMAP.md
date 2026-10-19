@@ -27,6 +27,7 @@
 | 设置界面 | ✅ iced 0.14 主入口；SCTK 回退 |
 | 词库备份/导出/导入 | ✅ CLI；GUI 支持备份 |
 | 状态指示 | ✅ layer-shell 胶囊（非 panel applet） |
+| Debian 包 | ✅ `.deb` 构建、解包和脚本验证 |
 | 架构/审计 | ✅ ADR 0004、协议/XDG/UI 审计 |
 
 ## 下一阶段
@@ -85,15 +86,22 @@
 
 **风险**：XIM 是另一套协议栈，不建议在当前 Wayland 原型内直接实现。
 
-### 5. 打包与升级
+### 5. 打包、发布与升级
 
-**为什么**：目前只有 `install.sh`，没有 `.deb`/升级/回滚流程。
+**为什么**：本地 `.deb` 已能构建，但还没有仓库、签名和升级/回滚流程。
 
-**做什么**：
+**已完成**：
 
-- 评估 Pop!_OS/COSMIC 的 `.deb` 打包
-- 安装、升级、卸载、词库保留
-- 构建依赖（librime/libclang）处理
+- `.deb` 构建：`prototype/packaging/build-deb.sh`
+- 包内容：IME、iced/SCTK 设置、系统 autostart、RIME schema
+- 验证：`prototype/packaging/test-deb.sh` + 解包后真实输入
+- 文档：[PACKAGING.md](PACKAGING.md)
+
+**待做**：
+
+- APT 仓库 / 签名 / 自动更新
+- 升级与回滚演练
+- 非 amd64 架构
 
 **验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。
 
