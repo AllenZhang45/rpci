@@ -43,6 +43,7 @@ cargo run -p rpci-settings-iced
 | ← / → | 修改当前值 |
 | Enter | 切换当前值 |
 | S | 保存到 `config.toml` |
+| 保存并应用（按钮） | 保存后通过 systemd 重启输入法 |
 | B | 立即备份词库 |
 | R | 重新加载配置 |
 | Esc | 关闭窗口 |
@@ -87,10 +88,13 @@ $XDG_CONFIG_HOME/rpci/config.toml
 
 ```
 cargo test -p ime-probe
-34 passed; 0 failed
+35 passed; 0 failed
 
 cargo test -p rpci-settings-iced
 2 passed; 0 failed
+
+cargo test -p ime-probe
+35 passed; 0 failed
 ```
 
 端到端：
@@ -106,7 +110,7 @@ cargo test -p rpci-settings-iced
 ## 限制
 
 - 仅键盘操作，鼠标点击/拖动未实现。
-- 保存后不会热加载；需要重启输入法（或重新登录）。
+- 没有热加载；“保存并应用”通过 systemd 重启输入法，未安装 systemd 单元时会失败。
 - 样式是自绘的深色窗口，不是 libcosmic 原生控件。
 - 备份时建议先停止输入法，避免 LevelDB 正在写入。
 - 窗口固定最小尺寸 560×380，未做 HiDPI 2x 渲染。
@@ -115,5 +119,5 @@ cargo test -p rpci-settings-iced
 
 - 增加鼠标点击与悬停。
 - 用 libcosmic/iced 重做视觉，或接入 COSMIC 设置页。
-- 增加“保存并重启输入法”按钮。
+- 增加配置热加载，减少重启输入法的需要。
 - 支持词库恢复（当前 GUI 只做备份，导入仍用 CLI）。

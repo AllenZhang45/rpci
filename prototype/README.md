@@ -149,8 +149,9 @@ cargo run -p rpci-settings-iced
 ```
 
 - iced 0.14 窗口，覆盖默认中英、拼音兜底、候选数量、主题、词库备份
+- “保存并应用”会通过 systemd 重启输入法
 - 兼容回退：`ime-settings-gui`（自绘、键盘操作）
-- 保存后需要重启输入法生效
+- 仅“保存”时下次启动生效；“保存并应用”会立即重启输入法
 - 详见 [docs/SETTINGS-GUI.md](../docs/SETTINGS-GUI.md)
 
 CLI：
@@ -161,6 +162,7 @@ ime-settings set candidate_count 5
 ime-settings set theme light
 ime-settings set pinyin_fallback off
 ime-settings get theme
+ime-settings apply
 ime-settings reset
 ```
 
