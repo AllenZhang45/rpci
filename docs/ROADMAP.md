@@ -202,3 +202,7 @@
 - [ARCHITECTURE.md](ARCHITECTURE.md)：v0.1 原型架构
 - [PROTOTYPE.md](PROTOTYPE.md)：原型范围与验收标准
 - [PRINCIPLES.md](PRINCIPLES.md)：四条项目原则
+
+## 后续建议
+
+验收后的 6 条具体建议见 [NEXT-STEPS.md](NEXT-STEPS.md)。
