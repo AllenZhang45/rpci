@@ -53,6 +53,7 @@
 
 - [assets/popup-visible.png](assets/popup-visible.png) — 候选窗实际显示
 - [assets/popup-hig.png](assets/popup-hig.png) — 候选窗 2x buffer
+- [assets/settings-iced.png](assets/settings-iced.png) — iced 设置窗口（含词库恢复）
 - [assets/settings-gui.png](assets/settings-gui.png) — SCTK 兼容设置窗口
 
 ## 维护约定

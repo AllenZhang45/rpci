@@ -150,6 +150,7 @@ cargo run -p rpci-settings-iced
 
 - iced 0.14 窗口，覆盖默认中英、拼音兜底、候选数量、主题、词库备份
 - “保存并应用”会通过 systemd 重启输入法
+- 可从备份列表恢复词库；恢复前自动备份当前状态，并重启输入法
 - 兼容回退：`ime-settings-gui`（自绘、键盘操作）
 - 仅“保存”时下次启动生效；“保存并应用”会立即重启输入法
 - 详见 [docs/SETTINGS-GUI.md](../docs/SETTINGS-GUI.md)

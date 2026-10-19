@@ -8,7 +8,7 @@
 
 - 普通 xdg_toplevel 窗口，标题 `COSMIC IME 设置`
 - 控件：checkbox、slider、pick_list、button、card 容器
-- 覆盖：默认英文、拼音兜底、候选数量、主题、词库备份、重新加载
+- 覆盖：默认英文、拼音兜底、候选数量、主题、词库备份与恢复、重新加载
 - 保存写入 `$XDG_CONFIG_HOME/rpci/config.toml`
 - 深色 COSMIC 风格调色板：`#1e1e1e` 背景、`#2b2b2b` 卡片、`#3584e4` 主色、12px 圆角
 - 安装为应用菜单主入口 `COSMIC IME 设置`
