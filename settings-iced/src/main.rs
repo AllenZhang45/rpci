@@ -98,6 +98,7 @@ struct App {
     model: SettingsModel,
     backups: Vec<Backup>,
     selected_backup: Option<Backup>,
+    pending_restore: bool,
 }
 
 impl Default for App {
@@ -107,6 +108,7 @@ impl Default for App {
             model: SettingsModel::new(Config::load()),
             selected_backup: backups.first().cloned(),
             backups,
+            pending_restore: false,
         }
     }
 }
@@ -159,18 +161,26 @@ impl App {
             Message::Backup => match backup::backup_now(&default_paths(), KEEP_BACKUPS) {
                 Ok(path) => {
                     self.model.status = format!("已备份到 {}", path.display());
+                    self.pending_restore = false;
                     self.refresh_backups(Some(path));
                 }
                 Err(err) => self.model.mark_error(err),
             },
             Message::BackupSelected(value) => {
                 self.selected_backup = Some(value);
+                self.pending_restore = false;
             }
             Message::Restore => {
                 let Some(selected) = self.selected_backup.clone() else {
                     self.model.status = "没有可恢复的备份".to_string();
                     return Task::none();
                 };
+                if !self.pending_restore {
+                    self.pending_restore = true;
+                    self.model.status = "再次点击“恢复所选”确认恢复".to_string();
+                    return Task::none();
+                }
+                self.pending_restore = false;
                 let paths = default_paths();
                 let stopped = service::stop_input_method().is_ok();
                 match backup::import_from(&paths, &selected.path) {
@@ -190,7 +200,10 @@ impl App {
                     }
                 }
             }
-            Message::Reload => self.model.mark_reloaded(Config::load()),
+            Message::Reload => {
+                self.pending_restore = false;
+                self.model.mark_reloaded(Config::load());
+            }
         }
         Task::none()
     }
@@ -257,7 +270,12 @@ impl App {
                     .placeholder("没有备份")
                     .width(Length::Fill),
                     button("立即备份").on_press(Message::Backup),
-                    button("恢复所选").on_press(Message::Restore),
+                    button(if self.pending_restore {
+                        "确认恢复"
+                    } else {
+                        "恢复所选"
+                    })
+                    .on_press(Message::Restore),
                 ]
                 .spacing(10)
                 .align_y(Alignment::Center),
@@ -346,6 +364,23 @@ mod tests {
     }
 
     #[test]
+    fn restore_requires_confirmation() {
+        let mut app = App {
+            model: SettingsModel::new(Config::default()),
+            backups: vec![Backup {
+                path: PathBuf::from("/tmp/backups/1"),
+            }],
+            selected_backup: Some(Backup {
+                path: PathBuf::from("/tmp/backups/1"),
+            }),
+            pending_restore: false,
+        };
+        let _ = app.update(Message::Restore);
+        assert!(app.pending_restore);
+        assert!(app.model.status.contains("确认"));
+    }
+
+    #[test]
     fn backup_label_is_file_name() {
         let backup = Backup {
             path: PathBuf::from("/tmp/backups/1792451348"),
@@ -359,6 +394,7 @@ mod tests {
             model: SettingsModel::new(Config::default()),
             backups: Vec::new(),
             selected_backup: None,
+            pending_restore: false,
         };
         let _ = app.update(Message::AsciiToggled(true));
         assert!(app.model.config.ascii_mode_default);
