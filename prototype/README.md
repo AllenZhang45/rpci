@@ -28,7 +28,9 @@ Firefox 测试页可用 `scripts/firefox-test-server.py` 启动，访问 `http:/
 
 ## 目录
 
-- `src/main.rs`：IME 主程序
+- `src/main.rs`：Wayland 协议、状态与主循环
+- `src/engine.rs`：五笔/拼音策略、RIME 会话、按键透传判定
+- `src/popup.rs`：候选条渲染（cosmic-text + wl_shm）
 - `src/bin/textinput.rs`：最小 `zwp_text_input_v3` 测试窗口，打印收到的提交文本
 - `src/bin/vkey.rs`：虚拟键盘注入工具（`a` / `abc` / `wubi` / `pinyin` / `preview` / `f1` / `alt-tab`）
 - `src/bin/focus.rs`：通过 COSMIC toplevel 协议聚焦窗口
