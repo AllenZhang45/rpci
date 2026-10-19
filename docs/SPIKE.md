@@ -60,8 +60,8 @@
 ### Day 3：键盘 grab 与按键
 
 - [x] 请求 grab_keyboard，确认收到 key 事件。
-- [ ] 用 xkbcommon 把 keycode 转 keysym，打印日志。
-- [ ] 测试字母、数字、退格、方向键、Ctrl 组合。
+- [x] 用 xkbcommon 把 keycode 转 keysym，打印日志。
+- [ ] 测试字母、数字、退格、方向键、Ctrl 组合（已测 a/b/c，其余待测）。
 - [ ] 记录：grab 期间应用是否还收到按键（判断是否互斥）。
 
 #### Day 2–3 进展（2026-10-20）
@@ -69,15 +69,21 @@
 - 最小客户端已绑定 `zwp_input_method_manager_v2`，收到 Activate/Deactivate/ContentType/Done。
 - Activate 后 `grab_keyboard` 成功，收到 keymap、modifiers、repeat_info。
 - 用 `zwp_virtual_keyboard_v1` 注入 keycode 30，探针收到 Key pressed/released。
-- 已发送 `commit_string("测试")` + `commit(serial=1)`；客户端未收到协议错误，上屏效果待视觉确认。
+- 已发送 `commit_string("测试")` + `commit(serial=1)`；客户端未收到协议错误（上屏后来由 Day 4 的 text-input 客户端确认）。
 - 探针为方便验证，对每个 Key 事件都提交"测试"；这不是最终行为。
 
 #### Day 3–4 补充（2026-10-20）
 
 - 用 `zcosmic_toplevel_manager_v1.activate` 聚焦窗口成功；终端 toplevel state=[2]（Activated）。
 - 在 Activate 后发送 `commit_string("测试")` + `commit(serial=1)`；客户端未收协议错误，但终端里用 `cat > /tmp/ime-commit.txt` 做接收端时没有收到文本。
-- 结论：commit 请求已发出，但"是否真正上屏"仍未确认。需要写一个最小的 `zwp_text_input_v3` 测试客户端直接打印 CommitString，才能区分是终端不接收 IME 提交，还是 commit 本身没生效。
+- 当时的结论是"是否真正上屏仍未确认"；后续用 `zwp_text_input_v3` 测试客户端确认了 commit 路径（见 Day 4 commit 结果）。
 - 虚拟键盘注入在 IME grab 时能被 IME 收到；没有 IME 时，未观察到目标终端收到按键，普通客户端的投递行为需进一步确认。
+
+#### Day 3 xkb 结果（2026-10-20）
+
+- 从 grab 的 keymap 加载 xkb keymap（64755 bytes）。
+- 注入 keycode 30/48/46，得到 `sym=a/b/c`、`text="a"/"b"/"c"`，buffer 依次为 `"a"`、`"ab"`、`"abc"`。
+- 结论：keycode → keysym/UTF-8 链路可用；退格、方向键、Ctrl 组合还未测。
 
 ### Day 4：提交与 popup
 
@@ -130,6 +136,7 @@
 | 能力 | 结果 | 备注 |
 |---|---|---|
 | 激活 | ✅ 已验证 | Activate/Deactivate 均收到 |
+| keycode→keysym | ✅ 已验证 | 30/48/46 → a/b/c，buffer "abc" |
 | grab | ✅ 已验证 | keymap/modifiers/key 均收到 |
 | commit（协议路径） | ✅ 已验证 | text-input 客户端收到 "测试"（6 字节 UTF-8） |
 | commit（GTK4/Qt/Electron/浏览器） | 待测 | 应用矩阵 |
