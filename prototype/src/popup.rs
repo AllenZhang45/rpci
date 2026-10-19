@@ -1,9 +1,57 @@
 use cosmic_text::{Attrs, Buffer, Color, FontSystem, Metrics, Shaping, SwashCache};
+use std::path::PathBuf;
+
 use memmap2::MmapMut;
 use wayland_client::protocol::{wl_buffer, wl_shm_pool, wl_surface};
 
 pub const POPUP_W: u32 = 520;
 pub const POPUP_H: u32 = 48;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Theme {
+    Dark,
+    Light,
+}
+
+fn theme_from(env: Option<&str>, is_dark: Option<bool>) -> Theme {
+    match env {
+        Some("light") => Theme::Light,
+        Some("dark") => Theme::Dark,
+        _ => match is_dark {
+            Some(false) => Theme::Light,
+            _ => Theme::Dark,
+        },
+    }
+}
+
+fn cosmic_is_dark() -> Option<bool> {
+    let config = std::env::var_os("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))?;
+    let path = config.join("cosmic/com.system76.CosmicTheme.Mode/v1/is_dark");
+    std::fs::read_to_string(path).ok()?.trim().parse().ok()
+}
+
+impl Theme {
+    fn detect() -> Self {
+        let env = std::env::var("IME_POPUP_THEME").ok();
+        theme_from(env.as_deref(), cosmic_is_dark())
+    }
+
+    fn background(self) -> [u8; 4] {
+        match self {
+            Theme::Dark => [0x20, 0x20, 0x20, 0xF2],
+            Theme::Light => [0xF4, 0xF4, 0xF4, 0xF2],
+        }
+    }
+
+    fn text_color(self) -> Color {
+        match self {
+            Theme::Dark => Color::rgb(0xEF, 0xEF, 0xEF),
+            Theme::Light => Color::rgb(0x1E, 0x1E, 0x1E),
+        }
+    }
+}
 
 pub struct PopupRenderer {
     font_system: FontSystem,
@@ -13,6 +61,7 @@ pub struct PopupRenderer {
     _buffer: wl_buffer::WlBuffer,
     _pool: wl_shm_pool::WlShmPool,
     mmap: MmapMut,
+    theme: Theme,
 }
 
 impl PopupRenderer {
@@ -32,6 +81,7 @@ impl PopupRenderer {
             _buffer: buffer,
             _pool: pool,
             mmap,
+            theme: Theme::detect(),
         }
     }
 
@@ -67,8 +117,9 @@ impl PopupRenderer {
         }
 
         // wl_shm ARGB8888 on little-endian: B, G, R, A
+        let background = self.theme.background();
         for px in canvas.chunks_exact_mut(4) {
-            px.copy_from_slice(&[0x20, 0x20, 0x20, 0xF2]);
+            px.copy_from_slice(&background);
         }
 
         self.text_buffer
@@ -76,7 +127,7 @@ impl PopupRenderer {
         self.text_buffer
             .set_text(text, &Attrs::new(), Shaping::Advanced, None);
 
-        let color = Color::rgb(0xEF, 0xEF, 0xEF);
+        let color = self.theme.text_color();
         {
             let PopupRenderer {
                 font_system,
@@ -114,5 +165,23 @@ impl PopupRenderer {
         self.surface
             .damage_buffer(0, 0, POPUP_W as i32, POPUP_H as i32);
         self.surface.commit();
+    }
+}
+
+#[cfg(test)]
+mod theme_tests {
+    use super::*;
+
+    #[test]
+    fn env_override() {
+        assert_eq!(theme_from(Some("light"), Some(true)), Theme::Light);
+        assert_eq!(theme_from(Some("dark"), Some(false)), Theme::Dark);
+    }
+
+    #[test]
+    fn config_fallback() {
+        assert_eq!(theme_from(None, Some(false)), Theme::Light);
+        assert_eq!(theme_from(None, Some(true)), Theme::Dark);
+        assert_eq!(theme_from(None, None), Theme::Dark);
     }
 }
