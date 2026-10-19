@@ -10,7 +10,7 @@
 - 五笔优先、拼音兜底（超过 4 码或无五笔候选时切到 `pinyin_simp`）
 - `commit_string` 上屏
 - `input_popup_surface` 候选条，cosmic-text 渲染
-- 释放 grab + `zwp_virtual_keyboard_v1` 注入的按键透传机制（目前只接了 F1 验证）
+- 释放 grab + `zwp_virtual_keyboard_v1` 注入的按键透传：方向键、Ctrl 组合、功能键（F1/Right/Ctrl+C 已验证）
 
 ## 目录
 
@@ -87,7 +87,7 @@ cargo run -p ime-probe --bin textinput
 ## 已知限制
 
 - 同一 seat 只能有一个 input method 实例；多开会收到 `Unavailable`，RIME userdb 也会锁冲突
-- 通用按键透传（方向键、Ctrl 组合、Tab、标点）尚未完成，目前只有 F1 验证
+- 英文模式、Tab、中文标点、Alt/Super 组合的透传尚未完善
 - 候选条在真实应用中的位置、屏幕边缘翻转、HiDPI 尚未验证
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - 用户词库/配置仍使用 `/tmp/rime-user` 默认路径，尚未接入 XDG 目录
