@@ -22,6 +22,9 @@ check() {
 
 check "release binary installed" "[ -x '$BIN_DIR/ime-probe' ]"
 check "settings CLI installed" "[ -x '$BIN_DIR/ime-settings' ]"
+check "iced settings installed" "[ -x '$BIN_DIR/ime-settings-iced' ]"
+check "settings launcher installed" "[ -f '$DATA_HOME/applications/rpci-settings.desktop' ]"
+check "fallback settings launcher installed" "[ -f '$DATA_HOME/applications/rpci-settings-fallback.desktop' ]"
 check "config exists" "[ -f '$CONFIG_HOME/rpci/config.toml' ]"
 check "RIME data exists" "[ -d '$DATA_HOME/rpci/rime' ]"
 check "autostart desktop exists" "[ -f '$DESKTOP' ]"
