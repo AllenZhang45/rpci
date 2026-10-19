@@ -111,6 +111,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 15, 1);
         state.vk.key(0, 15, 0);
         println!("sent Tab");
+    } else if mode == "enter" {
+        state.vk.key(0, 28, 1);
+        state.vk.key(0, 28, 0);
+        println!("sent Enter");
     } else if mode == "ctrl-s" {
         state.vk.key(0, 29, 1);
         state.vk.key(0, 31, 1);
