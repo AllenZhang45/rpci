@@ -22,17 +22,16 @@ use wayland_protocols_misc::zwp_virtual_keyboard_v1::client::{
     zwp_virtual_keyboard_v1::{self, ZwpVirtualKeyboardV1},
 };
 
-mod engine;
-mod popup;
-
-use engine::{EngineOutput, HybridEngine};
-use popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
+use ime_probe::config::Config;
+use ime_probe::engine::{EngineOutput, HybridEngine};
+use ime_probe::popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
 
 struct State {
     _seat: wl_seat::WlSeat,
     im: ZwpInputMethodV2,
     grab: Option<ZwpInputMethodKeyboardGrabV2>,
     done_count: u32,
+    candidate_count: usize,
     _popup: ZwpInputPopupSurfaceV2,
     _popup_surface: wl_surface::WlSurface,
     popup_renderer: PopupRenderer,
@@ -310,7 +309,8 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                         popup_text.push_str(&preedit);
                         popup_text.push_str("   ");
                     }
-                    for (i, candidate) in candidates.iter().take(6).enumerate() {
+                    for (i, candidate) in candidates.iter().take(state.candidate_count).enumerate()
+                    {
                         if i > 0 {
                             popup_text.push_str("  ");
                         }
@@ -400,11 +400,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let popup_surface = compositor.create_surface(&qh, ());
     let popup = im.get_input_popup_surface(&popup_surface, &qh, ());
     let (pool, buffer, mmap) = create_popup_buffer(&shm, &qh)?;
+    let config = Config::load();
 
     popup_surface.attach(Some(&buffer), 0, 0);
     popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
     popup_surface.commit();
-    let popup_renderer = PopupRenderer::new(popup_surface.clone(), buffer, pool, mmap);
+    let popup_renderer =
+        PopupRenderer::new(popup_surface.clone(), buffer, pool, mmap, config.theme);
 
     println!("bound input method + popup surface ({POPUP_W}x{POPUP_H}); waiting for activate...");
     let mut state = State {
@@ -412,6 +414,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         im,
         grab: None,
         done_count: 0,
+        candidate_count: config.candidate_count,
         _popup: popup,
         _popup_surface: popup_surface,
         popup_renderer,
@@ -419,7 +422,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         xkb_state: None,
         mods: 0,
         forwarded_keys: HashSet::new(),
-        rime: HybridEngine::new(),
+        rime: HybridEngine::new(&config),
         vk,
     };
 

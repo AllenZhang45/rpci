@@ -2,6 +2,8 @@ use std::path::{Path, PathBuf};
 
 use rime_api::{Session, Traits};
 
+use crate::config::Config;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
     Wubi,
@@ -70,17 +72,29 @@ fn choose_mode(letters_len: usize, wubi_candidate_count: usize) -> Mode {
     }
 }
 
+fn choose_mode_with_fallback(
+    letters_len: usize,
+    wubi_candidate_count: usize,
+    fallback_enabled: bool,
+) -> Mode {
+    if fallback_enabled {
+        choose_mode(letters_len, wubi_candidate_count)
+    } else {
+        Mode::Wubi
+    }
+}
+
 pub struct HybridEngine {
     _traits: Traits,
     wubi: Session,
-    pinyin: Session,
+    pinyin: Option<Session>,
     letters: String,
     mode: Mode,
     ascii_mode: bool,
 }
 
 impl HybridEngine {
-    pub fn new() -> Self {
+    pub fn new(config: &Config) -> Self {
         let shared_dir = std::env::var("IME_RIME_SHARED_DIR")
             .unwrap_or_else(|_| "/usr/share/rime-data".to_string());
         let user_dir = std::env::var("IME_RIME_USER_DIR")
@@ -107,10 +121,15 @@ impl HybridEngine {
 
         let wubi = rime_api::create_session().expect("wubi session");
         wubi.select_schema("wubi86").expect("select wubi86");
-        let pinyin = rime_api::create_session().expect("pinyin session");
-        pinyin
-            .select_schema("pinyin_simp")
-            .expect("select pinyin_simp");
+        let pinyin = if config.pinyin_fallback {
+            let pinyin = rime_api::create_session().expect("pinyin session");
+            pinyin
+                .select_schema("pinyin_simp")
+                .expect("select pinyin_simp");
+            Some(pinyin)
+        } else {
+            None
+        };
 
         Self {
             _traits: traits,
@@ -118,12 +137,18 @@ impl HybridEngine {
             pinyin,
             letters: String::new(),
             mode: Mode::Wubi,
-            ascii_mode: false,
+            ascii_mode: config.ascii_mode_default,
         }
     }
 
     fn feed(&self, session: &Session, keysym: u32) {
         session.process_key(rime_api::KeyEvent::new(keysym, 0));
+    }
+
+    fn feed_pinyin(&self, keysym: u32) {
+        if let Some(pinyin) = &self.pinyin {
+            self.feed(pinyin, keysym);
+        }
     }
 
     fn candidates_of(&self, session: &Session) -> (String, Vec<String>) {
@@ -143,19 +168,23 @@ impl HybridEngine {
 
     fn recur_mode(&mut self) {
         let (_, wubi_candidates) = self.candidates_of(&self.wubi);
-        self.mode = choose_mode(self.letters.len(), wubi_candidates.len());
+        self.mode = choose_mode_with_fallback(
+            self.letters.len(),
+            wubi_candidates.len(),
+            self.pinyin.is_some(),
+        );
     }
 
     fn active(&self) -> &Session {
         match self.mode {
             Mode::Wubi => &self.wubi,
-            Mode::Pinyin => &self.pinyin,
+            Mode::Pinyin => self.pinyin.as_ref().unwrap_or(&self.wubi),
         }
     }
 
     fn reset(&mut self) {
         self.feed(&self.wubi, 0xff1b);
-        self.feed(&self.pinyin, 0xff1b);
+        self.feed_pinyin(0xff1b);
         self.letters.clear();
         self.mode = Mode::Wubi;
     }
@@ -196,7 +225,7 @@ impl HybridEngine {
 
         if !text.is_empty() && text.chars().all(|c| c.is_ascii_alphabetic()) {
             self.feed(&self.wubi, keysym);
-            self.feed(&self.pinyin, keysym);
+            self.feed_pinyin(keysym);
             self.letters.push_str(text);
             self.recur_mode();
             let (preedit, candidates) = self.candidates_of(self.active());
@@ -243,7 +272,7 @@ impl HybridEngine {
             }
             0xff08 => {
                 self.feed(&self.wubi, keysym);
-                self.feed(&self.pinyin, keysym);
+                self.feed_pinyin(keysym);
                 self.letters.pop();
                 self.recur_mode();
                 let (preedit, candidates) = self.candidates_of(self.active());
@@ -279,7 +308,9 @@ impl HybridEngine {
 impl Drop for HybridEngine {
     fn drop(&mut self) {
         let _ = self.wubi.close();
-        let _ = self.pinyin.close();
+        if let Some(pinyin) = &mut self.pinyin {
+            let _ = pinyin.close();
+        }
         rime_api::finalize();
     }
 }
@@ -391,5 +422,16 @@ mod rime_path_tests {
             rime_user_dir_from(None, None),
             PathBuf::from("/tmp/rime-user")
         );
+    }
+}
+
+#[cfg(test)]
+mod fallback_tests {
+    use super::*;
+
+    #[test]
+    fn disabled_fallback_keeps_wubi() {
+        assert_eq!(choose_mode_with_fallback(5, 0, false), Mode::Wubi);
+        assert_eq!(choose_mode_with_fallback(5, 0, true), Mode::Pinyin);
     }
 }

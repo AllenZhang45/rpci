@@ -4,6 +4,8 @@ use std::path::PathBuf;
 use memmap2::MmapMut;
 use wayland_client::protocol::{wl_buffer, wl_shm_pool, wl_surface};
 
+use crate::config::ThemePreference;
+
 /// Logical size in surface coordinates.
 pub const POPUP_W: u32 = 520;
 pub const POPUP_H: u32 = 48;
@@ -18,11 +20,16 @@ enum Theme {
     Light,
 }
 
-fn theme_from(env: Option<&str>, is_dark: Option<bool>) -> Theme {
+fn theme_from(env: Option<&str>, preference: ThemePreference, is_dark: Option<bool>) -> Theme {
     match env {
-        Some("light") => Theme::Light,
-        Some("dark") => Theme::Dark,
-        _ => match is_dark {
+        Some("light") => return Theme::Light,
+        Some("dark") => return Theme::Dark,
+        _ => {}
+    }
+    match preference {
+        ThemePreference::Light => Theme::Light,
+        ThemePreference::Dark => Theme::Dark,
+        ThemePreference::Auto => match is_dark {
             Some(false) => Theme::Light,
             _ => Theme::Dark,
         },
@@ -38,9 +45,9 @@ fn cosmic_is_dark() -> Option<bool> {
 }
 
 impl Theme {
-    fn detect() -> Self {
+    fn detect(preference: ThemePreference) -> Self {
         let env = std::env::var("IME_POPUP_THEME").ok();
-        theme_from(env.as_deref(), cosmic_is_dark())
+        theme_from(env.as_deref(), preference, cosmic_is_dark())
     }
 
     fn background(self) -> [u8; 4] {
@@ -75,6 +82,7 @@ impl PopupRenderer {
         buffer: wl_buffer::WlBuffer,
         pool: wl_shm_pool::WlShmPool,
         mmap: MmapMut,
+        preference: ThemePreference,
     ) -> Self {
         let mut font_system = FontSystem::new();
         let text_buffer = Buffer::new(
@@ -90,7 +98,7 @@ impl PopupRenderer {
             _buffer: buffer,
             _pool: pool,
             mmap,
-            theme: Theme::detect(),
+            theme: Theme::detect(preference),
         }
     }
 
@@ -183,14 +191,30 @@ mod theme_tests {
 
     #[test]
     fn env_override() {
-        assert_eq!(theme_from(Some("light"), Some(true)), Theme::Light);
-        assert_eq!(theme_from(Some("dark"), Some(false)), Theme::Dark);
+        assert_eq!(
+            theme_from(Some("light"), ThemePreference::Dark, Some(true)),
+            Theme::Light
+        );
+        assert_eq!(
+            theme_from(Some("dark"), ThemePreference::Light, Some(false)),
+            Theme::Dark
+        );
     }
 
     #[test]
     fn config_fallback() {
-        assert_eq!(theme_from(None, Some(false)), Theme::Light);
-        assert_eq!(theme_from(None, Some(true)), Theme::Dark);
-        assert_eq!(theme_from(None, None), Theme::Dark);
+        assert_eq!(
+            theme_from(None, ThemePreference::Auto, Some(false)),
+            Theme::Light
+        );
+        assert_eq!(
+            theme_from(None, ThemePreference::Light, Some(true)),
+            Theme::Light
+        );
+        assert_eq!(
+            theme_from(None, ThemePreference::Dark, Some(false)),
+            Theme::Dark
+        );
+        assert_eq!(theme_from(None, ThemePreference::Auto, None), Theme::Dark);
     }
 }
