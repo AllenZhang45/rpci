@@ -46,6 +46,10 @@ const MOD_CTRL: u32 = 1 << 2;
 const MOD_ALT: u32 = 1 << 3;
 const MOD_SUPER: u32 = 1 << 6;
 
+fn should_toggle(keysym: u32, mods: u32) -> bool {
+    (keysym == 0x20 && mods & MOD_CTRL != 0) || keysym == 0xffbf
+}
+
 fn is_punctuation(keysym: u32) -> bool {
     matches!(keysym, 0x21..=0x2f | 0x3a..=0x40 | 0x5b..=0x60 | 0x7b..=0x7e)
 }
@@ -82,6 +86,7 @@ struct HybridEngine {
     pinyin: Session,
     letters: String,
     mode: Mode,
+    ascii_mode: bool,
 }
 
 impl HybridEngine {
@@ -120,6 +125,7 @@ impl HybridEngine {
             pinyin,
             letters: String::new(),
             mode: Mode::Wubi,
+            ascii_mode: false,
         }
     }
 
@@ -162,6 +168,29 @@ impl HybridEngine {
     }
 
     fn handle(&mut self, keysym: u32, text: &str, mods: u32) -> EngineOutput {
+        if should_toggle(keysym, mods) {
+            self.reset();
+            self.ascii_mode = !self.ascii_mode;
+            let label = if self.ascii_mode { "English" } else { "中文" };
+            return EngineOutput {
+                mode: self.mode,
+                preedit: label.to_string(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: false,
+            };
+        }
+
+        if self.ascii_mode {
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: true,
+            };
+        }
+
         if should_passthrough(keysym, text, mods, !self.letters.is_empty()) {
             return EngineOutput {
                 mode: self.mode,
@@ -834,5 +863,18 @@ mod punctuation_tests {
         assert!(is_punctuation(0x3f));
         assert!(!is_punctuation(0x20));
         assert!(!is_punctuation(0x61));
+    }
+}
+
+#[cfg(test)]
+mod toggle_tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_space_and_f2_toggle() {
+        assert!(should_toggle(0x20, MOD_CTRL));
+        assert!(should_toggle(0xffbf, 0));
+        assert!(!should_toggle(0x20, 0));
+        assert!(!should_toggle(0x61, 0));
     }
 }

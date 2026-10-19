@@ -107,6 +107,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 56, 0);
         state.vk.modifiers(0, 0, 0, 0);
         println!("sent alt+tab");
+    } else if mode == "toggle" {
+        state.vk.key(0, 60, 1);
+        state.vk.key(0, 60, 0);
+        println!("sent F2 toggle");
     } else if mode == "punct" {
         for keycode in [52u32, 51] {
             state.vk.key(0, keycode, 1);
