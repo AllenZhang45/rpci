@@ -164,6 +164,13 @@
 - cosmic-term：此前能激活，但提交没有写入 PTY；属于应用侧差异。
 - 合成 `zwp_text_input_v3` 客户端：✅。
 
+#### XDG 数据目录结果（2026-10-20）
+
+- 默认 RIME 用户目录改为 `$XDG_DATA_HOME/rpci/rime`，没有 XDG 时回退到 `~/.local/share/rpci/rime`。
+- `scripts/setup-rime.sh` 已同步；`~/.local/share/rpci/rime/build` 成功生成。
+- 用默认路径实测 `wqiy` + space 仍提交「你」。
+- `/tmp/rime-user` 只作为没有 HOME/XDG 时的最后回退。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -204,6 +211,7 @@
 | 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
 | 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
 | Firefox | ❌ 未激活 | 需查 text-input/焦点兼容 |
+| XDG 词库目录 | ✅ | ~/.local/share/rpci/rime |
 | HiDPI | 待实测 |  |
 | RIME Wubi86 | ✅ 已验证 | `wqiy` + space → "你"，端到端 |
 | 拼音兜底 | ✅ 已验证 | nihao → "你好"；第 5 码自动切换 |

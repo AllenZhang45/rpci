@@ -61,7 +61,7 @@ export LIBCLANG_PATH=/usr/lib/x86_64-linux-gnu
 ./prototype/scripts/setup-rime.sh
 ```
 
-默认写入 `/tmp/rime-user`。可用 `IME_RIME_USER_DIR` / `IME_RIME_SHARED_DIR` 覆盖。
+默认写入 `$XDG_DATA_HOME/rpci/rime`（通常是 `~/.local/share/rpci/rime`）。可用 `IME_RIME_USER_DIR` / `IME_RIME_SHARED_DIR` 覆盖。
 
 ## 构建
 
@@ -103,6 +103,5 @@ cargo run -p ime-probe --bin textinput
 - Tab、Alt/Super 组合的透传尚未完善
 - 候选条在真实应用中的位置、屏幕边缘翻转、HiDPI 尚未验证
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
-- 用户词库/配置仍使用 `/tmp/rime-user` 默认路径，尚未接入 XDG 目录
 - 无临时拼音键、无设置界面
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
