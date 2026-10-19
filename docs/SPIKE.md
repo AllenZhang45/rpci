@@ -189,6 +189,12 @@
 - `wqiy` 后按数字 2，提交「仰泳」；文件为 `e4 bb b0 e6 b3 b3`。
 - 说明数字 1–9 选词路径可用，不只是空格选第一个。
 
+#### 编辑键结果（2026-10-20）
+
+- `wqiy` + Backspace + space：退格后组合变为 `wqi`，提交「你」。
+- `wqiy` + Esc + `wqiy` + space：Esc 取消组合，重新输入后提交「你」。
+- 说明退格与取消路径不会破坏输入状态。
+
 ### Day 5：透传与结论
 
 - [x] 测试方向键、Ctrl+C、F1 的透传。
@@ -227,6 +233,7 @@
 | 按键透传 | ✅ 通用规则已接入 | F1/Right/Ctrl+C 已验证；英文模式待做 |
 | 中文标点 | ✅ 已验证 | . , ? → 。，？ |
 | 数字选词 | ✅ 已验证 | wqiy + 2 → 仰泳 |
+| 编辑键 | ✅ 已验证 | Backspace / Esc 组合测试 |
 | 中英切换 | ✅ F2/Ctrl+Space 已验证 | 快速切换后注入需留一点时间 |
 | 真实应用（cosmic-edit） | ✅ | wqiy → 你，Ctrl+S 保存验证 |
 | LibreOffice Writer | ✅ | wqiy → 你，ODT content.xml 含 你 |
