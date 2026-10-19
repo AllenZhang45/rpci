@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::io::Write;
 use std::os::fd::{AsFd, FromRawFd};
+use std::path::{Path, PathBuf};
 
 use cosmic_text::{Attrs, Buffer, Color, FontSystem, Metrics, Shaping, SwashCache};
 use memmap2::MmapMut;
@@ -45,6 +46,22 @@ struct EngineOutput {
 const MOD_CTRL: u32 = 1 << 2;
 const MOD_ALT: u32 = 1 << 3;
 const MOD_SUPER: u32 = 1 << 6;
+
+fn rime_user_dir_from(xdg_data_home: Option<&Path>, home: Option<&Path>) -> PathBuf {
+    if let Some(xdg) = xdg_data_home {
+        xdg.join("rpci/rime")
+    } else if let Some(home) = home {
+        home.join(".local/share/rpci/rime")
+    } else {
+        PathBuf::from("/tmp/rime-user")
+    }
+}
+
+fn default_rime_user_dir() -> PathBuf {
+    let xdg = std::env::var_os("XDG_DATA_HOME").map(PathBuf::from);
+    let home = std::env::var_os("HOME").map(PathBuf::from);
+    rime_user_dir_from(xdg.as_deref(), home.as_deref())
+}
 
 fn should_toggle(keysym: u32, mods: u32) -> bool {
     (keysym == 0x20 && mods & MOD_CTRL != 0) || keysym == 0xffbf
@@ -93,9 +110,12 @@ impl HybridEngine {
     fn new() -> Self {
         let shared_dir = std::env::var("IME_RIME_SHARED_DIR")
             .unwrap_or_else(|_| "/usr/share/rime-data".to_string());
-        let user_dir =
-            std::env::var("IME_RIME_USER_DIR").unwrap_or_else(|_| "/tmp/rime-user".to_string());
-        let log_dir = format!("{user_dir}/log");
+        let user_dir = std::env::var("IME_RIME_USER_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| default_rime_user_dir());
+        let log_dir = user_dir.join("log");
+        let user_dir = user_dir.to_string_lossy().into_owned();
+        let log_dir = log_dir.to_string_lossy().into_owned();
 
         let mut traits = Traits::new();
         traits
@@ -876,5 +896,34 @@ mod toggle_tests {
         assert!(should_toggle(0xffbf, 0));
         assert!(!should_toggle(0x20, 0));
         assert!(!should_toggle(0x61, 0));
+    }
+}
+
+#[cfg(test)]
+mod rime_path_tests {
+    use super::*;
+
+    #[test]
+    fn xdg_takes_precedence() {
+        assert_eq!(
+            rime_user_dir_from(Some(Path::new("/xdg")), Some(Path::new("/home/u"))),
+            PathBuf::from("/xdg/rpci/rime")
+        );
+    }
+
+    #[test]
+    fn home_fallback() {
+        assert_eq!(
+            rime_user_dir_from(None, Some(Path::new("/home/u"))),
+            PathBuf::from("/home/u/.local/share/rpci/rime")
+        );
+    }
+
+    #[test]
+    fn tmp_fallback() {
+        assert_eq!(
+            rime_user_dir_from(None, None),
+            PathBuf::from("/tmp/rime-user")
+        );
     }
 }

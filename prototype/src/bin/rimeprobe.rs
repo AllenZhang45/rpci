@@ -3,14 +3,22 @@ use rime_api::{
 };
 
 fn main() {
+    let user_dir = std::env::var("IME_RIME_USER_DIR").unwrap_or_else(|_| {
+        let base = std::env::var("XDG_DATA_HOME").unwrap_or_else(|_| {
+            format!("{}/.local/share", std::env::var("HOME").unwrap_or_default())
+        });
+        format!("{base}/rpci/rime")
+    });
+    let log_dir = format!("{user_dir}/log");
+
     let mut traits = Traits::new();
     traits
         .set_shared_data_dir("/usr/share/rime-data")
-        .set_user_data_dir("/tmp/rime-user")
+        .set_user_data_dir(&user_dir)
         .set_distribution_name("rimeprobe")
         .set_distribution_code_name("rimeprobe")
         .set_distribution_version("0.0.1")
-        .set_log_dir("/tmp/rime-user/log")
+        .set_log_dir(&log_dir)
         .set_min_log_level(2);
 
     setup(&mut traits);

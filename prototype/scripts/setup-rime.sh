@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SHARED_DIR="${IME_RIME_SHARED_DIR:-/usr/share/rime-data}"
-USER_DIR="${IME_RIME_USER_DIR:-/tmp/rime-user}"
+USER_DIR="${IME_RIME_USER_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/rpci/rime}"
 
 if [ ! -d "$SHARED_DIR" ]; then
     echo "missing RIME shared data: $SHARED_DIR" >&2
