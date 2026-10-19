@@ -4,6 +4,7 @@ use iced::widget::{Space, button, checkbox, column, container, pick_list, row, s
 use iced::{Alignment, Border, Color, Element, Length, Task, Theme};
 use ime_probe::backup::{self, KEEP_BACKUPS, default_paths};
 use ime_probe::config::{Config, ThemePreference};
+use ime_probe::service;
 use ime_probe::settings_model::SettingsModel;
 
 const THEMES: [ThemeChoice; 3] = [ThemeChoice::Auto, ThemeChoice::Dark, ThemeChoice::Light];
@@ -58,6 +59,7 @@ enum Message {
     CountChanged(u8),
     ThemeSelected(ThemeChoice),
     Save,
+    Apply,
     Backup,
     Reload,
 }
@@ -95,6 +97,16 @@ impl App {
             }
             Message::Save => match self.model.config.save() {
                 Ok(path) => self.model.mark_saved(&path),
+                Err(err) => self.model.mark_error(err),
+            },
+            Message::Apply => match self.model.config.save() {
+                Ok(path) => {
+                    self.model.mark_saved(&path);
+                    match service::restart_input_method() {
+                        Ok(()) => self.model.status = "已保存并重启输入法".to_string(),
+                        Err(err) => self.model.status = format!("已保存；重启失败: {err}"),
+                    }
+                }
                 Err(err) => self.model.mark_error(err),
             },
             Message::Backup => match backup::backup_now(&default_paths(), KEEP_BACKUPS) {
@@ -157,6 +169,7 @@ impl App {
 
         let actions = row![
             button("保存").on_press(Message::Save),
+            button("保存并应用").on_press(Message::Apply),
             button("备份词库").on_press(Message::Backup),
             button("重新加载").on_press(Message::Reload),
         ]
@@ -169,7 +182,7 @@ impl App {
                     color: Some(theme.palette().text.scale_alpha(0.7)),
                 }
             }),
-            text("保存后需要重启输入法才会生效")
+            text("“保存并应用”会通过 systemd 重启输入法")
                 .size(12)
                 .style(|theme: &Theme| text::Style {
                     color: Some(theme.palette().text.scale_alpha(0.55)),

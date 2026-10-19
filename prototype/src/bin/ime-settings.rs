@@ -3,6 +3,7 @@ use std::process::ExitCode;
 
 use ime_probe::backup::{self, KEEP_BACKUPS, default_paths};
 use ime_probe::config::{Config, config_path};
+use ime_probe::service;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -60,6 +61,25 @@ fn main() -> ExitCode {
                 Err(err) => fail(err),
             }
         }
+        [cmd] if cmd == "apply" => {
+            let config = Config::load();
+            match config.save() {
+                Ok(path) => {
+                    println!("saved {}", path.display());
+                    match service::restart_input_method() {
+                        Ok(()) => {
+                            println!("restarted {}", service::UNIT);
+                            ExitCode::SUCCESS
+                        }
+                        Err(err) => {
+                            eprintln!("saved, but restart failed: {err}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
+                Err(err) => fail(err),
+            }
+        }
         [cmd] if cmd == "reset" => {
             let config = Config::default();
             match config.save() {
@@ -99,7 +119,7 @@ fn main() -> ExitCode {
         }
         _ => {
             eprintln!(
-                "usage: ime-settings [show|path|reset|get <key>|set <key> <value>]\n\
+                "usage: ime-settings [show|path|reset|apply|get <key>|set <key> <value>]\n\
                  ime-settings [backup|backups|export <dir>|import <dir>]\n\
                  keys: ascii_mode_default, pinyin_fallback, candidate_count, theme"
             );
