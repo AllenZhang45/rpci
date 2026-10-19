@@ -10,7 +10,7 @@
   `app-rpci\x2dime@autostart.service`。
 - `xdg-desktop-autostart.target` 已 active，单元已链接进该 target。
 - 手动 stop → start 该单元后，输入法自动拉起并正常提交；这验证了 autostart 的实际启动路径。
-- 未执行真正的注销/重新登录：代理会话会因此终止。最后一步需要用户在本机确认。
+- 用户已于 2026-10-20 07:02 重启，autostart 自动拉起成功；详见下文“重启后实测”。
 
 ## Release 构建
 
@@ -107,9 +107,24 @@ value "COSMIC;" for key "OnlyShowIn" ... contains an unregistered value "COSMIC"
 `XDG_CURRENT_DESKTOP=COSMIC` 作为 `ExecCondition`，实际检查通过（`ExecCondition ... "COSMIC"` 返回 0）。
 因此验证脚本把它标记为 `warn`，而不是失败。
 
-## 仍需人工完成：注销/重新登录
+## 重启后实测（已完成）
 
-代理不能自行注销，否则会终止当前会话。请在本机完成一次：
+用户重启后没有手动启动输入法，实际检查结果：
+
+- 系统启动时间：`2026-10-20 07:02:13`
+- autostart 单元启动时间：`2026-10-20 07:02:28`
+- 主进程：PID `1797`，路径 `/home/alec/.local/bin/ime-probe`
+- `ActiveState=active`，`SubState=running`
+- `xdg-desktop-autostart.target` 为 active，`wants` 链接存在
+- 二进制 BuildID 为 `28f8ef8a100fbaa6fbde753f7d4fa3fb5a20368e`，与 release 产物一致
+- 日志出现 `COMMIT = "你"`
+- 聚焦测试窗口后执行 `vkey wubi`，文件字节为 `e4 bd a0`（「你」）
+
+结论：真实重启后 autostart 自动拉起成功，无需手动启动。
+
+## 注销/重新登录验证（已完成）
+
+已于 2026-10-20 07:02 完成。以下步骤保留，供以后回归重测：
 
 1. 注销当前 COSMIC 会话并重新登录。
 2. 不手动启动任何东西，检查：
@@ -140,5 +155,5 @@ cat ~/.config/autostart/rpci-ime.desktop
 
 - release 安装和运行：已验证。
 - systemd autostart 生成、链接、手动启动、输入：已验证。
-- 真实注销/重启后的自动拉起：待用户确认（机制已通过 stop/start 验证）。
-- 验证结束后手动停止了测试单元，避免留下一个测试输入法进程；下次登录会由 autostart 拉起。
+- 真实重启后的自动拉起：已验证（PID 1797，07:02:28 启动）。
+- 当前会话中的输入法由 autostart 启动并保持运行；测试窗口已关闭。

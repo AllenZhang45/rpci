@@ -24,9 +24,7 @@
 
 ### 当前状态
 
-自动化部分已完成：release 构建、真实 HOME 安装、systemd autostart 单元生成/链接/启动、安装后输入均已验证。详见 [INSTALL-VERIFICATION.md](INSTALL-VERIFICATION.md)。
-
-仍需用户在本机执行一次注销/重新登录，确认会话启动时自动拉起；代理不能自行注销，否则会终止当前会话。
+已完成：release 构建、真实 HOME 安装、systemd autostart 单元生成/链接/启动、安装后输入均已验证。用户于 2026-10-20 07:02 重启后，autostart 自动拉起（PID 1797），输入 `wqiy` 提交「你」。详见 [INSTALL-VERIFICATION.md](INSTALL-VERIFICATION.md)。
 
 ## 2. 独立设置 GUI
 

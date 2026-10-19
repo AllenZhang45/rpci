@@ -14,7 +14,7 @@
 - 2026-10-20：M3 以 layer-shell 状态胶囊实现（显示中/英、五笔/拼音）；COSMIC 第三方 panel applet API 未确认，暂不阻塞。
 - 2026-10-20：M4 应用矩阵扩展：cosmic-edit/LibreOffice 通过，Firefox/XWayland 未激活；Qt6/Electron/Flatpak 环境无样本，见 [APP-MATRIX.md](APP-MATRIX.md)。
 - 2026-10-20：M5 Firefox 证据与 issue 草案已整理，尚未向上游提交，见 [FIREFOX.md](FIREFOX.md)。
-- 2026-10-20：第 1 条后续建议的自动化部分完成：release 安装、systemd autostart 单元启动与输入验证，见 [INSTALL-VERIFICATION.md](INSTALL-VERIFICATION.md)。
+- 2026-10-20：第 1 条后续建议完成：release 安装、systemd autostart 单元启动与输入验证；用户重启后自动拉起（PID 1797），见 [INSTALL-VERIFICATION.md](INSTALL-VERIFICATION.md)。
 
 ## 优先级总览
 
