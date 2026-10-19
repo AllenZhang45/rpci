@@ -125,6 +125,11 @@ impl PopupRenderer {
         }
     }
 
+    /// Re-detect the theme after the user changes it in settings.
+    pub fn set_preference(&mut self, preference: ThemePreference) {
+        self.theme = Theme::detect(preference);
+    }
+
     pub fn draw(&mut self, text: &str) {
         let width = POPUP_PIXEL_W as usize;
         let height = POPUP_PIXEL_H as usize;

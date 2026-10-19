@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::io::Write;
 use std::os::fd::{AsFd, FromRawFd};
+use std::time::SystemTime;
 
 use memmap2::MmapMut;
 use wayland_client::{
@@ -39,6 +40,7 @@ struct State {
     grab: Option<ZwpInputMethodKeyboardGrabV2>,
     done_count: u32,
     candidate_count: usize,
+    config_mtime: Option<SystemTime>,
     _popup: ZwpInputPopupSurfaceV2,
     _popup_surface: wl_surface::WlSurface,
     popup_renderer: PopupRenderer,
@@ -232,6 +234,7 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
         println!("IM event: {event:?}");
         match event {
             zwp_input_method_v2::Event::Activate => {
+                reload_config_if_changed(state);
                 if std::env::var_os("IME_NO_GRAB").is_none() && state.grab.is_none() {
                     state.grab = Some(proxy.grab_keyboard(qh, ()));
                     println!("  -> grab_keyboard");
@@ -256,6 +259,29 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
             _ => {}
         }
     }
+}
+
+fn config_mtime() -> Option<SystemTime> {
+    let path = ime_probe::config::config_path()?;
+    std::fs::metadata(path).ok()?.modified().ok()
+}
+
+/// Apply safe settings (candidate count and popup theme) when the config file
+/// changes. Changing the language mode or Pinyin fallback still needs a full
+/// restart because those are bound to RIME sessions.
+fn reload_config_if_changed(state: &mut State) {
+    let mtime = config_mtime();
+    if mtime == state.config_mtime {
+        return;
+    }
+    let config = Config::load();
+    state.candidate_count = config.candidate_count;
+    state.popup_renderer.set_preference(config.theme);
+    state.config_mtime = mtime;
+    println!(
+        "config reloaded: candidates={}, theme={:?}",
+        config.candidate_count, config.theme
+    );
 }
 
 fn forward_key(state: &mut State, qh: &QueueHandle<State>, keycode: u32, pressed: bool) {
@@ -541,6 +567,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         grab: None,
         done_count: 0,
         candidate_count: config.candidate_count,
+        config_mtime: config_mtime(),
         _popup: popup,
         _popup_surface: popup_surface,
         popup_renderer,
