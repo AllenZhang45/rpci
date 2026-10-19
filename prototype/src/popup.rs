@@ -1,4 +1,4 @@
-use cosmic_text::{Attrs, Buffer, Color, FontSystem, Metrics, Shaping, SwashCache};
+use cosmic_text::{Attrs, Buffer, Color, Family, FontSystem, Metrics, Shaping, SwashCache};
 use std::path::PathBuf;
 
 use memmap2::MmapMut;
@@ -13,6 +13,8 @@ pub const POPUP_H: u32 = 48;
 pub const POPUP_SCALE: u32 = 2;
 pub const POPUP_PIXEL_W: u32 = POPUP_W * POPUP_SCALE;
 pub const POPUP_PIXEL_H: u32 = POPUP_H * POPUP_SCALE;
+/// COSMIC HIG-style corner radius in logical pixels.
+const POPUP_RADIUS: f32 = 10.0 * POPUP_SCALE as f32;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Theme {
@@ -57,14 +59,14 @@ impl Theme {
 
     fn background(self) -> [u8; 4] {
         match self {
-            Theme::Dark => [0x20, 0x20, 0x20, 0xF2],
-            Theme::Light => [0xF4, 0xF4, 0xF4, 0xF2],
+            Theme::Dark => [0x1E, 0x1E, 0x1E, 0xF2],
+            Theme::Light => [0xFA, 0xFA, 0xFA, 0xF2],
         }
     }
 
     fn text_color(self) -> Color {
         match self {
-            Theme::Dark => Color::rgb(0xEF, 0xEF, 0xEF),
+            Theme::Dark => Color::rgb(0xF2, 0xF2, 0xF2),
             Theme::Light => Color::rgb(0x1E, 0x1E, 0x1E),
         }
     }
@@ -138,16 +140,38 @@ impl PopupRenderer {
             return;
         }
 
-        // wl_shm ARGB8888 on little-endian: B, G, R, A
+        // wl_shm ARGB8888 on little-endian: B, G, R, A.
+        // Draw a rounded COSMIC-HIG-like surface; outside the radius stays transparent.
         let background = self.theme.background();
-        for px in canvas.chunks_exact_mut(4) {
-            px.copy_from_slice(&background);
+        for y in 0..height {
+            for x in 0..width {
+                let coverage = rounded_coverage(
+                    x as f32 + 0.5,
+                    y as f32 + 0.5,
+                    width as f32,
+                    height as f32,
+                    POPUP_RADIUS,
+                );
+                if coverage == 0 {
+                    continue;
+                }
+                let alpha = (background[3] as u16 * coverage as u16 / 255) as u8;
+                let idx = (y * width + x) * 4;
+                canvas[idx] = background[0];
+                canvas[idx + 1] = background[1];
+                canvas[idx + 2] = background[2];
+                canvas[idx + 3] = alpha;
+            }
         }
 
         self.text_buffer
-            .set_size(Some(width as f32 - 20.0), Some(height as f32));
-        self.text_buffer
-            .set_text(text, &Attrs::new(), Shaping::Advanced, None);
+            .set_size(Some(width as f32 - 24.0), Some(height as f32));
+        self.text_buffer.set_text(
+            text,
+            &Attrs::new().family(Family::SansSerif),
+            Shaping::Advanced,
+            None,
+        );
 
         let color = self.theme.text_color();
         {
@@ -190,6 +214,34 @@ impl PopupRenderer {
     }
 }
 
+fn rounded_coverage(px: f32, py: f32, width: f32, height: f32, radius: f32) -> u8 {
+    const SAMPLES: [(f32, f32); 4] = [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)];
+    let mut inside = 0;
+    for (sx, sy) in SAMPLES {
+        let x = px - 0.5 + sx;
+        let y = py - 0.5 + sy;
+        if inside_rounded_rect(x, y, width, height, radius) {
+            inside += 1;
+        }
+    }
+    (inside * 255 / 4) as u8
+}
+
+fn inside_rounded_rect(x: f32, y: f32, width: f32, height: f32, radius: f32) -> bool {
+    if x < 0.0 || y < 0.0 || x >= width || y >= height {
+        return false;
+    }
+    let nearest_x = x.min(width - x);
+    let nearest_y = y.min(height - y);
+    if nearest_x < radius && nearest_y < radius {
+        let dx = radius - nearest_x;
+        let dy = radius - nearest_y;
+        dx * dx + dy * dy <= radius * radius
+    } else {
+        true
+    }
+}
+
 #[cfg(test)]
 mod theme_tests {
     use super::*;
@@ -204,6 +256,12 @@ mod theme_tests {
             theme_from(Some("dark"), ThemePreference::Light, Some(false)),
             Theme::Dark
         );
+    }
+
+    #[test]
+    fn rounded_corners_are_transparent() {
+        assert_eq!(rounded_coverage(0.5, 0.5, 100.0, 48.0, 10.0), 0);
+        assert_eq!(rounded_coverage(50.0, 24.0, 100.0, 48.0, 10.0), 255);
     }
 
     #[test]
