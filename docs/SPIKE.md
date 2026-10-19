@@ -28,36 +28,49 @@
 - 系统：Pop!_OS 24.04 LTS，COSMIC，Wayland socket `/run/user/1000/wayland-1`。
 - Rust：1.99.1（`~/.cargo/bin`，当前非交互 shell 的 PATH 未包含）。
 - 已具备：`libwayland-dev`、`wayland-scanner`、`gcc`、`pkg-config`；crates.io 可访问。
-- 缺少：`libxkbcommon-dev`、`wayland-protocols`、`librime-dev`、`wayland-utils`。
+- 已安装（2026-10-20）：`libxkbcommon-dev` 1.6.0、`wayland-protocols`、`librime-dev` 1.10.0、`wayland-utils`。
 - 当前没有 fcitx5/ibus 在跑。
-- 安装命令（需要 sudo 密码）：
-
-  ```bash
-  sudo apt install libxkbcommon-dev wayland-protocols librime-dev wayland-utils
-  ```
 
 ## 第 1 周：协议最小闭环
 
 ### Day 1：环境与协议侦察
 
-- [ ] 记录 COSMIC/cosmic-comp 版本和会话类型（确认是 Wayland）。
-- [ ] 用 `wayland-info` 确认 compositor 暴露的全局：`zwp_input_method_manager_v2`、`zwp_text_input_manager_v3`、`zwp_virtual_keyboard_manager_v1`、`wl_seat`。
-- [ ] 确认是否有 fcitx5/ibus 在跑，先停掉，避免冲突。
-- [ ] 记录结论：哪些协议可用，哪些缺失。
+- [x] 记录 COSMIC/cosmic-comp 版本和会话类型（确认是 Wayland）。
+- [x] 用 `wayland-info` 确认 compositor 暴露的全局：`zwp_input_method_manager_v2`、`zwp_text_input_manager_v3`、`zwp_virtual_keyboard_manager_v1`、`wl_seat`。
+- [x] 确认是否有 fcitx5/ibus 在跑，先停掉，避免冲突。
+- [x] 记录结论：哪些协议可用，哪些缺失。
+
+#### Day 1 结果（2026-10-20）
+
+- COSMIC：`cosmic-comp 0.1~1791979042~24.04~742b800`，`cosmic-session 1.10.0~1791314577~24.04~8093b59`，Wayland 会话。
+- `zwp_input_method_manager_v2` v1 ✅
+- `zwp_text_input_manager_v3` v1 ✅
+- `zwp_virtual_keyboard_manager_v1` v1 ✅
+- `wl_seat` v9（pointer keyboard touch）✅
+- 系统 `wayland-protocols` 只带 input-method v1 XML；Rust 侧用 `wayland-protocols-misc` 0.3.12，自带 input-method-unstable-v2.xml。
+- 结论：协议面齐全，理论上可走原生路线；是否真的能激活/收键/透传，仍需最小客户端实测。
 
 ### Day 2：最小 IME 客户端
 
-- [ ] Rust 程序连接 Wayland，绑定 input-method manager。
-- [ ] 日志打印 activate/deactivate。
-- [ ] 聚焦 GTK4 文本框，确认是否收到 activate。
-- [ ] 记录：激活是否由 compositor 主动发起。
+- [x] Rust 程序连接 Wayland，绑定 input-method manager。
+- [x] 日志打印 activate/deactivate。
+- [x] 聚焦 COSMIC 文本框（cosmic-edit/cosmic-term），确认收到 activate。
+- [x] 记录：激活由 compositor 主动发起。
 
 ### Day 3：键盘 grab 与按键
 
-- [ ] 请求 grab_keyboard，确认收到 key 事件。
+- [x] 请求 grab_keyboard，确认收到 key 事件。
 - [ ] 用 xkbcommon 把 keycode 转 keysym，打印日志。
 - [ ] 测试字母、数字、退格、方向键、Ctrl 组合。
 - [ ] 记录：grab 期间应用是否还收到按键（判断是否互斥）。
+
+#### Day 2–3 进展（2026-10-20）
+
+- 最小客户端已绑定 `zwp_input_method_manager_v2`，收到 Activate/Deactivate/ContentType/Done。
+- Activate 后 `grab_keyboard` 成功，收到 keymap、modifiers、repeat_info。
+- 用 `zwp_virtual_keyboard_v1` 注入 keycode 30，探针收到 Key pressed/released。
+- 已发送 `commit_string("测试")` + `commit(serial=1)`；客户端未收到协议错误，上屏效果待视觉确认。
+- 探针为方便验证，对每个 Key 事件都提交"测试"；这不是最终行为。
 
 ### Day 4：提交与 popup
 
@@ -94,10 +107,10 @@
 
 | 能力 | 结果 | 备注 |
 |---|---|---|
-| 激活 |  |  |
-| grab |  |  |
-| commit（GTK4/Qt/Electron/浏览器） |  |  |
-| popup 定位/翻转 |  |  |
-| 按键透传 |  |  |
-| HiDPI |  |  |
-| RIME 接入（第 2 周） |  |  |
+| 激活 | ✅ 已验证 | Activate/Deactivate 均收到 |
+| grab | ✅ 已验证 | keymap/modifiers/key 均收到 |
+| commit（GTK4/Qt/Electron/浏览器） | 已发送，待视觉确认 | `commit_string("测试")` + `commit(serial=1)` |
+| popup 定位/翻转 | 待实测 |  |
+| 按键透传 | virtual-keyboard 可用，待实测 | 注入 keycode 30 成功 |
+| HiDPI | 待实测 |  |
+| RIME 接入（第 2 周） | librime 1.10.0 已安装，待接入 |  |
