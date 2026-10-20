@@ -92,11 +92,12 @@ git push origin v0.1.2
 
 - CI run `39433064379`：成功
 - Release run `39433071645`：成功
-- Release：[v0.1.1](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.1)
-- 资产：`rpci-ime_0.1.1_amd64.deb`
+- Release：[v0.1.2](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.2)
+- 资产：`rpci-ime_0.1.2_amd64.deb`、`rpci-ime-apt-repo.tar.gz`
+- APT Pages：Release 后自动 `workflow_dispatch`，HTTPS 候选版本已为 `0.1.2`
 - APT Pages：`workflow_dispatch` 成功，HTTPS 源 `https://allenzhang45.github.io/rpci/`
 
-v0.1.1 时尚未配置 secret，因此该次 Release 只有 `.deb`。后续 Release 在缺少 secret 时会直接失败，避免发布未签名仓库。
+`v0.1.2` 起 Release 自动构建签名仓库并触发 APT Pages；缺少 secret 时 Release 会失败，避免发布未签名仓库。
 
 ## 下一步
 
