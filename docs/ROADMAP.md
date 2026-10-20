@@ -28,6 +28,7 @@
 | 词库备份/导出/导入 | ✅ CLI；GUI 支持备份 |
 | 状态指示 | ✅ COSMIC Panel Applet（iced，Dock） |
 | Debian 包 | ✅ `.deb` 构建、解包和脚本验证 |
+| APT 仓库 | ✅ 签名、升级/回滚自动验证 |
 | 架构/审计 | ✅ ADR 0004、协议/XDG/UI 审计 |
 
 ## 下一阶段
@@ -102,12 +103,14 @@
 - `.deb` 构建：`prototype/packaging/build-deb.sh`
 - 包内容：IME、iced/SCTK 设置、系统 autostart、RIME schema
 - 验证：`prototype/packaging/test-deb.sh` + 解包后真实输入
-- 文档：[PACKAGING.md](PACKAGING.md)
+- APT 仓库 / 签名：`build-repo.sh`，`InRelease` 已签名
+- 升级/回滚：`test-repo.sh` 自动验证 0.1.0 → 0.1.1 → 0.1.0
+- 文档：[PACKAGING.md](PACKAGING.md)、[APT-REPO.md](APT-REPO.md)
 
 **待做**：
 
-- APT 仓库 / 签名 / 自动更新
-- 升级与回滚演练
+- 上传公共 HTTPS 源
+- 仓库构建/发布 CI
 - 非 amd64 架构
 
 **验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。

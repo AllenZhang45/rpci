@@ -31,6 +31,7 @@
 | release 安装 + systemd autostart | ✅ |
 | iced 设置界面 + 应用菜单入口 | ✅ |
 | Debian `.deb` 构建/校验 | ✅ amd64 本地包，未签名 |
+| APT 仓库 / 元数据签名 / 升级回滚 | ✅ `build-repo.sh` + `test-repo.sh`；未上传公共源 |
 | 保存并应用（systemd 重启） | ✅ |
 | 安全项热加载 | ✅ 候选数量/主题，重新聚焦后生效 |
 | 词库备份 / 导出 / 导入 | ✅ CLI；GUI 备份 + 恢复 |
