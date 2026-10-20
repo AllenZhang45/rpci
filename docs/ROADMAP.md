@@ -51,6 +51,7 @@
 **已完成**：
 
 - VS Code 1.142.0（Electron/Chromium）通过，提交「你」
+- Google Chrome 155（Chromium）通过，提交「你」
 - GNOME Text Editor 51.0（Flatpak/GTK4）通过，提交「你」
 - Qt6 6.4.2 示例失败：没有 `Activate`，`wqiy` 原样进入编辑器
 - 结果和截图写回 [APP-MATRIX.md](APP-MATRIX.md)
@@ -58,7 +59,6 @@
 **待做**：
 
 - Qt6：已定位为 Qt 6.4.2 不支持 text-input-v3；等待/测试新版 Qt
-- 独立 Chromium 浏览器样本
 
 **验收**：矩阵各类有明确结论；失败项有日志与 workaround。
 

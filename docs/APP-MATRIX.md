@@ -4,11 +4,11 @@
 
 ## 结论
 
-- **通过**：合成 `zwp_text_input_v3` 客户端、cosmic-edit、LibreOffice Writer、VS Code（Electron）、GNOME Text Editor（Flatpak）。
+- **通过**：合成 `zwp_text_input_v3` 客户端、cosmic-edit、LibreOffice Writer、Google Chrome（Chromium）、VS Code（Electron）、GNOME Text Editor（Flatpak）。
 - **应用侧问题**：cosmic-term 能激活输入法，但提交没有写入 PTY。
 - **Qt6 问题**：Qt 6.4.2 的 `textedit` / `lineedits` 示例没有发送 `Activate`，按键直接进入应用。
 - **上游问题**：Firefox 158、XWayland 下的 xterm 390 都没有收到 `Activate`，输入法无法接管。
-- **未测**：独立 Chromium 浏览器。
+- **已覆盖**：Chromium/Electron、Qt6、GTK/Flatpak、COSMIC、Wayland 合成客户端；Qt6 与 Firefox 为上游限制。
 
 ## 矩阵
 
@@ -23,7 +23,7 @@
 | Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 客户端只支持 v1/v2，不支持 text-input-v3；见 [QT6-AUDIT.md](QT6-AUDIT.md) |
 | VS Code | 1.142.0 | Electron/Chromium | Wayland | ✅ | ✅ | Wubi 提交进聊天输入框 |
 | GNOME Text Editor | 51.0 | GTK4 / Flatpak | Wayland | ✅ | ✅ | 提交「你」，收到 surrounding text |
-| 独立 Chromium | — | Chromium | — | 未测 | — | 环境未安装浏览器 |
+| Google Chrome | 155.0.8059.84 | Chromium | Wayland | ✅ | ✅ | `wqiy` + space 提交「你」 |
 
 ## 说明
 
@@ -66,6 +66,20 @@ VS Code 1.142.0，使用：
 
 ![VS Code 提交](assets/app-vscode.png)
 
+### Chromium / Google Chrome
+
+Google Chrome 155.0.8059.84，使用：
+
+```
+--ozone-platform=wayland --enable-wayland-ime
+```
+
+- 输入法收到 `Activate`。
+- `wqiy` + space 提交「你」，页面 textarea 收到 `你`。
+- Chromium/Electron 系应用在启用 Wayland IME 后可用。
+
+![Chrome 提交](assets/app-chrome.png)
+
 ### Flatpak
 
 安装 `org.gnome.TextEditor` 51.0（Flathub）：
@@ -87,6 +101,5 @@ VS Code 1.142.0，使用：
 ## 后续
 
 1. 排查 Qt6 6.4.2 / QtWayland text-input 不激活的问题。
-2. 找独立 Chromium 浏览器补充矩阵。
 3. XWayland 若要支持，需要单独设计 XIM 或 X11 输入法路径，不在当前 Wayland 原型范围内。
 4. Firefox 等上游 text-input 支持，详见 [FIREFOX.md](FIREFOX.md)。
