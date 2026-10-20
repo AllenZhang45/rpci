@@ -54,8 +54,9 @@ fn main() {
     window.set_app_id("com.github.alec.RpciImeApplet");
     window.set_min_size(Some((APPLET_W, APPLET_H)));
 
-    // The applet is a status indicator, not an input target. An empty input
-    // region prevents a click from stealing keyboard focus from the editor.
+    // The applet is a status indicator, not an input target. The empty input
+    // region keeps the applet itself from receiving pointer input; clicking
+    // the panel background is still compositor focus behavior.
     let raw_compositor: wl_compositor::WlCompositor =
         globals.bind(&qh, 1..=6, ()).expect("raw compositor");
     let region = raw_compositor.create_region(&qh, ());

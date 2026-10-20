@@ -15,7 +15,7 @@
 
 - SCTK 只读 applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC 顶部 Panel（任务栏）的 `plugins_wings` 右侧状态区。
 - 显示 `中 五` / `中 拼` / `英`，状态来自 `$XDG_RUNTIME_DIR/rpci/state`。
-- 窗口设置空 input region：点击 applet 不会取得键盘焦点，也不会打断编辑器输入。
+- applet 不处理点击；点击顶部 Panel 可能让面板取得焦点，因此不要用点击切换。
 - 中英切换只使用 Ctrl+Space；设置从应用菜单打开。
 - 跟随 COSMIC `is_dark` 切换文字颜色。
 - 截图：[assets/applet-panel.png](assets/applet-panel.png)。
