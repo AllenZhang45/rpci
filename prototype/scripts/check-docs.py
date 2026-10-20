@@ -15,6 +15,7 @@ SKIP = ("http://", "https://", "mailto:", "#")
 def markdown_files() -> list[Path]:
     files = [
         ROOT / "README.md",
+        ROOT / "CHANGELOG.md",
         ROOT / "GLOSSARY.md",
         ROOT / "prototype" / "README.md",
     ]

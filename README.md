@@ -205,6 +205,7 @@ cargo test -p rpci-settings-iced
 
 ## 文档
 
+- [更新日志](CHANGELOG.md)
 - [文档索引](docs/README.md)
 - [当前状态](docs/STATUS.md)
 - [路线图](docs/ROADMAP.md)
