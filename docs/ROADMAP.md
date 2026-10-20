@@ -48,16 +48,19 @@
 
 ### 2. 应用矩阵补齐
 
-**为什么**：Qt6、Electron、Chromium、Flatpak 没有样本。
+**已完成**：
 
-**做什么**：
+- VS Code 1.142.0（Electron/Chromium）通过，提交「你」
+- GNOME Text Editor 51.0（Flatpak/GTK4）通过，提交「你」
+- Qt6 6.4.2 示例失败：没有 `Activate`，`wqiy` 原样进入编辑器
+- 结果和截图写回 [APP-MATRIX.md](APP-MATRIX.md)
 
-- 找到可安装/可分发的 Qt6、Electron、Chromium 应用
-- 准备至少一个 Flatpak 应用
-- 记录激活、候选位置、提交、预编辑、快捷键
-- 结果写回 [APP-MATRIX.md](APP-MATRIX.md)
+**待做**：
 
-**验收**：四类应用各有明确结论；失败项有日志与 workaround。
+- 排查 Qt6 / QtWayland text-input 不激活
+- 独立 Chromium 浏览器样本
+
+**验收**：矩阵各类有明确结论；失败项有日志与 workaround。
 
 ### 3. 真正的 COSMIC Panel Applet
 

@@ -60,7 +60,9 @@ cargo test -p rpci-settings-iced  # 2 passed
 - Firefox 158：不发送 `Activate`，见 [FIREFOX.md](FIREFOX.md)。
 - XWayland：xterm 390 不激活，需要 XIM；当前不支持。
 - cosmic-term：激活成功，但提交没有写入 PTY。
-- Qt6 / Electron / Chromium / Flatpak：环境无可用样本，未测。
+- Qt6 6.4.2 示例未发送 `Activate`；记为失败。
+- 独立 Chromium 未测。
+- VS Code（Electron）和 GNOME Text Editor（Flatpak）已通过，见 [APP-MATRIX.md](APP-MATRIX.md)。
 
 ### 输入法自身
 

@@ -4,10 +4,11 @@
 
 ## 结论
 
-- **通过**：合成 `zwp_text_input_v3` 客户端、cosmic-edit、LibreOffice Writer。
+- **通过**：合成 `zwp_text_input_v3` 客户端、cosmic-edit、LibreOffice Writer、VS Code（Electron）、GNOME Text Editor（Flatpak）。
 - **应用侧问题**：cosmic-term 能激活输入法，但提交没有写入 PTY。
+- **Qt6 问题**：Qt 6.4.2 的 `textedit` / `lineedits` 示例没有发送 `Activate`，按键直接进入应用。
 - **上游问题**：Firefox 158、XWayland 下的 xterm 390 都没有收到 `Activate`，输入法无法接管。
-- **未测**：Qt6、Electron/VS Code、Chromium、Flatpak 应用；当前环境没有可用样本。
+- **未测**：独立 Chromium 浏览器。
 
 ## 矩阵
 
@@ -19,10 +20,10 @@
 | cosmic-term | 1.10.0 | libcosmic | Wayland | ✅ | ⚠️ | 提交未进 PTY |
 | Firefox | 158.0 | Gecko | Wayland | ❌ | — | 未收到 `Activate`，见 [FIREFOX.md](FIREFOX.md) |
 | xterm | 390 | X11 / XWayland | XWayland | ❌ | — | 需要 XIM，当前不支持 |
-| Qt6 应用 | — | Qt6 | — | 未测 | — | 环境无轻量 Qt6 应用；featherpad 是 Qt5 且缺 Qt5 库 |
-| Electron/VS Code | — | Electron | — | 未测 | — | 未安装 |
-| Chromium | — | Chromium | — | 未测 | — | 未安装 |
-| Flatpak 应用 | — | — | — | 未测 | — | `flatpak list --app` 为空 |
+| Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 未收到 `Activate`，`wqiy` 原样进入编辑器 |
+| VS Code | 1.142.0 | Electron/Chromium | Wayland | ✅ | ✅ | Wubi 提交进聊天输入框 |
+| GNOME Text Editor | 51.0 | GTK4 / Flatpak | Wayland | ✅ | ✅ | 提交「你」，收到 surrounding text |
+| 独立 Chromium | — | Chromium | — | 未测 | — | 环境未安装浏览器 |
 
 ## 说明
 
@@ -38,12 +39,39 @@ Firefox 158 已确认走 Wayland（加载 `libwayland-client`），但窗口/页
 
 xterm 390 通过 XWayland 运行。COSMIC 没有向输入法发送 `Activate`；虚拟键盘注入也没有观察到写入 xterm 的 `cat` 目标。X11 应用通常需要 XIM，而本项目当前只实现 Wayland 输入法协议，因此 XWayland 暂不支持。
 
-### Qt6 / Electron / Chromium / Flatpak
+### Qt6
 
-- 系统有 Qt6 运行库，但没有可直接使用的 Qt6 应用。
-- `featherpad` 是 Qt5，且缺少 Qt5 运行库，未作为矩阵样本。
-- Electron/VS Code、Chromium 未安装。
-- Flatpak 已安装，但没有已安装应用，无法测试 Flatpak 应用。
+用 `qt6-base-examples` 的 `textedit` 与 `lineedits` 测试：
+
+- 窗口以 Wayland 运行，app_id 为 `textedit` / `lineedits`。
+- 聚焦后输入法没有收到 `Activate`；`wqiy` 被原样插入文本。
+- 需要排查 QtWayland 6.4.2 的 text-input-v3 集成；当前记为 **失败**。
+
+![Qt6 未激活](assets/app-qt6.png)
+
+### Electron / VS Code
+
+VS Code 1.142.0，使用：
+
+```
+--ozone-platform=wayland --enable-wayland-ime --no-sandbox
+```
+
+- 输入法收到 `Activate`。
+- `wqiy` + space 提交「你」到聊天输入框。
+- 说明 Electron/Chromium 系应用在启用 Wayland IME 后可用。
+
+![VS Code 提交](assets/app-vscode.png)
+
+### Flatpak
+
+安装 `org.gnome.TextEditor` 51.0（Flathub）：
+
+- 输入法收到 `Activate`。
+- 提交「你」，并收到 `SurroundingText` / `ContentType`。
+- Flatpak 沙箱不会阻断 Wayland text-input。
+
+![Flatpak 提交](assets/app-flatpak.png)
 
 ## 复现方法
 
@@ -55,7 +83,7 @@ xterm 390 通过 XWayland 运行。COSMIC 没有向输入法发送 `Activate`；
 
 ## 后续
 
-1. 找到可用的 Qt6、Electron、Chromium 样本，补充矩阵。
-2. Flatpak 应用可用后，验证宿主侧输入法能否正常服务沙箱应用。
+1. 排查 Qt6 6.4.2 / QtWayland text-input 不激活的问题。
+2. 找独立 Chromium 浏览器补充矩阵。
 3. XWayland 若要支持，需要单独设计 XIM 或 X11 输入法路径，不在当前 Wayland 原型范围内。
 4. Firefox 等上游 text-input 支持，详见 [FIREFOX.md](FIREFOX.md)。
