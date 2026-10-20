@@ -66,7 +66,7 @@ cargo test -p rpci-settings-iced  # 4 passed
 
 ### 输入法自身
 
-- Panel applet 已嵌入 Dock；点击打开设置，尚未实现点击切换中英。
+- Panel applet 已嵌入 Dock；点击状态切换中英，齿轮打开设置。
 - 候选窗未接 fractional scale；屏幕边缘翻转未验证。
 - 每个 seat 只能有一个输入法对象；与 `cosmic-osk` 的长期仲裁需要上游确认。
 - 仅候选数量/主题热加载；拼音兜底、默认英文模式仍需“保存并应用”或重启。

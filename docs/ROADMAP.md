@@ -71,12 +71,14 @@
 - IME 通过 `$XDG_RUNTIME_DIR/rpci/state` 暴露状态，applet 每 500ms 轮询
 - 点击 applet 打开 iced 设置窗口
 
-**待做**：
+**验证**：
 
-- 点击切换中英（当前只打开设置）
-- 更完整的 applet 样式/可访问性
+- applet 在 Dock 中显示 `中 五` / `英`
+- 点击状态通过 Unix socket `$XDG_RUNTIME_DIR/rpci/control.sock` 切换中英
+- 齿轮按钮打开 iced 设置
+- 状态文件与 applet 轮询同步
 
-**验收**：applet 出现在面板；状态实时同步；点击打开设置（切换待做）。
+**待做**：更完整的 applet 样式/可访问性。
 
 ### 4. XWayland / XIM
 

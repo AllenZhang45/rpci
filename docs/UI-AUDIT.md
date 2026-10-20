@@ -15,7 +15,7 @@
 
 - iced applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC Dock 的 `plugins_center`。
 - 显示 `中 五` / `中 拼` / `英`，状态来自 `$XDG_RUNTIME_DIR/rpci/state`。
-- 点击打开 iced 设置窗口；尚未实现点击切换中英。
+- 点击状态通过 Unix socket 切换中英；齿轮按钮打开 iced 设置。
 - 截图：[assets/applet-panel.png](assets/applet-panel.png)。
 - 保存写入 `$XDG_CONFIG_HOME/rpci/config.toml`
 - 深色 COSMIC 风格调色板：`#1e1e1e` 背景、`#2b2b2b` 卡片、`#3584e4` 主色、12px 圆角
