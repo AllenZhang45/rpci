@@ -40,6 +40,7 @@
 | [SETTINGS-GUI.md](SETTINGS-GUI.md) | 设置窗口（iced 主入口 + SCTK 回退） |
 | [PACKAGING.md](PACKAGING.md) | Debian 包构建、验证、安装与卸载 |
 | [APT-REPO.md](APT-REPO.md) | 签名 APT 仓库、升级与回滚 |
+| [CI.md](CI.md) | GitHub Actions 工作流与本地复现 |
 | [SKILLS.md](SKILLS.md) | DSH 工程技能来源、适用条件与全自动适配 |
 
 ## 历史记录

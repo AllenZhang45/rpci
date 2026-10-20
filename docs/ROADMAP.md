@@ -117,12 +117,14 @@
 - 验证：`prototype/packaging/test-deb.sh` + 解包后真实输入
 - APT 仓库 / 签名：`build-repo.sh`，`InRelease` 已签名
 - 升级/回滚：`test-repo.sh` 自动验证 0.1.0 → 0.1.1 → 0.1.0
-- 文档：[PACKAGING.md](PACKAGING.md)、[APT-REPO.md](APT-REPO.md)
+- GitHub Actions：格式、测试、`.deb`、包校验、仓库验证
+- 文档：[PACKAGING.md](PACKAGING.md)、[APT-REPO.md](APT-REPO.md)、[CI.md](CI.md)
 
 **待做**：
 
 - 上传公共 HTTPS 源
-- 仓库构建/发布 CI
+- tag/Release 发布 CI
+- 正式签名密钥注入
 - 非 amd64 架构
 
 **验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。

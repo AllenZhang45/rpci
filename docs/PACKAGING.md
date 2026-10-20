@@ -110,6 +110,8 @@ sudo apt remove rpci-ime
 
 签名仓库、客户端配置、升级和回滚见 [APT-REPO.md](APT-REPO.md)。
 
+CI 流程和本地复现见 [CI.md](CI.md)。
+
 ## 限制
 
 - 目前仅构建 `amd64`。
