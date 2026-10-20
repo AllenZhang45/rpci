@@ -45,6 +45,8 @@ struct State {
     xkb_state: Option<xkbcommon::xkb::State>,
     mods: u32,
     forwarded_keys: HashSet<u32>,
+    deferred_ctrl: Option<u32>,
+    ctrl_toggled: bool,
     rime: HybridEngine,
     vk: ZwpVirtualKeyboardV1,
 }
@@ -207,6 +209,8 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
             zwp_input_method_v2::Event::Deactivate => {
                 state.rime.cancel();
                 state.forwarded_keys.clear();
+                state.deferred_ctrl = None;
+                state.ctrl_toggled = false;
                 state.popup_renderer.draw("");
                 if let Some(grab) = state.grab.take() {
                     grab.release();
@@ -372,7 +376,39 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                 ..
             } => {
                 let pressed = matches!(&key_state, WEnum::Value(wl_keyboard::KeyState::Pressed));
+                let is_ctrl = matches!(key, 29 | 97);
+
+                // Ctrl+Space must be consumed before the application sees Ctrl.
+                // Forwarding a half-pressed Ctrl and then swallowing Space drops
+                // text-input focus on COSMIC. Defer Ctrl and toggle directly.
+                if pressed && is_ctrl {
+                    state.deferred_ctrl = Some(key);
+                    return;
+                }
+                if !pressed && is_ctrl {
+                    if state.ctrl_toggled {
+                        state.ctrl_toggled = false;
+                        state.deferred_ctrl = None;
+                    } else if state.deferred_ctrl.take().is_some() {
+                        // Bare Ctrl is not forwarded.
+                    } else if state.forwarded_keys.remove(&key) {
+                        forward_key(state, qh, key, false);
+                    }
+                    return;
+                }
+
                 if pressed {
+                    if key == 57 && state.deferred_ctrl.is_some() {
+                        state.deferred_ctrl = None;
+                        state.ctrl_toggled = true;
+                        toggle_from_control(state);
+                        return;
+                    }
+                    if let Some(ctrl_key) = state.deferred_ctrl.take() {
+                        state.forwarded_keys.insert(ctrl_key);
+                        forward_key(state, qh, ctrl_key, true);
+                    }
+
                     let (sym, name, text) = {
                         let Some(xkb_state) = state.xkb_state.as_ref() else {
                             return;
@@ -534,6 +570,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         xkb_state: None,
         mods: 0,
         forwarded_keys: HashSet::new(),
+        deferred_ctrl: None,
+        ctrl_toggled: false,
         rime: HybridEngine::new(&config),
         vk,
     };

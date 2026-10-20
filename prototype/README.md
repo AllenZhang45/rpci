@@ -15,7 +15,7 @@
 - 候选条明暗主题：读 COSMIC `is_dark` 配置，也可用 `IME_POPUP_THEME=light/dark` 覆盖
 - 候选条按 2x 像素渲染（逻辑 520×48），HiDPI 输出更清晰
 - COSMIC Panel Applet：顶部 Panel（任务栏）显示 `中 五` / `中 拼` / `英`；点击状态切换中英，齿轮打开设置
-- 中英切换：F2 或顶部 Panel applet（`Ctrl+Space` 已停用，避免 COSMIC 焦点丢失）
+- 中英切换：Ctrl+Space 或顶部 Panel applet（直接拦截 Ctrl，避免失焦）
 - Enter 换行：中文模式下取消组合并以 `commit_string("\n")` 插入换行；英文模式保持透传；英文模式下所有按键透传
 
 ## 应用矩阵（当前）

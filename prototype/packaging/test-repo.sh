@@ -66,7 +66,7 @@ printf '%s\n' "$POLICY" | grep -q "${VERSION}"
 UPDATE_URI="$(LC_ALL=C apt-get "${OPTS[@]}" --print-uris --yes install rpci-ime 2>&1)"
 printf '%s\n' "$UPDATE_URI" | grep -q "rpci-ime_${UPGRADE_VERSION}_amd64.deb"
 
-ROLLBACK_URI="$(LC_ALL=C apt-get "${OPTS[@]}" --print-uris --yes install rpci-ime=${VERSION} 2>&1)"
+ROLLBACK_URI="$(LC_ALL=C apt-get "${OPTS[@]}" --print-uris --reinstall --yes install rpci-ime=${VERSION} 2>&1)"
 printf '%s\n' "$ROLLBACK_URI" | grep -q "rpci-ime_${VERSION}_amd64.deb"
 
 echo "apt repository verification passed"
