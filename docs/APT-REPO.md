@@ -121,7 +121,7 @@ systemctl --user restart 'app-rpci\x2dime@autostart.service'
 
 ## 当前限制
 
-- 公共 HTTPS 部署需要配置 Pages 和签名 secret；流程见 [APT-PAGES.md](APT-PAGES.md)
+- 公共 HTTPS 已部署到 GitHub Pages；流程见 [APT-PAGES.md](APT-PAGES.md)
 - 未做仓库内的自动构建/发布 CI
 - `.deb` 本身未做二进制签名；当前签名保护的是 APT 元数据
 - 仅 amd64

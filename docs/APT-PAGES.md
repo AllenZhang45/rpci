@@ -1,6 +1,6 @@
 # 公共 HTTPS APT（GitHub Pages）
 
-> 状态：2026-10-20。工作流和本地验证已完成；部署需要仓库配置签名 secret 并启用 Pages。
+> 状态：2026-10-20。已部署到 GitHub Pages，HTTPS `apt update` 验证通过。
 
 ## 目标
 
@@ -91,7 +91,7 @@ Candidate: 0.1.1
 
 ## 限制
 
-- Pages 部署需要上面的 secret 和 Pages 设置，当前环境无法代用户配置 GitHub secrets。
+- 首次部署前需要一次性配置签名 secret 和 Pages；当前已完成，后续 Release 自动使用。
 - Pages 使用 HTTPS；APT 客户端用 `signed-by` 校验仓库元数据。
 - 私钥泄露后必须更换密钥并更新所有客户端的公钥。
 - 目前只发布 amd64。

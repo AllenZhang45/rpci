@@ -93,12 +93,13 @@ git push origin v0.1.1
 - Release run `39433071645`：成功
 - Release：[v0.1.1](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.1)
 - 资产：`rpci-ime_0.1.1_amd64.deb`
+- APT Pages：`workflow_dispatch` 成功，HTTPS 源 `https://allenzhang45.github.io/rpci/`
 
 v0.1.1 时尚未配置 secret，因此该次 Release 只有 `.deb`。后续 Release 在缺少 secret 时会直接失败，避免发布未签名仓库。
 
 ## 下一步
 
-- 配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID` 并启用 Pages
+- APT Pages 已于 2026-10-20 首次部署成功；后续 Release 自动更新
 - 运行 APT Pages 工作流，验证 HTTPS 客户端安装
 - 可选 nightly 真实 COSMIC 会话 E2E
 - 非 amd64 构建

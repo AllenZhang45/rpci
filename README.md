@@ -98,9 +98,21 @@ systemctl --user start 'app-rpci\x2dime@autostart.service'
 
 ### 方式三：APT 仓库
 
-公共 HTTPS APT 源尚在部署阶段，完成前请使用上面的 `.deb` 或源码安装。
+公共 HTTPS APT 源已上线：
 
-部署流程见 [docs/APT-PAGES.md](docs/APT-PAGES.md)；本地签名仓库见 [docs/APT-REPO.md](docs/APT-REPO.md)。
+```bash
+sudo curl -fsSL \
+  https://allenzhang45.github.io/rpci/rpci-ime-archive-keyring.gpg \
+  -o /usr/share/keyrings/rpci-ime-archive-keyring.gpg
+
+echo 'deb [signed-by=/usr/share/keyrings/rpci-ime-archive-keyring.gpg] https://allenzhang45.github.io/rpci stable main' \
+  | sudo tee /etc/apt/sources.list.d/rpci-ime.list
+
+sudo apt update
+sudo apt install rpci-ime
+```
+
+仓库说明：[docs/APT-PAGES.md](docs/APT-PAGES.md)。
 
 ## 首次使用
 
@@ -200,7 +212,6 @@ cargo test -p rpci-settings-iced
 - Firefox 在当前 COSMIC 版本下没有发送 `Activate`，详见 [docs/FIREFOX.md](docs/FIREFOX.md)
 - XWayland 需要 XIM，当前不支持，详见 [docs/XWAYLAND-AUDIT.md](docs/XWAYLAND-AUDIT.md)
 - Panel applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持
-- 公共 HTTPS APT 源尚未部署
 - 仅 amd64
 
 ## 文档
