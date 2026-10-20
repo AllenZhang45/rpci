@@ -16,7 +16,15 @@
 - iced applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC Dock 的 `plugins_center`。
 - 显示 `中 五` / `中 拼` / `英`，状态来自 `$XDG_RUNTIME_DIR/rpci/state`。
 - 点击状态通过 Unix socket 切换中英；齿轮按钮打开 iced 设置。
+- 跟随 COSMIC `is_dark` 切换明暗主题；hover/pressed 使用圆角半透明背景。
+- 状态和设置按钮有 tooltip；Enter 可在 applet 获得键盘焦点时切换。
 - 截图：[assets/applet-panel.png](assets/applet-panel.png)。
+
+可访问性限制：
+
+- iced 0.14 不包含 AccessKit/AT-SPI，按钮没有屏幕阅读器可读名称和状态播报。
+- 没有使用 libcosmic applet 运行时；它依赖上游 submodule/未打包 API，当前以通用 iced applet 工作。
+- 键盘可达性只覆盖 applet 已获得焦点时的 Enter；面板级 Tab 导航由 COSMIC panel 决定。
 - 保存写入 `$XDG_CONFIG_HOME/rpci/config.toml`
 - 深色 COSMIC 风格调色板：`#1e1e1e` 背景、`#2b2b2b` 卡片、`#3584e4` 主色、12px 圆角
 - 安装为应用菜单主入口 `COSMIC IME 设置`

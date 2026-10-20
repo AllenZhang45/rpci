@@ -211,7 +211,7 @@ ime-settings import <dir>        # 从目录恢复
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - iced 设置窗口已验证启动；候选窗因 input_popup_surface 协议限制仍是自绘；保存后需重启输入法
-- Panel applet 点击状态切换中英；齿轮打开设置
+- Panel applet 点击状态切换中英；齿轮打开设置；跟随明暗主题、hover、tooltip、Enter 切换\n- Panel applet 暂不支持 AccessKit/AT-SPI；libcosmic applet 运行时受上游打包限制
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 - Qt6 6.4.2 只支持 text-input v1/v2，COSMIC 只提供 v3；详见 `docs/QT6-AUDIT.md`
 - XWayland 没有 XIM 服务端，不能输入中文；详见 `docs/XWAYLAND-AUDIT.md`

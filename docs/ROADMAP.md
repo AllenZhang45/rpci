@@ -79,7 +79,19 @@
 - 齿轮按钮打开 iced 设置
 - 状态文件与 applet 轮询同步
 
-**待做**：更完整的 applet 样式/可访问性。
+**已完成（HIG 打磨）**：
+
+- 跟随 COSMIC 明暗主题
+- hover/pressed 圆角背景
+- 状态/设置 tooltip
+- Enter 键盘切换
+- 截图更新到 [assets/applet-panel.png](assets/applet-panel.png)
+
+**待做（受上游限制）**：
+
+- libcosmic applet 运行时：依赖未打包的 libcosmic/iced submodule，当前不引入
+- AccessKit/AT-SPI：iced 0.14 不支持；需要换 libcosmic 或等 iced 上游
+- 面板级 Tab 导航由 COSMIC panel 控制，不在 applet 内
 
 ### 4. XWayland / XIM
 
