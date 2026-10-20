@@ -8,7 +8,7 @@ on:
       tag:
         description: "Release tag (vX.Y.Z)"
         required: true
-        default: "v0.1.0"
+        default: "v0.1.1"
 
 permissions:
   contents: read
@@ -20,8 +20,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    name: Check signing secret
+    runs-on: ubuntu-24.04
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - name: Check APT_GPG_PRIVATE_KEY
+        id: check
+        env:
+          KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -n "$KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "APT_GPG_PRIVATE_KEY is not configured; skipping Pages deployment."
+          fi
+
   publish:
     name: Publish signed APT repository
+    needs: gate
+    if: needs.gate.outputs.enabled == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:

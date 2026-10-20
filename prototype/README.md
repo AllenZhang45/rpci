@@ -144,7 +144,7 @@ autostart 由 systemd 的 XDG autostart generator 接管；验证细节见 [docs
 
 ```bash
 ./prototype/packaging/build-deb.sh
-sudo apt install ./dist/rpci-ime_0.1.0_amd64.deb
+sudo apt install ./dist/rpci-ime_0.1.1_amd64.deb
 ```
 
 包内包含 iced/SCTK 设置入口、系统级 autostart 和 RIME schema。构建、验证、卸载说明见

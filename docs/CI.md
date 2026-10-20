@@ -59,8 +59,8 @@ cargo test --locked -p rpci-settings-iced
 触发：
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 流程：
@@ -91,8 +91,8 @@ git push origin v0.1.0
 
 - CI run `39433064379`：成功
 - Release run `39433071645`：成功
-- Release：[v0.1.0](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.0)
-- 资产：`rpci-ime_0.1.0_amd64.deb`
+- Release：[v0.1.1](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.1)
+- 资产：`rpci-ime_0.1.1_amd64.deb`
 
 未配置 `APT_GPG_PRIVATE_KEY`，因此本次 Release 只有 `.deb`，没有附签名 APT 仓库 tar。
 

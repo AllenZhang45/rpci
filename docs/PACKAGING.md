@@ -11,7 +11,7 @@
 输出：
 
 ```
-dist/rpci-ime_0.1.0_amd64.deb
+dist/rpci-ime_0.1.1_amd64.deb
 ```
 
 脚本会：
@@ -41,7 +41,7 @@ dist/rpci-ime_0.1.0_amd64.deb
 ## 安装
 
 ```bash
-sudo apt install ./dist/rpci-ime_0.1.0_amd64.deb
+sudo apt install ./dist/rpci-ime_0.1.1_amd64.deb
 ```
 
 登录 COSMIC 后，`rpci-ime-launch` 会检查：
@@ -77,7 +77,7 @@ launcher 还会在 `~/.config/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_ce
 实测输出：
 
 ```
-package verification passed: /home/alec/rpci/dist/rpci-ime_0.1.0_amd64.deb
+package verification passed: /home/alec/rpci/dist/rpci-ime_0.1.1_amd64.deb
 ```
 
 另外用解包后的 `ime-probe` 做过一次真实输入：`wqiy` + space → 「你」。
@@ -118,5 +118,5 @@ CI 流程和本地复现见 [CI.md](CI.md)。
 - 本地签名 APT 仓库已可构建和验证；尚未上传公共 HTTPS 源。
 - 仓库签名保护元数据，`.deb` 本身未做二进制签名。
 - 未在 CI 中自动构建/发布。
-- `test-repo.sh` 的 0.1.1 仅改版本号，用于升级/回滚解析验证，内容与 0.1.0 相同。
+- `test-repo.sh` 的 0.1.2 仅改版本号，用于升级/回滚解析验证，内容与 0.1.1 相同。
 - iced 设置窗口依赖 GL/Vulkan；无 GPU 环境可改用兼容启动器。
