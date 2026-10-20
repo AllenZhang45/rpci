@@ -20,8 +20,10 @@ const MOD_CTRL: u32 = 1 << 2;
 const MOD_ALT: u32 = 1 << 3;
 const MOD_SUPER: u32 = 1 << 6;
 
-fn should_toggle(keysym: u32, mods: u32) -> bool {
-    (keysym == 0x20 && mods & MOD_CTRL != 0) || keysym == 0xffbf
+fn should_toggle(keysym: u32, _mods: u32) -> bool {
+    // Ctrl+Space is deliberately not bound: COSMIC consumes it in a way that
+    // drops text-input focus on this setup. F2 is the reliable shortcut.
+    keysym == 0xffbf
 }
 
 fn is_punctuation(keysym: u32) -> bool {
@@ -411,7 +413,7 @@ mod toggle_tests {
 
     #[test]
     fn ctrl_space_and_f2_toggle() {
-        assert!(should_toggle(0x20, MOD_CTRL));
+        assert!(!should_toggle(0x20, MOD_CTRL));
         assert!(should_toggle(0xffbf, 0));
         assert!(!should_toggle(0x20, 0));
         assert!(!should_toggle(0x61, 0));

@@ -25,7 +25,7 @@
 | 候选窗显示、主题、HiDPI 2x、HIG 圆角 | ✅ |
 | Enter 换行 | ✅（中文模式经 `commit_string("\n")`） |
 | 方向键 / Ctrl 组合 / F1 透传 | ✅ |
-| 中英切换（F2 / Ctrl+Space） | ✅ |
+| 中英切换（F2 / applet） | ✅ `Ctrl+Space` 已停用，避免 text-input 失焦 |
 | 中文标点 | ✅ |
 | XDG 配置 / 数据 / 缓存分离 | ✅ |
 | release 安装 + systemd autostart | ✅ |
@@ -63,6 +63,7 @@ cargo test -p rpci-settings-iced  # 4 passed
 
 - Firefox 158：不发送 `Activate`，见 [FIREFOX.md](FIREFOX.md)。
 - XWayland：没有 XIM 服务端，xterm 只能收到原始按键；评估见 [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md)。
+- `Ctrl+Space` 在 COSMIC 上会造成 text-input leave/焦点丢失；已从 IME 解绑，使用 F2 或 applet。
 - cosmic-term：激活成功，但提交没有写入 PTY。
 - Qt6 6.4.2 只支持 text-input v1/v2，不支持 COSMIC 的 v3；已定位为上游限制，见 [QT6-AUDIT.md](QT6-AUDIT.md)。
 - Google Chrome 155（Chromium）已验证通过。
