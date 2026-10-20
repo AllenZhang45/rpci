@@ -1,5 +1,62 @@
-/target
-/prototype/target
-*.swp
+# Rust build output
+/target/
+**/target/
+*.profraw
+perf.data*
 
+# Cargo.lock is intentionally committed: this is an application workspace,
+# not a reusable library.
+
+# Local build, packaging and APT repository output
 /dist/
+/build/
+/out/
+*.deb
+*.rpm
+*.AppImage
+*.snap
+*.tar.gz
+
+# APT signing material and local repository keys
+/gnupg/
+/.gnupg/
+*.key
+*.pem
+*.p12
+*.pfx
+*.secret
+
+# Local runtime / test artifacts
+*.log
+*.pid
+*.sock
+*.tmp
+*.bak
+*.bak.*
+*.orig
+*.rej
+/.tmp/
+
+# Python cache used by prototype/scripts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editors and desktop environments
+.vscode/
+.idea/
+*.iml
+.fleet/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment files; keep the example template
+.env
+.env.*
+!.env.example
+
+# Vim/Emacs swap and backup files
+*.swp
+*.swo
+*~
