@@ -263,12 +263,12 @@ fn start_control_listener(sender: Sender<Control>) {
     });
 }
 
-fn toggle_from_control(state: &mut State) {
+fn toggle_from_control(state: &mut State, source: &str) {
     state.rime.toggle_ascii();
     let label = state.rime.status_label();
     write_state(&label);
     state.popup_renderer.draw("");
-    println!("control toggle -> {label}");
+    println!("{source} toggle -> {label}");
 }
 
 fn write_state(label: &str) {
@@ -401,7 +401,7 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                     if key == 57 && state.deferred_ctrl.is_some() {
                         state.deferred_ctrl = None;
                         state.ctrl_toggled = true;
-                        toggle_from_control(state);
+                        toggle_from_control(state, "CTRL+SPACE");
                         return;
                     }
                     if let Some(ctrl_key) = state.deferred_ctrl.take() {
@@ -587,7 +587,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     handle
         .insert_source(receiver, |event, _, state| {
             if let ChannelEvent::Msg(Control::Toggle) = event {
-                toggle_from_control(state);
+                toggle_from_control(state, "control");
             }
         })
         .map_err(|err| format!("control channel: {err}"))?;
