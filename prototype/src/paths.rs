@@ -66,6 +66,10 @@ pub fn app_runtime_dir() -> Option<PathBuf> {
     runtime_dir().map(|base| base.join("rpci"))
 }
 
+pub fn state_path() -> Option<PathBuf> {
+    app_runtime_dir().map(|dir| dir.join("state"))
+}
+
 pub fn config_path() -> Option<PathBuf> {
     app_config_dir().map(|dir| dir.join("config.toml"))
 }

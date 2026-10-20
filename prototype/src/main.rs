@@ -3,6 +3,9 @@ use std::io::Write;
 use std::os::fd::{AsFd, FromRawFd};
 use std::time::SystemTime;
 
+use ime_probe::config::Config;
+use ime_probe::engine::{EngineOutput, HybridEngine};
+use ime_probe::popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
 use memmap2::MmapMut;
 use wayland_client::{
     Connection, Dispatch, QueueHandle, WEnum,
@@ -22,17 +25,6 @@ use wayland_protocols_misc::zwp_virtual_keyboard_v1::client::{
     zwp_virtual_keyboard_manager_v1::{self, ZwpVirtualKeyboardManagerV1},
     zwp_virtual_keyboard_v1::{self, ZwpVirtualKeyboardV1},
 };
-use wayland_protocols_wlr::layer_shell::v1::client::{
-    zwlr_layer_shell_v1::{self, Layer, ZwlrLayerShellV1},
-    zwlr_layer_surface_v1::{self, Anchor, KeyboardInteractivity, ZwlrLayerSurfaceV1},
-};
-
-use smithay_client_toolkit::shell::wlr_layer::Anchor as SctkAnchor;
-
-use ime_probe::config::Config;
-use ime_probe::engine::{EngineOutput, HybridEngine};
-use ime_probe::popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
-use ime_probe::status::{STATUS_H, STATUS_PIXEL_H, STATUS_PIXEL_W, STATUS_W, StatusRenderer};
 
 struct State {
     _seat: wl_seat::WlSeat,
@@ -44,9 +36,6 @@ struct State {
     _popup: ZwpInputPopupSurfaceV2,
     _popup_surface: wl_surface::WlSurface,
     popup_renderer: PopupRenderer,
-    _status_surface: wl_surface::WlSurface,
-    _status_layer: ZwlrLayerSurfaceV1,
-    status: StatusRenderer,
     xkb_context: xkbcommon::xkb::Context,
     xkb_state: Option<xkbcommon::xkb::State>,
     mods: u32,
@@ -163,40 +152,6 @@ impl Dispatch<ZwpVirtualKeyboardV1, ()> for State {
     }
 }
 
-impl Dispatch<ZwlrLayerShellV1, ()> for State {
-    fn event(
-        _: &mut Self,
-        _: &ZwlrLayerShellV1,
-        _: zwlr_layer_shell_v1::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-    }
-}
-
-impl Dispatch<ZwlrLayerSurfaceV1, ()> for State {
-    fn event(
-        state: &mut Self,
-        layer: &ZwlrLayerSurfaceV1,
-        event: zwlr_layer_surface_v1::Event,
-        _: &(),
-        _: &Connection,
-        _: &QueueHandle<Self>,
-    ) {
-        match event {
-            zwlr_layer_surface_v1::Event::Configure { serial, .. } => {
-                layer.ack_configure(serial);
-                state.status.configure();
-            }
-            zwlr_layer_surface_v1::Event::Closed => {
-                eprintln!("status layer closed");
-            }
-            _ => {}
-        }
-    }
-}
-
 impl Dispatch<ZwpInputMethodManagerV2, ()> for State {
     fn event(
         _: &mut Self,
@@ -258,6 +213,15 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
             }
             _ => {}
         }
+    }
+}
+
+fn write_state(label: &str) {
+    if let Some(path) = ime_probe::paths::state_path() {
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let _ = std::fs::write(path, label);
     }
 }
 
@@ -385,7 +349,7 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                     }
 
                     let label = state.rime.status_label();
-                    state.status.set_text(label);
+                    write_state(&label);
 
                     if let Some(commit) = commit {
                         if !commit.is_empty() {
@@ -452,35 +416,6 @@ fn create_popup_buffer(
     Ok((pool, buffer, mmap))
 }
 
-fn create_status_buffer(
-    shm: &wl_shm::WlShm,
-    qh: &QueueHandle<State>,
-) -> Result<(wl_shm_pool::WlShmPool, wl_buffer::WlBuffer, MmapMut), Box<dyn std::error::Error>> {
-    let stride = STATUS_PIXEL_W as i32 * 4;
-    let size = stride * STATUS_PIXEL_H as i32;
-
-    let cname = std::ffi::CString::new("ime-status")?;
-    let fd = unsafe { libc::memfd_create(cname.as_ptr(), libc::MFD_CLOEXEC) };
-    if fd < 0 {
-        return Err("status memfd_create failed".into());
-    }
-    let mut file = unsafe { std::fs::File::from_raw_fd(fd) };
-    file.write_all(&vec![0u8; size as usize])?;
-
-    let mmap = unsafe { MmapMut::map_mut(&file)? };
-    let pool = shm.create_pool(file.as_fd(), size, qh, ());
-    let buffer = pool.create_buffer(
-        0,
-        STATUS_PIXEL_W as i32,
-        STATUS_PIXEL_H as i32,
-        stride,
-        wl_shm::Format::Argb8888,
-        qh,
-        (),
-    );
-    Ok((pool, buffer, mmap))
-}
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conn = Connection::connect_to_env()?;
     let (globals, mut event_queue) = registry_queue_init::<State>(&conn)?;
@@ -489,7 +424,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let seat: wl_seat::WlSeat = globals.bind(&qh, 1..=9, ())?;
     let compositor: wl_compositor::WlCompositor = globals.bind(&qh, 1..=5, ())?;
     let shm: wl_shm::WlShm = globals.bind(&qh, 1..=1, ())?;
-    let layer_shell: ZwlrLayerShellV1 = globals.bind(&qh, 1..=5, ())?;
     let manager: ZwpInputMethodManagerV2 = globals.bind(&qh, 1..=1, ())?;
     let im = manager.get_input_method(&seat, &qh, ());
 
@@ -534,32 +468,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
     popup_surface.commit();
 
-    let (status_pool, status_buffer, status_mmap) = create_status_buffer(&shm, &qh)?;
-    let status_surface = compositor.create_surface(&qh, ());
-    let status_layer = layer_shell.get_layer_surface(
-        &status_surface,
-        None,
-        Layer::Top,
-        "rpci-status".to_string(),
-        &qh,
-        (),
-    );
-    status_layer.set_size(STATUS_W, STATUS_H);
-    status_layer.set_anchor(Anchor::from_bits_truncate(
-        (SctkAnchor::TOP | SctkAnchor::RIGHT).bits(),
-    ));
-    status_layer.set_margin(8, 8, 8, 8);
-    status_layer.set_keyboard_interactivity(KeyboardInteractivity::None);
-    status_layer.set_exclusive_zone(0);
-    status_surface.commit();
-    let status = StatusRenderer::new(
-        status_surface.clone(),
-        status_buffer,
-        status_pool,
-        status_mmap,
-        config.theme,
-    );
-
     println!("bound input method + popup surface ({POPUP_W}x{POPUP_H}); waiting for activate...");
     let mut state = State {
         _seat: seat,
@@ -571,9 +479,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _popup: popup,
         _popup_surface: popup_surface,
         popup_renderer,
-        _status_surface: status_surface,
-        _status_layer: status_layer,
-        status,
         xkb_context: xkbcommon::xkb::Context::new(xkbcommon::xkb::CONTEXT_NO_FLAGS),
         xkb_state: None,
         mods: 0,
@@ -583,7 +488,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let label = state.rime.status_label();
-    state.status.set_text(label);
+    write_state(&label);
 
     loop {
         event_queue.blocking_dispatch(&mut state)?;
