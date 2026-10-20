@@ -115,7 +115,7 @@
 - 包内容：IME、iced/SCTK 设置、系统 autostart、RIME schema
 - 验证：`prototype/packaging/test-deb.sh` + 解包后真实输入
 - APT 仓库 / 签名：`build-repo.sh`，`InRelease` 已签名
-- 升级/回滚：`test-repo.sh` 自动验证 0.1.1 → 0.1.2 → 0.1.1
+- 升级/回滚：`test-repo.sh` 自动验证 0.1.2 → 0.1.3 → 0.1.2
 - GitHub Actions：格式、测试、`.deb`、包校验、仓库验证
 - Tag Release CI：`vX.Y.Z` 触发，附加 `.deb`；可选签名仓库
 - 公共 HTTPS APT：GitHub Pages 已部署，HTTPS `apt update` 验证通过

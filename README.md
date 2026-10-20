@@ -5,7 +5,7 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 [![CI](https://github.com/AllenZhang45/rpci/actions/workflows/ci.yml/badge.svg)](https://github.com/AllenZhang45/rpci/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/AllenZhang45/rpci)](https://github.com/AllenZhang45/rpci/releases)
 
-> 当前版本 `0.1.1`。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
+> 当前版本 `0.1.2`。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
 
 ## 特性
 
@@ -27,8 +27,8 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 
 ```bash
 cd /tmp
-curl -LO https://github.com/AllenZhang45/rpci/releases/download/v0.1.1/rpci-ime_0.1.1_amd64.deb
-sudo apt install ./rpci-ime_0.1.1_amd64.deb
+curl -LO https://github.com/AllenZhang45/rpci/releases/download/v0.1.2/rpci-ime_0.1.2_amd64.deb
+sudo apt install ./rpci-ime_0.1.2_amd64.deb
 ```
 
 如果系统里之前用源码安装过，先移除用户级 autostart，避免两个实例：

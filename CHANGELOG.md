@@ -2,12 +2,18 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [0.1.2] - 2026-10-20
 
 ### Added
 
 - 公共 HTTPS APT 源部署到 `https://allenzhang45.github.io/rpci/`，使用新轮换的签名密钥。
-- 实际 HTTPS `apt-get update` 验证通过，候选版本为 `0.1.1`。
+- 实际 HTTPS `apt-get update` 验证通过，候选版本为 `0.1.2`。
+- Release 强制使用 APT 签名密钥；每次发布自动构建并附加 `rpci-ime-apt-repo.tar.gz`。
+- APT Pages 工作流在 Release 发布后自动更新公共仓库。
+
+### Changed
+
+- APT 签名密钥轮换为 `38DE9A94D8BD8F4A`；泄露的旧密钥停用。
 
 ## [0.1.1] - 2026-10-20
 
