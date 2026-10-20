@@ -389,6 +389,11 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                     if state.ctrl_toggled {
                         state.ctrl_toggled = false;
                         state.deferred_ctrl = None;
+                        // Clear Ctrl from the virtual keyboard too; otherwise a
+                        // physical Ctrl can remain logically pressed in the
+                        // focused client after Ctrl+Space.
+                        state.mods &= !4;
+                        state.vk.modifiers(state.mods, 0, 0, 0);
                     } else if state.deferred_ctrl.take().is_some() {
                         // Bare Ctrl is not forwarded.
                     } else if state.forwarded_keys.remove(&key) {
