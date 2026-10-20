@@ -10,6 +10,13 @@
 - 控件：checkbox、slider、pick_list、button、card 容器
 - 覆盖：默认英文、拼音兜底、候选数量、主题、词库备份与恢复、重新加载
 - 候选数量/主题支持热加载；恢复需要二次确认
+
+### Panel Applet
+
+- iced applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC Dock 的 `plugins_center`。
+- 显示 `中 五` / `中 拼` / `英`，状态来自 `$XDG_RUNTIME_DIR/rpci/state`。
+- 点击打开 iced 设置窗口；尚未实现点击切换中英。
+- 截图：[assets/applet-panel.png](assets/applet-panel.png)。
 - 保存写入 `$XDG_CONFIG_HOME/rpci/config.toml`
 - 深色 COSMIC 风格调色板：`#1e1e1e` 背景、`#2b2b2b` 卡片、`#3584e4` 主色、12px 圆角
 - 安装为应用菜单主入口 `COSMIC IME 设置`

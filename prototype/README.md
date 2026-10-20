@@ -14,7 +14,7 @@
 - 中文标点：`.` → 。、`,` → ，、`?` → ？
 - 候选条明暗主题：读 COSMIC `is_dark` 配置，也可用 `IME_POPUP_THEME=light/dark` 覆盖
 - 候选条按 2x 像素渲染（逻辑 520×48），HiDPI 输出更清晰
-- 状态胶囊：layer-shell 顶层小窗，显示 `中 五` / `中 拼` / `英`
+- COSMIC Panel Applet：Dock 中的 `中 五` / `中 拼` / `英` 状态按钮，点击打开设置
 - 中英切换：F2 / Ctrl+Space
 - Enter 换行：中文模式下取消组合并以 `commit_string("\n")` 插入换行；英文模式保持透传；英文模式下所有按键透传
 
@@ -36,7 +36,6 @@ Firefox 测试页可用 `scripts/firefox-test-server.py` 启动，访问 `http:/
 - `src/engine.rs`：五笔/拼音策略、RIME 会话、按键透传判定
 - `src/popup.rs`：候选条渲染（cosmic-text + wl_shm）
 - `src/config.rs`：配置读写与校验
-- `src/status.rs`：layer-shell 状态胶囊
 - `src/settings_model.rs`：设置窗口状态机
 - `src/bin/ime-settings-gui.rs`：独立设置窗口
 - `src/bin/ime-settings.rs`：设置 CLI
@@ -212,7 +211,7 @@ ime-settings import <dir>        # 从目录恢复
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - iced 设置窗口已验证启动；候选窗因 input_popup_surface 协议限制仍是自绘；保存后需重启输入法
-- 状态指示是 layer-shell 胶囊，不是 COSMIC panel applet；第三方 applet API 尚未确认
+- Panel applet 点击目前只打开设置，尚未实现点击切换中英
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 
 ## 文档

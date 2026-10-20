@@ -52,6 +52,7 @@
 
 当前截图：
 
+- [assets/applet-panel.png](assets/applet-panel.png) — COSMIC Dock 中的 IME applet
 - [assets/popup-visible.png](assets/popup-visible.png) — 候选窗实际显示
 - [assets/popup-hig.png](assets/popup-hig.png) — 候选窗 2x buffer
 - [assets/app-qt6.png](assets/app-qt6.png) — Qt6 未激活

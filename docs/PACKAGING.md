@@ -29,10 +29,12 @@ dist/rpci-ime_0.1.0_amd64.deb
 | `/usr/bin/ime-settings` | 配置 CLI |
 | `/usr/bin/ime-settings-iced` | iced 设置窗口 |
 | `/usr/bin/ime-settings-gui` | SCTK 兼容设置窗口 |
+| `/usr/bin/ime-applet` | COSMIC Dock panel applet |
 | `/usr/bin/rpci-ime-launch` | 首次登录初始化 RIME 后启动 IME |
 | `/usr/bin/rpci-ime-setup` | 把 schema 复制到用户 XDG data |
 | `/etc/xdg/autostart/rpci-ime.desktop` | 系统级 XDG autostart |
 | `/usr/share/applications/rpci-settings*.desktop` | 应用菜单入口 |
+| `/usr/share/applications/com.github.alec.RpciImeApplet.desktop` | Panel applet 注册 |
 | `/usr/share/rpci/rime/` | Wubi86 / Pinyin schema |
 | `/usr/share/doc/rpci-ime/` | README、STATUS |
 
@@ -49,6 +51,7 @@ $XDG_DATA_HOME/rpci/rime/default.custom.yaml
 ```
 
 不存在时，用包内 schema 执行 `rpci-ime-setup`，然后启动 IME。
+launcher 还会在 `~/.config/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center` 中加入 applet（如果尚未存在）。
 
 > 如果之前用 `install.sh` 安装过用户级 autostart：
 > `~/.config/autostart/rpci-ime.desktop`
@@ -65,9 +68,9 @@ $XDG_DATA_HOME/rpci/rime/default.custom.yaml
 验证内容：
 
 - `.deb` 元数据可读
-- 六个二进制存在且可执行
+- 七个二进制存在且可执行（含 `ime-applet`）
 - schema 文件存在
-- 两个应用启动器通过 `desktop-file-validate`
+- 三个启动器通过 `desktop-file-validate`（含 applet）
 - 用包内 schema 执行 setup，生成用户 RIME 数据
 - 用 fake `ime-probe` 执行 `rpci-ime-launch`，确认首次初始化 + 启动路径
 

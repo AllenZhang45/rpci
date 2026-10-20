@@ -26,7 +26,7 @@
 | 配置 | ✅ XDG 路径 + CLI |
 | 设置界面 | ✅ iced 0.14 主入口；SCTK 回退 |
 | 词库备份/导出/导入 | ✅ CLI；GUI 支持备份 |
-| 状态指示 | ✅ layer-shell 胶囊（非 panel applet） |
+| 状态指示 | ✅ COSMIC Panel Applet（iced，Dock） |
 | Debian 包 | ✅ `.deb` 构建、解包和脚本验证 |
 | 架构/审计 | ✅ ADR 0004、协议/XDG/UI 审计 |
 
@@ -62,19 +62,21 @@
 
 **验收**：矩阵各类有明确结论；失败项有日志与 workaround。
 
-### 3. 真正的 COSMIC Panel Applet
+### 3. COSMIC Panel Applet
 
-**为什么**：当前是 layer-shell 胶囊，不参与面板布局。
+**已完成**：
 
-**做什么**：
+- 确认第三方 applet 机制：desktop 需要 `X-CosmicApplet=true`，加入 panel `plugins_center`
+- iced applet 已嵌入 Dock，显示 `中 五` / `中 拼` / `英`
+- IME 通过 `$XDG_RUNTIME_DIR/rpci/state` 暴露状态，applet 每 500ms 轮询
+- 点击 applet 打开 iced 设置窗口
 
-- 确认 COSMIC panel 的第三方 applet 注册/通信机制
-- 定义 applet 与 IME 进程的状态通道
-- 实现中/英、五笔/拼音状态与点击切换
+**待做**：
 
-**验收**：applet 出现在面板；状态实时同步；点击可切换。
+- 点击切换中英（当前只打开设置）
+- 更完整的 applet 样式/可访问性
 
-**风险**：上游 applet API 未确认；引入 IPC 需要重新评审单进程架构。
+**验收**：applet 出现在面板；状态实时同步；点击打开设置（切换待做）。
 
 ### 4. XWayland / XIM
 

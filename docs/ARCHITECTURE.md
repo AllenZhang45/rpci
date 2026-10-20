@@ -65,7 +65,7 @@ rime-backend (librime)
 
 - 自启动：systemd XDG autostart generator。
 - 设置：iced 0.14 独立窗口；保留自绘 SCTK 窗口作为兼容回退。
-- 面板指示器：layer-shell 胶囊；真正的 panel applet 待上游。
+- 面板指示器：iced panel applet，嵌入 COSMIC Dock；运行时状态通过 `$XDG_RUNTIME_DIR/rpci/state` 共享。
 - 输入源注册：未做。
 
 ## 4. 关键决策

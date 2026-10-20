@@ -34,13 +34,13 @@
 | 保存并应用（systemd 重启） | ✅ |
 | 安全项热加载 | ✅ 候选数量/主题，重新聚焦后生效 |
 | 词库备份 / 导出 / 导入 | ✅ CLI；GUI 备份 + 恢复 |
-| layer-shell 状态胶囊 | ✅ |
+| COSMIC Panel Applet（Dock） | ✅ iced 按钮 + 运行时状态 |
 
 ## 验证基线
 
 ```bash
 cargo test -p ime-probe           # 35 passed
-cargo test -p rpci-settings-iced  # 2 passed
+cargo test -p rpci-settings-iced  # 4 passed
 ```
 
 已实测：
@@ -66,7 +66,7 @@ cargo test -p rpci-settings-iced  # 2 passed
 
 ### 输入法自身
 
-- 真正的 COSMIC panel applet 尚未实现；当前是 layer-shell 胶囊。
+- Panel applet 已嵌入 Dock；点击打开设置，尚未实现点击切换中英。
 - 候选窗未接 fractional scale；屏幕边缘翻转未验证。
 - 每个 seat 只能有一个输入法对象；与 `cosmic-osk` 的长期仲裁需要上游确认。
 - 仅候选数量/主题热加载；拼音兜底、默认英文模式仍需“保存并应用”或重启。
