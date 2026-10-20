@@ -51,21 +51,21 @@ sudo apt install rpci-ime
 ```
 dist/apt-signing/private.asc   # 不要提交/分享
 dist/apt-signing/public.asc
-key id: 24D09E254F84C4A7
+key id: 60E2CBC13ED5EF3A
 ```
 
 在 GitHub 仓库添加 Actions secrets：
 
 ```
 APT_GPG_PRIVATE_KEY = dist/apt-signing/private.asc 的内容
-APT_GPG_KEY_ID      = 24D09E254F84C4A7
+APT_GPG_KEY_ID      = 60E2CBC13ED5EF3A
 ```
 
 可以用 GitHub UI，或已登录的 `gh`：
 
 ```bash
 gh secret set APT_GPG_PRIVATE_KEY < dist/apt-signing/private.asc
-gh secret set APT_GPG_KEY_ID --body 24D09E254F84C4A7
+gh secret set APT_GPG_KEY_ID --body 60E2CBC13ED5EF3A
 ```
 
 私钥不要贴进 issue、聊天、提交或 Pages 仓库。

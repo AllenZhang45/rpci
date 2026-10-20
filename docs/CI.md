@@ -68,13 +68,13 @@ git push origin v0.1.1
 1. 校验 tag 为 `vX.Y.Z`
 2. 安装与 CI 相同的依赖
 3. 用 tag 版本执行完整 `ci.sh`
-4. 可选：如果配置了 `APT_GPG_PRIVATE_KEY` secret，构建签名 APT 仓库并打包
+4. 要求已配置 `APT_GPG_PRIVATE_KEY`，构建签名 APT 仓库并打包；缺失时 Release 失败
 5. 创建/更新 GitHub Release，附加 `.deb`（可选 APT 仓库 tar）
 
 可选 secrets：
 
-- `APT_GPG_PRIVATE_KEY`：正式 APT 签名私钥
-- `APT_GPG_KEY_ID`：对应 key ID/fingerprint
+- `APT_GPG_PRIVATE_KEY`：正式 APT 签名私钥（必填）
+- `APT_GPG_KEY_ID`：对应 key ID/fingerprint，可留空自动从私钥推导
 
 未配置 secrets 时只发布 `.deb`，不会带测试签名仓库。
 
@@ -94,7 +94,7 @@ git push origin v0.1.1
 - Release：[v0.1.1](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.1)
 - 资产：`rpci-ime_0.1.1_amd64.deb`
 
-未配置 `APT_GPG_PRIVATE_KEY`，因此本次 Release 只有 `.deb`，没有附签名 APT 仓库 tar。
+v0.1.1 时尚未配置 secret，因此该次 Release 只有 `.deb`。后续 Release 在缺少 secret 时会直接失败，避免发布未签名仓库。
 
 ## 下一步
 

@@ -68,6 +68,15 @@ jobs:
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
 
+      - name: Verify APT signing secret
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -z "${APT_GPG_PRIVATE_KEY:-}" ]; then
+            echo "::error title=APT signing key missing::Configure APT_GPG_PRIVATE_KEY and APT_GPG_KEY_ID repository secrets before releasing."
+            exit 1
+          fi
+
       - name: Run CI with release version
         env:
           CARGO_TERM_COLOR: always
@@ -82,10 +91,6 @@ jobs:
           APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
           APT_GPG_KEY_ID: ${{ secrets.APT_GPG_KEY_ID }}
         run: |
-          if [ -z "${APT_GPG_PRIVATE_KEY:-}" ]; then
-            echo "APT_GPG_PRIVATE_KEY not configured; skipping signed repository"
-            exit 0
-          fi
           export GNUPGHOME="${RUNNER_TEMP}/apt-gnupg"
           mkdir -p "$GNUPGHOME"
           chmod 700 "$GNUPGHOME"
