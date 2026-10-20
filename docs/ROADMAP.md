@@ -57,7 +57,7 @@
 
 **待做**：
 
-- 排查 Qt6 / QtWayland text-input 不激活
+- Qt6：已定位为 Qt 6.4.2 不支持 text-input-v3；等待/测试新版 Qt
 - 独立 Chromium 浏览器样本
 
 **验收**：矩阵各类有明确结论；失败项有日志与 workaround。

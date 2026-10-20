@@ -21,6 +21,7 @@
 | [UI-AUDIT.md](UI-AUDIT.md) | iced 设置、候选窗 HIG、协议约束 |
 | [APP-MATRIX.md](APP-MATRIX.md) | 应用兼容性矩阵 |
 | [FIREFOX.md](FIREFOX.md) | Firefox 上游问题、复现与 issue 草案 |
+| [QT6-AUDIT.md](QT6-AUDIT.md) | Qt6 未激活的反馈回路、根因与上游限制 |
 
 ## 计划
 

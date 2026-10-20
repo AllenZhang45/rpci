@@ -20,7 +20,7 @@
 | cosmic-term | 1.10.0 | libcosmic | Wayland | ✅ | ⚠️ | 提交未进 PTY |
 | Firefox | 158.0 | Gecko | Wayland | ❌ | — | 未收到 `Activate`，见 [FIREFOX.md](FIREFOX.md) |
 | xterm | 390 | X11 / XWayland | XWayland | ❌ | — | 需要 XIM，当前不支持 |
-| Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 未收到 `Activate`，`wqiy` 原样进入编辑器 |
+| Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 客户端只支持 v1/v2，不支持 text-input-v3；见 [QT6-AUDIT.md](QT6-AUDIT.md) |
 | VS Code | 1.142.0 | Electron/Chromium | Wayland | ✅ | ✅ | Wubi 提交进聊天输入框 |
 | GNOME Text Editor | 51.0 | GTK4 / Flatpak | Wayland | ✅ | ✅ | 提交「你」，收到 surrounding text |
 | 独立 Chromium | — | Chromium | — | 未测 | — | 环境未安装浏览器 |
@@ -46,6 +46,9 @@ xterm 390 通过 XWayland 运行。COSMIC 没有向输入法发送 `Activate`；
 - 窗口以 Wayland 运行，app_id 为 `textedit` / `lineedits`。
 - 聚焦后输入法没有收到 `Activate`；`wqiy` 被原样插入文本。
 - 需要排查 QtWayland 6.4.2 的 text-input-v3 集成；当前记为 **失败**。
+- 已定位：Qt 6.4.2 只识别 `zwp_text_input_v1/v2`，强制 v3 时日志为
+  `text input: unknown protocol - "zwp_text_input_v3"`，因此退回
+  `QComposeInputContext`。详见 [QT6-AUDIT.md](QT6-AUDIT.md)。
 
 ![Qt6 未激活](assets/app-qt6.png)
 
