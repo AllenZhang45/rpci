@@ -19,7 +19,7 @@
 | LibreOffice Writer | 24.2.7 | GTK3 | Wayland | ✅ | ✅ | ODT `content.xml` 含 `你` |
 | cosmic-term | 1.10.0 | libcosmic | Wayland | ✅ | ⚠️ | 提交未进 PTY |
 | Firefox | 158.0 | Gecko | Wayland | ❌ | — | 未收到 `Activate`，见 [FIREFOX.md](FIREFOX.md) |
-| xterm | 390 | X11 / XWayland | XWayland | ❌ | — | 需要 XIM，当前不支持 |
+| xterm | 390 | X11 / XWayland | XWayland | ❌ | — | 无 XIM 服务端；见 [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md) |
 | Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 客户端只支持 v1/v2，不支持 text-input-v3；见 [QT6-AUDIT.md](QT6-AUDIT.md) |
 | VS Code | 1.142.0 | Electron/Chromium | Wayland | ✅ | ✅ | Wubi 提交进聊天输入框 |
 | GNOME Text Editor | 51.0 | GTK4 / Flatpak | Wayland | ✅ | ✅ | 提交「你」，收到 surrounding text |
@@ -37,7 +37,7 @@ Firefox 158 已确认走 Wayland（加载 `libwayland-client`），但窗口/页
 
 ### XWayland
 
-xterm 390 通过 XWayland 运行。COSMIC 没有向输入法发送 `Activate`；虚拟键盘注入也没有观察到写入 xterm 的 `cat` 目标。X11 应用通常需要 XIM，而本项目当前只实现 Wayland 输入法协议，因此 XWayland 暂不支持。
+xterm 390 通过 XWayland 运行。COSMIC 没有向输入法发送 `Activate`；虚拟键盘注入后 xterm 原样显示 `wqiy`。评估确认根窗口没有 `_XIM_SERVERS`，当前会话没有 XIM 服务端。详见 [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md)。
 
 ### Qt6
 

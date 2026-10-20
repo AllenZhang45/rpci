@@ -22,6 +22,7 @@
 | [APP-MATRIX.md](APP-MATRIX.md) | 应用兼容性矩阵 |
 | [FIREFOX.md](FIREFOX.md) | Firefox 上游问题、复现与 issue 草案 |
 | [QT6-AUDIT.md](QT6-AUDIT.md) | Qt6 未激活的反馈回路、根因与上游限制 |
+| [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md) | XWayland/XIM 缺失证据与不支持决策 |
 
 ## 计划
 
@@ -62,6 +63,7 @@
 - [assets/app-vscode.png](assets/app-vscode.png) — VS Code 提交
 - [assets/app-flatpak.png](assets/app-flatpak.png) — Flatpak 提交
 - [assets/app-chrome.png](assets/app-chrome.png) — Chrome 提交
+- [assets/xwayland-xterm.png](assets/xwayland-xterm.png) — XWayland xterm 原始按键
 - [assets/settings-iced.png](assets/settings-iced.png) — iced 设置窗口（含词库恢复）
 - [assets/settings-gui.png](assets/settings-gui.png) — SCTK 兼容设置窗口
 

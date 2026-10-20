@@ -214,6 +214,7 @@ ime-settings import <dir>        # 从目录恢复
 - Panel applet 点击状态切换中英；齿轮打开设置
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 - Qt6 6.4.2 只支持 text-input v1/v2，COSMIC 只提供 v3；详见 `docs/QT6-AUDIT.md`
+- XWayland 没有 XIM 服务端，不能输入中文；详见 `docs/XWAYLAND-AUDIT.md`
 
 ## 文档
 

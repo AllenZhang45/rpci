@@ -85,14 +85,14 @@
 
 **为什么**：xterm 390 在 XWayland 下没有 `Activate`。
 
-**做什么**：
+**已完成评估**：
 
-- 评估 XIM 服务端方案，或
-- 明确“不支持 XWayland”，给出替代应用建议
+- Xwayland 24.1.13 根窗口没有 `_XIM_SERVERS`，会话没有 XIM 服务端
+- xterm 只能用原始按键；IME 收不到 `Activate`
+- 结论：当前不支持 XWayland 中文输入
+- 文档：[XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md)
 
-**验收**：XWayland 能输入中文；或文档明确不支持并说明原因。
-
-**风险**：XIM 是另一套协议栈，不建议在当前 Wayland 原型内直接实现。
+**决策**：不实现 XIM；X11 应用改用 Wayland 版本，或独立 XIM 输入法。
 
 ### 5. 打包、发布与升级
 

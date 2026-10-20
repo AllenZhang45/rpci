@@ -59,7 +59,7 @@ cargo test -p rpci-settings-iced  # 4 passed
 ### 应用/上游
 
 - Firefox 158：不发送 `Activate`，见 [FIREFOX.md](FIREFOX.md)。
-- XWayland：xterm 390 不激活，需要 XIM；当前不支持。
+- XWayland：没有 XIM 服务端，xterm 只能收到原始按键；评估见 [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md)。
 - cosmic-term：激活成功，但提交没有写入 PTY。
 - Qt6 6.4.2 只支持 text-input v1/v2，不支持 COSMIC 的 v3；已定位为上游限制，见 [QT6-AUDIT.md](QT6-AUDIT.md)。
 - Google Chrome 155（Chromium）已验证通过。
