@@ -45,6 +45,7 @@ struct State {
     xkb_state: Option<xkbcommon::xkb::State>,
     mods: u32,
     forwarded_keys: HashSet<u32>,
+    pending_taps: HashSet<u32>,
     deferred_ctrl: Option<u32>,
     ctrl_toggled: bool,
     rime: HybridEngine,
@@ -209,6 +210,7 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
             zwp_input_method_v2::Event::Deactivate => {
                 state.rime.cancel();
                 state.forwarded_keys.clear();
+                state.pending_taps.clear();
                 state.deferred_ctrl = None;
                 state.ctrl_toggled = false;
                 state.popup_renderer.draw("");
@@ -329,6 +331,23 @@ fn forward_key(state: &mut State, qh: &QueueHandle<State>, keycode: u32, pressed
     println!("PASSTHROUGH keycode={keycode} pressed={pressed}");
 }
 
+fn forward_tap(state: &mut State, qh: &QueueHandle<State>, keycode: u32) {
+    // Send a complete tap only after the physical key is released. Forwarding
+    // while the same physical key is still down makes COSMIC drop the synthetic
+    // event on real keyboards.
+    if let Some(grab) = state.grab.take() {
+        grab.release();
+    }
+    state.vk.key(0, keycode, 1);
+    state.vk.key(0, keycode, 0);
+    state.grab = Some(state.im.grab_keyboard(qh, ()));
+    println!("PASSTHROUGH tap keycode={keycode}");
+}
+
+fn is_modifier_key(keycode: u32) -> bool {
+    matches!(keycode, 29 | 97 | 42 | 54 | 56 | 100 | 125 | 126 | 58)
+}
+
 impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
     fn event(
         state: &mut Self,
@@ -435,8 +454,12 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                     } = state.rime.handle(sym_raw, &text, mods);
 
                     if passthrough {
-                        state.forwarded_keys.insert(key);
-                        forward_key(state, qh, key, true);
+                        if is_modifier_key(key) {
+                            state.forwarded_keys.insert(key);
+                            forward_key(state, qh, key, true);
+                        } else {
+                            state.pending_taps.insert(key);
+                        }
                         return;
                     }
 
@@ -468,6 +491,8 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                     println!(
                         "KEY keycode={key} sym={name} mode={mode:?} preedit={preedit:?} candidates={candidates:?}"
                     );
+                } else if state.pending_taps.remove(&key) {
+                    forward_tap(state, qh, key);
                 } else if state.forwarded_keys.remove(&key) {
                     forward_key(state, qh, key, false);
                 }
@@ -575,6 +600,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         xkb_state: None,
         mods: 0,
         forwarded_keys: HashSet::new(),
+        pending_taps: HashSet::new(),
         deferred_ctrl: None,
         ctrl_toggled: false,
         rime: HybridEngine::new(&config),
