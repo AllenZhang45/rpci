@@ -15,7 +15,7 @@ fi
 cd "$ROOT"
 cargo build --release -p ime-probe \
     --bin ime-probe --bin ime-settings --bin ime-settings-gui
-cargo build --release -p rpci-settings-iced
+cargo build --release -p rpci-settings-iced --bin rpci-settings-iced --bin rpci-applet
 
 rm -rf "$DIST"
 mkdir -p "$STAGE"/usr/bin \
@@ -29,6 +29,7 @@ install -Dm755 target/release/ime-probe "$STAGE/usr/bin/ime-probe"
 install -Dm755 target/release/ime-settings "$STAGE/usr/bin/ime-settings"
 install -Dm755 target/release/ime-settings-gui "$STAGE/usr/bin/ime-settings-gui"
 install -Dm755 target/release/rpci-settings-iced "$STAGE/usr/bin/ime-settings-iced"
+install -Dm755 target/release/rpci-applet "$STAGE/usr/bin/ime-applet"
 install -Dm755 prototype/packaging/rpci-ime-launch.sh "$STAGE/usr/bin/rpci-ime-launch"
 install -Dm755 prototype/scripts/setup-rime.sh "$STAGE/usr/bin/rpci-ime-setup"
 
@@ -60,6 +61,19 @@ Exec=/usr/bin/ime-settings-gui
 Icon=preferences-desktop
 Terminal=false
 Categories=Settings;
+DESKTOP
+
+cat > "$STAGE/usr/share/applications/com.github.alec.RpciImeApplet.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=COSMIC IME
+Comment=Wubi/Pinyin input method status
+Exec=/usr/bin/ime-applet
+Terminal=false
+NoDisplay=true
+X-CosmicApplet=true
+X-HostWaylandDisplay=true
+X-OverflowPriority=10
 DESKTOP
 
 cat > "$STAGE/etc/xdg/autostart/rpci-ime.desktop" <<DESKTOP

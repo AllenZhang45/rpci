@@ -12,4 +12,13 @@ if [ ! -f "$RIME_DIR/default.custom.yaml" ]; then
     IME_RIME_SCHEMA_SRC="$SCHEMA_DIR" "$SETUP" >/dev/null 2>&1 || true
 fi
 
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
+PANEL="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
+APP_ID="com.github.alec.RpciImeApplet"
+if [ -f "$PANEL" ] && ! grep -q "$APP_ID" "$PANEL"; then
+    cp "$PANEL" "$PANEL.bak.rpci" 2>/dev/null || true
+    sed -i "/^])/i\    \"$APP_ID\"," "$PANEL" 2>/dev/null || true
+fi
+
 exec "$BIN_DIR/ime-probe"
