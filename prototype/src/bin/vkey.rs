@@ -161,6 +161,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.vk.key(0, 31, 0);
         state.vk.key(0, 29, 0);
         println!("sent Ctrl+S");
+    } else if mode == "ctrl-n" {
+        state.vk.key(0, 29, 1);
+        state.vk.key(0, 49, 1);
+        state.vk.key(0, 49, 0);
+        state.vk.key(0, 29, 0);
+        println!("sent Ctrl+N");
     } else if mode == "ctrl-w" {
         state.vk.key(0, 29, 1);
         state.vk.key(0, 25, 1);
