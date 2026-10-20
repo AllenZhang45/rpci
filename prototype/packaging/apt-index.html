@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RPCI IME APT 仓库</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      max-width: 760px;
+      margin: 4rem auto;
+      padding: 0 1.25rem;
+      background: #1e1e1e;
+      color: #eeeeee;
+      font: 16px/1.65 system-ui, -apple-system, "Noto Sans CJK SC", sans-serif;
+    }
+    h1 { font-size: 1.9rem; margin-bottom: .25rem; }
+    p.lead { color: #b8b8b8; margin-top: 0; }
+    h2 { margin-top: 2rem; font-size: 1.2rem; }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid #3a3a3a;
+      border-radius: 10px;
+      background: #151515;
+      color: #e8e8e8;
+    }
+    code { font-family: "JetBrains Mono", "Fira Code", monospace; }
+    a { color: #77b7ff; }
+    .note { color: #b8b8b8; font-size: .95rem; }
+  </style>
+</head>
+<body>
+  <h1>RPCI IME</h1>
+  <p class="lead">COSMIC 原生五笔/拼音输入法的签名 APT 仓库。</p>
+
+  <h2>安装</h2>
+  <pre><code>sudo curl -fsSL \
+  https://allenzhang45.github.io/rpci/rpci-ime-archive-keyring.gpg \
+  -o /usr/share/keyrings/rpci-ime-archive-keyring.gpg
+
+echo 'deb [signed-by=/usr/share/keyrings/rpci-ime-archive-keyring.gpg] https://allenzhang45.github.io/rpci stable main' \
+  | sudo tee /etc/apt/sources.list.d/rpci-ime.list
+
+sudo apt update
+sudo apt install rpci-ime</code></pre>
+
+  <h2>升级</h2>
+  <pre><code>sudo apt update
+sudo apt install --only-upgrade rpci-ime</code></pre>
+
+  <h2>回滚</h2>
+  <pre><code>sudo apt update
+sudo apt install rpci-ime=0.1.0</code></pre>
+
+  <p class="note">
+    公钥：<a href="rpci-ime-archive-keyring.asc">rpci-ime-archive-keyring.asc</a><br>
+    仓库元数据由 APT 签名密钥保护；安装前请确认 <code>signed-by</code> 指向本页公钥。
+  </p>
+</body>
+</html>

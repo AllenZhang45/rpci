@@ -1,6 +1,6 @@
 # APT 仓库、签名、升级与回滚
 
-> 状态：2026-10-20。仓库元数据签名已实现和自动验证；公共 HTTPS 源按用户决定暂不部署。
+> 状态：2026-10-20。仓库元数据签名已实现和自动验证；公共 HTTPS 源通过 [APT-PAGES.md](APT-PAGES.md) 的 GitHub Pages 工作流部署。
 
 ## 构建
 
@@ -121,7 +121,7 @@ systemctl --user restart 'app-rpci\x2dime@autostart.service'
 
 ## 当前限制
 
-- 公共 HTTPS 仓库不做；本地签名仓库和 Release `.deb` 仍可用
+- 公共 HTTPS 部署需要配置 Pages 和签名 secret；流程见 [APT-PAGES.md](APT-PAGES.md)
 - 未做仓库内的自动构建/发布 CI
 - `.deb` 本身未做二进制签名；当前签名保护的是 APT 元数据
 - 仅 amd64

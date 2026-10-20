@@ -34,6 +34,7 @@
 | APT 仓库 / 元数据签名 / 升级回滚 | ✅ `build-repo.sh` + `test-repo.sh`；未上传公共源 |
 | GitHub Actions CI | ✅ 格式、测试、`.deb`、仓库验证 |
 | Tag Release CI | ✅ `vX.Y.Z` 触发，附加 `.deb`；可选签名仓库 |
+| 公共 HTTPS APT | ⏳ Pages 工作流已写；等待 secrets/Pages 配置 |
 | 保存并应用（systemd 重启） | ✅ |
 | 安全项热加载 | ✅ 候选数量/主题，重新聚焦后生效 |
 | 词库备份 / 导出 / 导入 | ✅ CLI；GUI 备份 + 恢复 |

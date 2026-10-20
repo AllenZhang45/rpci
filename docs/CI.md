@@ -83,7 +83,7 @@ git push origin v0.1.0
 - 没有 COSMIC/Wayland 图形会话，因此不运行真实输入法、候选窗和 panel applet
 - 不安装 `.deb` 到系统，只做解包和脚本级验证
 - APT 仓库测试使用临时 key 和隔离 apt 目录，不发布
-- 不部署公共 HTTPS APT 源（Release 只附仓库 tar）
+- Release 只附 `.deb`；公共 HTTPS APT 由独立的 Pages 工作流部署
 - 不做正式密钥轮换/备份
 - 可选 nightly 真实 COSMIC 会话 E2E 未做
 
@@ -98,8 +98,9 @@ git push origin v0.1.0
 
 ## 下一步
 
-- 在仓库配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID`（仅用于 Release 附件，不部署公共源）
+- 配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID` 并启用 Pages
+- 运行 APT Pages 工作流，验证 HTTPS 客户端安装
 - 可选 nightly 真实 COSMIC 会话 E2E
 - 非 amd64 构建
 
-公共 HTTPS APT 源已明确不做，见 [ROADMAP.md](ROADMAP.md)「暂不执行」。
+公共 HTTPS APT 流程见 [APT-PAGES.md](APT-PAGES.md)。

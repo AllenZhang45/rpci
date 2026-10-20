@@ -41,6 +41,7 @@
 | [PACKAGING.md](PACKAGING.md) | Debian 包构建、验证、安装与卸载 |
 | [APT-REPO.md](APT-REPO.md) | 签名 APT 仓库、升级与回滚 |
 | [CI.md](CI.md) | GitHub Actions 工作流与本地复现 |
+| [APT-PAGES.md](APT-PAGES.md) | GitHub Pages 公共 HTTPS APT 部署 |
 | [SKILLS.md](SKILLS.md) | DSH 工程技能来源、适用条件与全自动适配 |
 
 ## 历史记录

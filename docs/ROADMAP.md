@@ -119,18 +119,18 @@
 - 升级/回滚：`test-repo.sh` 自动验证 0.1.0 → 0.1.1 → 0.1.0
 - GitHub Actions：格式、测试、`.deb`、包校验、仓库验证
 - Tag Release CI：`vX.Y.Z` 触发，附加 `.deb`；可选签名仓库
-- 文档：[PACKAGING.md](PACKAGING.md)、[APT-REPO.md](APT-REPO.md)、[CI.md](CI.md)
+- 公共 HTTPS APT：GitHub Pages 工作流和安装页已写，等待 secrets/Pages 配置
+- 文档：[PACKAGING.md](PACKAGING.md)、[APT-REPO.md](APT-REPO.md)、[CI.md](CI.md)、[APT-PAGES.md](APT-PAGES.md)
 
 **待做**：
 
-- 正式签名密钥配置到仓库 secrets
+- 配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID`，启用 Pages 并实际部署
 - 非 amd64 架构
 
 **验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。
 
 ## 暂不执行
 
-- **公共 HTTPS APT 源**：用户明确不需要，暂不部署。保留本地签名仓库和 GitHub Release `.deb`。
 - **提交 Firefox 上游 issue**：当前输入法仅个人使用，暂不向上游提交。问题、复现步骤和 issue 草案保留在 [FIREFOX.md](FIREFOX.md)，需要时可直接使用。
 
 ## 执行顺序
