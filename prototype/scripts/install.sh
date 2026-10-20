@@ -17,16 +17,16 @@ fi
 
 if [ "$SKIP_BUILD" != "1" ]; then
     if [ "$PROFILE" = "release" ]; then
-        cargo build --release -p ime-probe --bin ime-probe --bin ime-settings --bin ime-settings-gui
-        cargo build --release -p rpci-settings-iced --bin rpci-settings-iced --bin rpci-applet
+        cargo build --release -p ime-probe --bin ime-probe --bin ime-settings --bin ime-settings-gui --bin applet
+        cargo build --release -p rpci-settings-iced --bin rpci-settings-iced
     else
-        cargo build -p ime-probe --bin ime-probe --bin ime-settings --bin ime-settings-gui
-        cargo build -p rpci-settings-iced --bin rpci-settings-iced --bin rpci-applet
+        cargo build -p ime-probe --bin ime-probe --bin ime-settings --bin ime-settings-gui --bin applet
+        cargo build -p rpci-settings-iced --bin rpci-settings-iced
     fi
 fi
 
 TARGET_DIR="$ROOT/target/$PROFILE"
-for bin in ime-probe ime-settings ime-settings-gui rpci-settings-iced rpci-applet; do
+for bin in ime-probe ime-settings ime-settings-gui rpci-settings-iced applet; do
     if [ ! -x "$TARGET_DIR/$bin" ]; then
         echo "missing $TARGET_DIR/$bin; build first or drop IME_SKIP_BUILD" >&2
         exit 1
@@ -37,7 +37,7 @@ install -Dm755 "$TARGET_DIR/ime-probe" "$BIN_DIR/ime-probe"
 install -Dm755 "$TARGET_DIR/ime-settings" "$BIN_DIR/ime-settings"
 install -Dm755 "$TARGET_DIR/ime-settings-gui" "$BIN_DIR/ime-settings-gui"
 install -Dm755 "$TARGET_DIR/rpci-settings-iced" "$BIN_DIR/ime-settings-iced"
-install -Dm755 "$TARGET_DIR/rpci-applet" "$BIN_DIR/ime-applet"
+install -Dm755 "$TARGET_DIR/applet" "$BIN_DIR/ime-applet"
 
 if [ -x "$ROOT/prototype/scripts/setup-rime.sh" ]; then
     "$ROOT/prototype/scripts/setup-rime.sh"

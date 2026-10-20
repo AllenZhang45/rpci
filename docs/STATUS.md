@@ -70,7 +70,9 @@ cargo test -p rpci-settings-iced  # 4 passed
 
 ### 输入法自身
 
-- Panel applet 已嵌入顶部 Panel 右侧状态区；点击状态切换中英，齿轮打开设置；跟随明暗主题、hover、tooltip、Enter 切换。\n- applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持；libcosmic applet 运行时受上游打包限制。
+- Panel applet 已嵌入顶部 Panel 右侧状态区；只读显示状态，不抢占键盘焦点。
+- 中英切换使用 Ctrl+Space；点击顶部面板会让面板取得焦点，因此 applet 不提供点击切换。
+- applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持；libcosmic applet 运行时受上游打包限制。
 - 候选窗未接 fractional scale；屏幕边缘翻转未验证。
 - 每个 seat 只能有一个输入法对象；与 `cosmic-osk` 的长期仲裁需要上游确认。
 - 仅候选数量/主题热加载；拼音兜底、默认英文模式仍需“保存并应用”或重启。

@@ -68,23 +68,22 @@
 **已完成**：
 
 - 确认第三方 applet 机制：desktop 需要 `X-CosmicApplet=true`，加入 panel 配置
-- iced applet 已嵌入顶部 Panel 右侧状态区，显示 `中 五` / `中 拼` / `英`
+- SCTK 只读 applet 已嵌入顶部 Panel 右侧状态区，显示 `中 五` / `中 拼` / `英`
 - IME 通过 `$XDG_RUNTIME_DIR/rpci/state` 暴露状态，applet 每 500ms 轮询
-- 点击 applet 打开 iced 设置窗口
+- 只读 applet，不抢键盘焦点
 
 **验证**：
 
 - applet 在顶部 Panel 中显示 `中 五` / `英`
-- 点击状态通过 Unix socket `$XDG_RUNTIME_DIR/rpci/control.sock` 切换中英
-- 齿轮按钮打开 iced 设置
+- 中英切换只用 Ctrl+Space
+- 状态文件与 applet 轮询同步
 - 状态文件与 applet 轮询同步
 
 **已完成（HIG 打磨）**：
 
 - 跟随 COSMIC 明暗主题
-- hover/pressed 圆角背景
-- 状态/设置 tooltip
-- Enter 键盘切换
+- 空 input region，不抢焦点
+- 只读状态显示
 - 截图更新到 [assets/applet-panel.png](assets/applet-panel.png)
 
 **待做（受上游限制）**：

@@ -13,21 +13,18 @@
 
 ### Panel Applet
 
-- iced applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC 顶部 Panel（任务栏）的 `plugins_wings` 右侧状态区。
+- SCTK 只读 applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC 顶部 Panel（任务栏）的 `plugins_wings` 右侧状态区。
 - 显示 `中 五` / `中 拼` / `英`，状态来自 `$XDG_RUNTIME_DIR/rpci/state`。
-- 点击状态通过 Unix socket 切换中英；齿轮按钮打开 iced 设置。
-- 跟随 COSMIC `is_dark` 切换明暗主题；hover/pressed 使用圆角半透明背景。
-- 状态和设置按钮有 tooltip；Enter 可在 applet 获得键盘焦点时切换。
+- 窗口设置空 input region：点击 applet 不会取得键盘焦点，也不会打断编辑器输入。
+- 中英切换只使用 Ctrl+Space；设置从应用菜单打开。
+- 跟随 COSMIC `is_dark` 切换文字颜色。
 - 截图：[assets/applet-panel.png](assets/applet-panel.png)。
 
 可访问性限制：
 
-- iced 0.14 不包含 AccessKit/AT-SPI，按钮没有屏幕阅读器可读名称和状态播报。
-- 没有使用 libcosmic applet 运行时；它依赖上游 submodule/未打包 API，当前以通用 iced applet 工作。
-- 键盘可达性只覆盖 applet 已获得焦点时的 Enter；面板级 Tab 导航由 COSMIC panel 决定。
-- 保存写入 `$XDG_CONFIG_HOME/rpci/config.toml`
-- 深色 COSMIC 风格调色板：`#1e1e1e` 背景、`#2b2b2b` 卡片、`#3584e4` 主色、12px 圆角
-- 安装为应用菜单主入口 `COSMIC IME 设置`
+- applet 没有交互控件，也没有 AccessKit/AT-SPI 屏幕阅读器播报。
+- 使用 SCTK 而非 libcosmic applet 运行时，避免 iced 子模块打包问题。
+- 面板级 Tab 导航由 COSMIC panel 决定。
 
 验证：
 

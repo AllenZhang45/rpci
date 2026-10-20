@@ -14,7 +14,7 @@
 - 中文标点：`.` → 。、`,` → ，、`?` → ？
 - 候选条明暗主题：读 COSMIC `is_dark` 配置，也可用 `IME_POPUP_THEME=light/dark` 覆盖
 - 候选条按 2x 像素渲染（逻辑 520×48），HiDPI 输出更清晰
-- COSMIC Panel Applet：顶部 Panel（任务栏）显示 `中 五` / `中 拼` / `英`；点击状态切换中英，齿轮打开设置
+- COSMIC Panel Applet：顶部 Panel（任务栏）只读显示 `中 五` / `中 拼` / `英`
 - 中英切换：Ctrl+Space 或顶部 Panel applet（直接拦截 Ctrl，避免失焦）
 - Enter 换行：中文模式下取消组合并以 `commit_string("\n")` 插入换行；英文模式保持透传；英文模式下所有按键透传
 
@@ -211,7 +211,8 @@ ime-settings import <dir>        # 从目录恢复
 - 候选条屏幕边缘翻转尚未验证（HiDPI 已按 2x 渲染）
 - `cosmic-term` 不把 IME 提交写入 PTY，应用矩阵需逐个记录
 - iced 设置窗口已验证启动；候选窗因 input_popup_surface 协议限制仍是自绘；保存后需重启输入法
-- Panel applet 点击状态切换中英；齿轮打开设置；跟随明暗主题、hover、tooltip、Enter 切换\n- Panel applet 暂不支持 AccessKit/AT-SPI；libcosmic applet 运行时受上游打包限制
+- Panel applet 是只读状态显示；不使用点击切换，点击顶部面板会让面板取得焦点
+- Panel applet 暂不支持 AccessKit/AT-SPI；libcosmic applet 运行时受上游打包限制
 - Firefox 尚未激活 IME，需要继续排查 text-input-v3 兼容性
 - Qt6 6.4.2 只支持 text-input v1/v2，COSMIC 只提供 v3；详见 `docs/QT6-AUDIT.md`
 - XWayland 没有 XIM 服务端，不能输入中文；详见 `docs/XWAYLAND-AUDIT.md`
