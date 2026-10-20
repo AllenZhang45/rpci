@@ -38,7 +38,7 @@ fn theme_from(env: Option<&str>, preference: ThemePreference, is_dark: Option<bo
     }
 }
 
-fn cosmic_is_dark() -> Option<bool> {
+pub fn cosmic_is_dark() -> Option<bool> {
     let config = std::env::var_os("XDG_CONFIG_HOME")
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))?;
