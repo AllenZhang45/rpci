@@ -87,6 +87,15 @@ git push origin v0.1.0
 - 不做正式密钥轮换/备份
 - 可选 nightly 真实 COSMIC 会话 E2E 未做
 
+## 实测记录
+
+- CI run `39433064379`：成功
+- Release run `39433071645`：成功
+- Release：[v0.1.0](https://github.com/AllenZhang45/rpci/releases/tag/v0.1.0)
+- 资产：`rpci-ime_0.1.0_amd64.deb`
+
+未配置 `APT_GPG_PRIVATE_KEY`，因此本次 Release 只有 `.deb`，没有附签名 APT 仓库 tar。
+
 ## 下一步
 
 - 上传/部署公共 HTTPS APT 源
