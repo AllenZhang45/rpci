@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "tag must look like vX.Y.Z: ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libclang-dev \
+            librime-dev \
+            librime-data \
+            libwayland-dev \
+            wayland-protocols \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libegl1-mesa-dev \
+            libgl1-mesa-dev \
+            libvulkan-dev \
+            libfontconfig1-dev \
+            libfreetype-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxi-dev \
+            libxcursor-dev \
+            desktop-file-utils \
+            gnupg \
+            dpkg-dev \
+            apt-utils \
+            python3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run CI with release version
+        env:
+          CARGO_TERM_COLOR: always
+          LIBCLANG_PATH: /usr/lib/llvm-18/lib
+          BINDGEN_EXTRA_CLANG_ARGS: -I/usr/lib/llvm-18/lib/clang/18/include
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}" ./prototype/scripts/ci.sh
+          test -f "dist/rpci-ime_${GITHUB_REF_NAME#v}_amd64.deb"
+
+      - name: Build signed APT repository
+        if: ${{ secrets.APT_GPG_PRIVATE_KEY != '' }}
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_KEY_ID: ${{ secrets.APT_GPG_KEY_ID }}
+        run: |
+          export GNUPGHOME="${RUNNER_TEMP}/apt-gnupg"
+          mkdir -p "$GNUPGHOME"
+          chmod 700 "$GNUPGHOME"
+          printf '%s' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          VERSION="${GITHUB_REF_NAME#v}" \
+          RPCI_SKIP_BUILD=1 \
+          RPCI_GPG_HOME="$GNUPGHOME" \
+          RPCI_GPG_KEY="$APT_GPG_KEY_ID" \
+            ./prototype/packaging/build-repo.sh
+          tar -czf dist/rpci-ime-apt-repo.tar.gz -C dist/apt .
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          FILES=("dist/rpci-ime_${VERSION}_amd64.deb")
+          if [ -f dist/rpci-ime-apt-repo.tar.gz ]; then
+            FILES+=(dist/rpci-ime-apt-repo.tar.gz)
+          fi
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${FILES[@]}" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${FILES[@]}" \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi

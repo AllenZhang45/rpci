@@ -10,6 +10,7 @@ esac
 trap 'rm -rf "$TMP"' EXIT
 
 VERSION="${VERSION:-0.1.0}"
+UPGRADE_VERSION="$(awk -F. '{print $1"."$2"."$3+1}' <<< "$VERSION")"
 DEB="$ROOT/dist/rpci-ime_${VERSION}_amd64.deb"
 if [ ! -f "$DEB" ]; then
     "$ROOT/prototype/packaging/build-deb.sh" >/dev/null
@@ -18,11 +19,11 @@ fi
 mkdir -p "$TMP/versions"
 cp "$DEB" "$TMP/versions/"
 dpkg-deb -R "$DEB" "$TMP/pkg"
-sed -i 's/^Version: .*/Version: 0.1.1/' "$TMP/pkg/DEBIAN/control"
+sed -i "s/^Version: .*/Version: $UPGRADE_VERSION/" "$TMP/pkg/DEBIAN/control"
 dpkg-deb --build --root-owner-group "$TMP/pkg" \
-    "$TMP/versions/rpci-ime_0.1.1_amd64.deb" >/dev/null
+    "$TMP/versions/rpci-ime_${UPGRADE_VERSION}_amd64.deb" >/dev/null
 
-RPCI_DEBS="$TMP/versions/rpci-ime_${VERSION}_amd64.deb $TMP/versions/rpci-ime_0.1.1_amd64.deb" \
+RPCI_DEBS="$TMP/versions/rpci-ime_${VERSION}_amd64.deb $TMP/versions/rpci-ime_${UPGRADE_VERSION}_amd64.deb" \
 RPCI_SKIP_BUILD=1 \
 RPCI_REPO_DIR="$TMP/repo" \
 RPCI_GPG_HOME="$TMP/gnupg" \
@@ -30,8 +31,8 @@ RPCI_GPG_HOME="$TMP/gnupg" \
 
 gpgv --keyring "$TMP/repo/rpci-ime-archive-keyring.gpg" \
     "$TMP/repo/dists/stable/InRelease" >/dev/null 2>&1
-grep -q '^Version: 0.1.0$' "$TMP/repo/dists/stable/main/binary-amd64/Packages"
-grep -q '^Version: 0.1.1$' "$TMP/repo/dists/stable/main/binary-amd64/Packages"
+grep -q "^Version: ${VERSION}$" "$TMP/repo/dists/stable/main/binary-amd64/Packages"
+grep -q "^Version: ${UPGRADE_VERSION}$" "$TMP/repo/dists/stable/main/binary-amd64/Packages"
 
 CLIENT="$TMP/client"
 mkdir -p "$CLIENT/etc/apt/sources.list.d" \
@@ -58,17 +59,17 @@ OPTS=(
 
 LC_ALL=C apt-get "${OPTS[@]}" update >/dev/null 2>&1
 POLICY="$(LC_ALL=C apt-cache "${OPTS[@]}" policy rpci-ime)"
-printf '%s\n' "$POLICY" | grep -q 'Candidate: 0.1.1'
-printf '%s\n' "$POLICY" | grep -q '0.1.1'
-printf '%s\n' "$POLICY" | grep -q '0.1.0'
+printf '%s\n' "$POLICY" | grep -q "Candidate: ${UPGRADE_VERSION}"
+printf '%s\n' "$POLICY" | grep -q "${UPGRADE_VERSION}"
+printf '%s\n' "$POLICY" | grep -q "${VERSION}"
 
 UPDATE_URI="$(LC_ALL=C apt-get "${OPTS[@]}" --print-uris --yes install rpci-ime 2>&1)"
-printf '%s\n' "$UPDATE_URI" | grep -q 'rpci-ime_0.1.1_amd64.deb'
+printf '%s\n' "$UPDATE_URI" | grep -q "rpci-ime_${UPGRADE_VERSION}_amd64.deb"
 
-ROLLBACK_URI="$(LC_ALL=C apt-get "${OPTS[@]}" --print-uris --yes install rpci-ime=0.1.0 2>&1)"
-printf '%s\n' "$ROLLBACK_URI" | grep -q 'rpci-ime_0.1.0_amd64.deb'
+ROLLBACK_URI="$(LC_ALL=C apt-get "${OPTS[@]}" --print-uris --yes install rpci-ime=${VERSION} 2>&1)"
+printf '%s\n' "$ROLLBACK_URI" | grep -q "rpci-ime_${VERSION}_amd64.deb"
 
 echo "apt repository verification passed"
-echo "  update candidate: 0.1.1"
-echo "  rollback target: 0.1.0"
+echo "  update candidate: $UPGRADE_VERSION"
+echo "  rollback target: $VERSION"
 echo "  keyring: $TMP/repo/rpci-ime-archive-keyring.gpg"

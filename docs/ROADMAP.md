@@ -118,13 +118,13 @@
 - APT 仓库 / 签名：`build-repo.sh`，`InRelease` 已签名
 - 升级/回滚：`test-repo.sh` 自动验证 0.1.0 → 0.1.1 → 0.1.0
 - GitHub Actions：格式、测试、`.deb`、包校验、仓库验证
+- Tag Release CI：`vX.Y.Z` 触发，附加 `.deb`；可选签名仓库
 - 文档：[PACKAGING.md](PACKAGING.md)、[APT-REPO.md](APT-REPO.md)、[CI.md](CI.md)
 
 **待做**：
 
-- 上传公共 HTTPS 源
-- tag/Release 发布 CI
-- 正式签名密钥注入
+- 上传/部署公共 HTTPS 源
+- 正式签名密钥配置到仓库 secrets
 - 非 amd64 架构
 
 **验收**：一条命令安装/升级；卸载保留用户词库；版本可回滚。

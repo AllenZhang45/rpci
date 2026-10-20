@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PACKAGE="${1:-$ROOT/dist/rpci-ime_0.1.0_amd64.deb}"
+VERSION="${VERSION:-0.1.0}"
+PACKAGE="${1:-$ROOT/dist/rpci-ime_${VERSION}_amd64.deb}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 

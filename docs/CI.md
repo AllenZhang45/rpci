@@ -1,6 +1,6 @@
 # GitHub Actions CI
 
-> 状态：2026-10-20。已覆盖格式检查、测试、`.deb` 构建、包校验和签名 APT 仓库验证；未做发布。
+> 状态：2026-10-20。已覆盖格式检查、测试、`.deb` 构建、包校验、签名 APT 仓库验证和 tag Release。
 
 ## 工作流
 
@@ -52,15 +52,43 @@ cargo test --locked -p rpci-settings-iced
 
 忽略 `http://`、`https://`、`mailto:` 和纯锚点链接。
 
+## Release 工作流
+
+文件：[.github/workflows/release.yml](../.github/workflows/release.yml)
+
+触发：
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+流程：
+
+1. 校验 tag 为 `vX.Y.Z`
+2. 安装与 CI 相同的依赖
+3. 用 tag 版本执行完整 `ci.sh`
+4. 可选：如果配置了 `APT_GPG_PRIVATE_KEY` secret，构建签名 APT 仓库并打包
+5. 创建/更新 GitHub Release，附加 `.deb`（可选 APT 仓库 tar）
+
+可选 secrets：
+
+- `APT_GPG_PRIVATE_KEY`：正式 APT 签名私钥
+- `APT_GPG_KEY_ID`：对应 key ID/fingerprint
+
+未配置 secrets 时只发布 `.deb`，不会带测试签名仓库。
+
 ## CI 不覆盖什么
 
 - 没有 COSMIC/Wayland 图形会话，因此不运行真实输入法、候选窗和 panel applet
 - 不安装 `.deb` 到系统，只做解包和脚本级验证
 - APT 仓库测试使用临时 key 和隔离 apt 目录，不发布
-- 不做签名密钥管理、HTTPS 部署和 GitHub Release
+- 不部署公共 HTTPS APT 源（Release 只附仓库 tar）
+- 不做正式密钥轮换/备份
+- 可选 nightly 真实 COSMIC 会话 E2E 未做
 
 ## 下一步
 
-- 发布工作流：tag 触发、产物附加到 Release
-- 使用仓库 secret 注入正式 APT 签名密钥
-- 可选的 nightly 真实 COSMIC 会话 E2E
+- 上传/部署公共 HTTPS APT 源
+- 在仓库配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID`
+- 可选 nightly 真实 COSMIC 会话 E2E
