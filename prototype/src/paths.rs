@@ -70,6 +70,10 @@ pub fn state_path() -> Option<PathBuf> {
     app_runtime_dir().map(|dir| dir.join("state"))
 }
 
+pub fn control_path() -> Option<PathBuf> {
+    app_runtime_dir().map(|dir| dir.join("control.sock"))
+}
+
 pub fn config_path() -> Option<PathBuf> {
     app_config_dir().map(|dir| dir.join("config.toml"))
 }

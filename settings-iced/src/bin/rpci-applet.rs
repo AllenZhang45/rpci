@@ -1,8 +1,10 @@
+use std::io::Write;
+use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
-use iced::widget::{button, text};
+use iced::widget::{button, row, text};
 use iced::{Element, Subscription, Task, Theme, window};
-use ime_probe::paths::state_path;
+use ime_probe::paths::{control_path, state_path};
 
 const APPLET_ID: &str = "com.github.alec.RpciImeApplet";
 
@@ -11,7 +13,7 @@ fn main() -> iced::Result {
         .title(|_: &App| "COSMIC IME".to_string())
         .subscription(App::subscription)
         .window(window::Settings {
-            size: (140.0, 40.0).into(),
+            size: (160.0, 40.0).into(),
             decorations: false,
             resizable: false,
             transparent: true,
@@ -28,6 +30,7 @@ fn main() -> iced::Result {
 #[derive(Debug, Clone)]
 enum Message {
     Tick,
+    Toggle,
     OpenSettings,
 }
 
@@ -51,6 +54,13 @@ impl App {
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Tick => self.label = read_label(),
+            Message::Toggle => {
+                if let Some(path) = control_path() {
+                    if let Ok(mut stream) = UnixStream::connect(path) {
+                        let _ = stream.write_all(b"toggle\n");
+                    }
+                }
+            }
             Message::OpenSettings => {
                 let settings = std::env::current_exe()
                     .ok()
@@ -64,8 +74,19 @@ impl App {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        button(text(&self.label).size(15))
-            .padding([4, 10])
+        let label = button(text(&self.label).size(15))
+            .padding([4, 8])
+            .on_press(Message::Toggle)
+            .style(|theme: &Theme, _status: iced::widget::button::Status| {
+                iced::widget::button::Style {
+                    background: None,
+                    text_color: theme.palette().text,
+                    border: iced::Border::default(),
+                    ..Default::default()
+                }
+            });
+        let settings = button(text("⚙").size(14))
+            .padding([4, 6])
             .on_press(Message::OpenSettings)
             .style(|theme: &Theme, _status: iced::widget::button::Status| {
                 iced::widget::button::Style {
@@ -74,8 +95,8 @@ impl App {
                     border: iced::Border::default(),
                     ..Default::default()
                 }
-            })
-            .into()
+            });
+        row![label, settings].spacing(2).into()
     }
 }
 

@@ -185,6 +185,12 @@ impl HybridEngine {
         self.reset();
     }
 
+    /// Toggle Chinese/English from an out-of-band control command.
+    pub fn toggle_ascii(&mut self) {
+        self.reset();
+        self.ascii_mode = !self.ascii_mode;
+    }
+
     pub fn status_label(&self) -> String {
         status_label_for(self.ascii_mode, self.mode).to_string()
     }

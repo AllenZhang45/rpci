@@ -7,6 +7,11 @@ use ime_probe::config::Config;
 use ime_probe::engine::{EngineOutput, HybridEngine};
 use ime_probe::popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
 use memmap2::MmapMut;
+use smithay_client_toolkit::reexports::calloop::{
+    EventLoop,
+    channel::{Event as ChannelEvent, Sender, channel},
+};
+use smithay_client_toolkit::reexports::calloop_wayland_source::WaylandSource;
 use wayland_client::{
     Connection, Dispatch, QueueHandle, WEnum,
     globals::{GlobalListContents, registry_queue_init},
@@ -216,6 +221,52 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
     }
 }
 
+#[derive(Debug)]
+enum Control {
+    Toggle,
+}
+
+fn start_control_listener(sender: Sender<Control>) {
+    let Some(path) = ime_probe::paths::control_path() else {
+        return;
+    };
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let _ = std::fs::remove_file(&path);
+    let listener = match std::os::unix::net::UnixListener::bind(&path) {
+        Ok(listener) => listener,
+        Err(err) => {
+            eprintln!("control socket failed: {err}");
+            return;
+        }
+    };
+    println!("control socket: {}", path.display());
+    std::thread::spawn(move || {
+        for stream in listener.incoming() {
+            let Ok(mut stream) = stream else {
+                continue;
+            };
+            let mut buf = [0u8; 32];
+            let Ok(size) = std::io::Read::read(&mut stream, &mut buf) else {
+                continue;
+            };
+            let command = String::from_utf8_lossy(&buf[..size]);
+            if command.trim() == "toggle" {
+                let _ = sender.send(Control::Toggle);
+            }
+        }
+    });
+}
+
+fn toggle_from_control(state: &mut State) {
+    state.rime.toggle_ascii();
+    let label = state.rime.status_label();
+    write_state(&label);
+    state.popup_renderer.draw("");
+    println!("control toggle -> {label}");
+}
+
 fn write_state(label: &str) {
     if let Some(path) = ime_probe::paths::state_path() {
         if let Some(parent) = path.parent() {
@@ -418,7 +469,7 @@ fn create_popup_buffer(
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conn = Connection::connect_to_env()?;
-    let (globals, mut event_queue) = registry_queue_init::<State>(&conn)?;
+    let (globals, event_queue) = registry_queue_init::<State>(&conn)?;
     let qh = event_queue.handle();
 
     let seat: wl_seat::WlSeat = globals.bind(&qh, 1..=9, ())?;
@@ -490,7 +541,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let label = state.rime.status_label();
     write_state(&label);
 
-    loop {
-        event_queue.blocking_dispatch(&mut state)?;
-    }
+    let mut event_loop: EventLoop<State> = EventLoop::try_new()?;
+    let handle = event_loop.handle();
+    WaylandSource::new(conn.clone(), event_queue).insert(handle.clone())?;
+
+    let (sender, receiver) = channel::<Control>();
+    handle
+        .insert_source(receiver, |event, _, state| {
+            if let ChannelEvent::Msg(Control::Toggle) = event {
+                toggle_from_control(state);
+            }
+        })
+        .map_err(|err| format!("control channel: {err}"))?;
+    start_control_listener(sender);
+
+    event_loop.run(None, &mut state, |_| {})?;
+    Ok(())
 }
