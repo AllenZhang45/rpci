@@ -13,7 +13,11 @@ SKIP = ("http://", "https://", "mailto:", "#")
 
 
 def markdown_files() -> list[Path]:
-    files = [ROOT / "GLOSSARY.md", ROOT / "prototype" / "README.md"]
+    files = [
+        ROOT / "README.md",
+        ROOT / "GLOSSARY.md",
+        ROOT / "prototype" / "README.md",
+    ]
     files.extend((ROOT / "docs").rglob("*.md"))
     return [path for path in files if path.is_file()]
 
