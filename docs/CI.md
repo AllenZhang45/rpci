@@ -69,7 +69,8 @@ git push origin v0.1.2
 2. 安装与 CI 相同的依赖
 3. 用 tag 版本执行完整 `ci.sh`
 4. 要求已配置 `APT_GPG_PRIVATE_KEY`，构建签名 APT 仓库并打包；缺失时 Release 失败
-5. 创建/更新 GitHub Release，附加 `.deb`（可选 APT 仓库 tar）
+5. 创建/更新 GitHub Release，附加 `.deb` + `rpci-ime-apt-repo.tar.gz`
+6. 通过 `workflow_dispatch` 触发 APT Pages，自动更新公共仓库
 
 可选 secrets：
 

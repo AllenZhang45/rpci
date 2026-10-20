@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -118,3 +119,9 @@ jobs:
               --title "$GITHUB_REF_NAME" \
               --generate-notes
           fi
+
+      - name: Trigger APT Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run apt-pages.yml --ref main -f tag="$GITHUB_REF_NAME"
