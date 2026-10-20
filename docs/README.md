@@ -37,6 +37,7 @@
 | [prototype/README.md](../prototype/README.md) | 构建、运行、安装、设置、测试工具 |
 | [SETTINGS-GUI.md](SETTINGS-GUI.md) | 设置窗口（iced 主入口 + SCTK 回退） |
 | [PACKAGING.md](PACKAGING.md) | Debian 包构建、验证、安装与卸载 |
+| [SKILLS.md](SKILLS.md) | DSH 工程技能来源、适用条件与全自动适配 |
 
 ## 历史记录
 
