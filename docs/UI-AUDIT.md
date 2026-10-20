@@ -13,7 +13,7 @@
 
 ### Panel Applet
 
-- iced applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC Dock 的 `plugins_center`。
+- iced applet 通过 `X-CosmicApplet=true` 注册，加入 COSMIC 顶部 Panel（任务栏）的 `plugins_wings` 右侧状态区。
 - 显示 `中 五` / `中 拼` / `英`，状态来自 `$XDG_RUNTIME_DIR/rpci/state`。
 - 点击状态通过 Unix socket 切换中英；齿轮按钮打开 iced 设置。
 - 跟随 COSMIC `is_dark` 切换明暗主题；hover/pressed 使用圆角半透明背景。

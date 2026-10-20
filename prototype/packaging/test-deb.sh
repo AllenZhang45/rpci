@@ -33,9 +33,9 @@ cat > "$TMP/fakebin/ime-probe" <<'FAKE'
 echo launched > "$RPCI_TEST_MARKER"
 FAKE
 chmod +x "$TMP/fakebin/ime-probe"
-mkdir -p "$TMP/xdg/cosmic/com.system76.CosmicPanel.Dock/v1"
-printf 'Some([\n    "com.system76.CosmicAppList",\n])\n' \
-    > "$TMP/xdg/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
+mkdir -p "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1"
+printf 'Some(([\n], [\n    "com.system76.CosmicAppletInputSources",\n]))\n' \
+    > "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
 
 RPCI_TEST_MARKER="$TMP/marker" \
 XDG_DATA_HOME="$TMP/launch" \
@@ -47,6 +47,6 @@ RPCI_IME_SCHEMA_DIR="$TMP/root/usr/share/rpci/rime" \
     "$TMP/root/usr/bin/rpci-ime-launch"
 test -f "$TMP/marker"
 grep -q 'com.github.alec.RpciImeApplet' \
-    "$TMP/xdg/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
+    "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
 
 echo "package verification passed: $PACKAGE"

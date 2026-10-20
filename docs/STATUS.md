@@ -38,7 +38,7 @@
 | 保存并应用（systemd 重启） | ✅ |
 | 安全项热加载 | ✅ 候选数量/主题，重新聚焦后生效 |
 | 词库备份 / 导出 / 导入 | ✅ CLI；GUI 备份 + 恢复 |
-| COSMIC Panel Applet（Dock） | ✅ iced 按钮 + 运行时状态 |
+| COSMIC Panel Applet（顶部 Panel） | ✅ iced 按钮 + 运行时状态 |
 
 ## 验证基线
 
@@ -71,7 +71,7 @@ cargo test -p rpci-settings-iced  # 4 passed
 
 ### 输入法自身
 
-- Panel applet 已嵌入 Dock；点击状态切换中英，齿轮打开设置；跟随明暗主题、hover、tooltip、Enter 切换。\n- applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持；libcosmic applet 运行时受上游打包限制。
+- Panel applet 已嵌入顶部 Panel 右侧状态区；点击状态切换中英，齿轮打开设置；跟随明暗主题、hover、tooltip、Enter 切换。\n- applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持；libcosmic applet 运行时受上游打包限制。
 - 候选窗未接 fractional scale；屏幕边缘翻转未验证。
 - 每个 seat 只能有一个输入法对象；与 `cosmic-osk` 的长期仲裁需要上游确认。
 - 仅候选数量/主题热加载；拼音兜底、默认英文模式仍需“保存并应用”或重启。

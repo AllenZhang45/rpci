@@ -86,19 +86,37 @@ X-HostWaylandDisplay=true
 X-OverflowPriority=10
 EOF
 
-# Add the applet to one panel. Prefer the Dock; allow overriding with
-# RPCI_PANEL_CONFIG. Do not add to every panel (that creates duplicate buttons).
-PANEL_CONFIG="${RPCI_PANEL_CONFIG:-$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center}"
-if [ ! -f "$PANEL_CONFIG" ]; then
-    for candidate in "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_center; do
-        [ -f "$candidate" ] || continue
-        PANEL_CONFIG="$candidate"
-        break
-    done
-fi
-if [ -f "$PANEL_CONFIG" ] && ! grep -q "$APP_ID" "$PANEL_CONFIG"; then
-    cp "$PANEL_CONFIG" "$PANEL_CONFIG.bak.rpci"
-    sed -i "/^])/i\    \"$APP_ID\"," "$PANEL_CONFIG"
+# Place the applet in the top Panel's right wing (the taskbar status area).
+# Fall back to the Panel center or Dock center when the wings config is absent.
+# Remove duplicates from every known panel config first.
+for panel_file in \
+    "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_center \
+    "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_wings; do
+    [ -f "$panel_file" ] || continue
+    sed -i "/$APP_ID/d" "$panel_file"
+done
+
+if [ -n "${RPCI_PANEL_CONFIG:-}" ]; then
+    PANEL_CONFIG="$RPCI_PANEL_CONFIG"
+    if [ -f "$PANEL_CONFIG" ]; then
+        cp "$PANEL_CONFIG" "$PANEL_CONFIG.bak.rpci"
+        sed -i "/^])/i\    \"$APP_ID\"," "$PANEL_CONFIG"
+    fi
+else
+    WINGS="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
+    if [ -f "$WINGS" ] && grep -q '"com.system76.CosmicAppletInputSources"' "$WINGS"; then
+        cp "$WINGS" "$WINGS.bak.rpci"
+        sed -i "/\"com.system76.CosmicAppletInputSources\"/i\    \"$APP_ID\"," "$WINGS"
+    else
+        PANEL_CONFIG="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_center"
+        if [ ! -f "$PANEL_CONFIG" ]; then
+            PANEL_CONFIG="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
+        fi
+        if [ -f "$PANEL_CONFIG" ]; then
+            cp "$PANEL_CONFIG" "$PANEL_CONFIG.bak.rpci"
+            sed -i "/^])/i\    \"$APP_ID\"," "$PANEL_CONFIG"
+        fi
+    fi
 fi
 
 mkdir -p "$AUTOSTART_DIR"

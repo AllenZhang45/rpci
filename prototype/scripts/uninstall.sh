@@ -14,7 +14,9 @@ rm -f "$DATA_HOME/applications/rpci-settings-fallback.desktop"
 rm -f "$DATA_HOME/applications/com.github.alec.RpciImeApplet.desktop"
 
 APP_ID="com.github.alec.RpciImeApplet"
-for panel in "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_center; do
+for panel in \
+    "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_center \
+    "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_wings; do
     [ -f "$panel" ] || continue
     if grep -q "$APP_ID" "$panel"; then
         sed -i "/\"$APP_ID\",/d" "$panel"

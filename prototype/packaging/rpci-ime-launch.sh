@@ -14,11 +14,22 @@ fi
 
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
-PANEL="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
 APP_ID="com.github.alec.RpciImeApplet"
-if [ -f "$PANEL" ] && ! grep -q "$APP_ID" "$PANEL"; then
-    cp "$PANEL" "$PANEL.bak.rpci" 2>/dev/null || true
-    sed -i "/^])/i\    \"$APP_ID\"," "$PANEL" 2>/dev/null || true
+if ! grep -Rq "$APP_ID" "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_* 2>/dev/null; then
+    WINGS="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
+    if [ -f "$WINGS" ] && grep -q '"com.system76.CosmicAppletInputSources"' "$WINGS"; then
+        cp "$WINGS" "$WINGS.bak.rpci" 2>/dev/null || true
+        sed -i "/\"com.system76.CosmicAppletInputSources\"/i\    \"$APP_ID\"," "$WINGS" 2>/dev/null || true
+    else
+        PANEL="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_center"
+        if [ ! -f "$PANEL" ]; then
+            PANEL="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
+        fi
+        if [ -f "$PANEL" ]; then
+            cp "$PANEL" "$PANEL.bak.rpci" 2>/dev/null || true
+            sed -i "/^])/i\    \"$APP_ID\"," "$PANEL" 2>/dev/null || true
+        fi
+    fi
 fi
 
 exec "$BIN_DIR/ime-probe"

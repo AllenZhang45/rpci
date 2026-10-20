@@ -26,7 +26,7 @@
 | 配置 | ✅ XDG 路径 + CLI |
 | 设置界面 | ✅ iced 0.14 主入口；SCTK 回退 |
 | 词库备份/导出/导入 | ✅ CLI；GUI 支持备份 |
-| 状态指示 | ✅ COSMIC Panel Applet（iced，Dock） |
+| 状态指示 | ✅ COSMIC Panel Applet（iced，顶部 Panel） |
 | Debian 包 | ✅ `.deb` 构建、解包和脚本验证 |
 | APT 仓库 | ✅ 签名、升级/回滚自动验证 |
 | 架构/审计 | ✅ ADR 0004、协议/XDG/UI 审计 |
@@ -67,14 +67,14 @@
 
 **已完成**：
 
-- 确认第三方 applet 机制：desktop 需要 `X-CosmicApplet=true`，加入 panel `plugins_center`
-- iced applet 已嵌入 Dock，显示 `中 五` / `中 拼` / `英`
+- 确认第三方 applet 机制：desktop 需要 `X-CosmicApplet=true`，加入 panel 配置
+- iced applet 已嵌入顶部 Panel 右侧状态区，显示 `中 五` / `中 拼` / `英`
 - IME 通过 `$XDG_RUNTIME_DIR/rpci/state` 暴露状态，applet 每 500ms 轮询
 - 点击 applet 打开 iced 设置窗口
 
 **验证**：
 
-- applet 在 Dock 中显示 `中 五` / `英`
+- applet 在顶部 Panel 中显示 `中 五` / `英`
 - 点击状态通过 Unix socket `$XDG_RUNTIME_DIR/rpci/control.sock` 切换中英
 - 齿轮按钮打开 iced 设置
 - 状态文件与 applet 轮询同步

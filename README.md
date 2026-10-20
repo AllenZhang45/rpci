@@ -12,9 +12,9 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 - COSMIC 1.10 / Wayland 原生输入法
 - 五笔 86 优先，超过 4 码或无候选时自动转拼音
 - 候选窗使用 `input_popup_surface`，2x 渲染、明暗主题、HIG 圆角
-- 中英切换：F2 或点击 Dock applet
+- 中英切换：F2 或点击顶部 Panel applet
 - 中文标点、Enter 换行、方向键/Ctrl 组合/功能键透传
-- COSMIC Dock Panel Applet：显示 `中 五` / `中 拼` / `英`，点击切换，齿轮打开设置
+- COSMIC 顶部 Panel（任务栏）Applet：显示 `中 五` / `中 拼` / `英`，点击切换，齿轮打开设置
 - iced 设置窗口：候选数量、主题、词库备份/导出/导入
 - XDG 配置/数据/缓存分离
 - 签名 APT 仓库、`.deb`、GitHub Actions CI 与 Release
@@ -45,7 +45,7 @@ systemctl --user daemon-reload
 systemctl --user start 'app-rpci\x2dime@autostart.service'
 ```
 
-首次登录时 launcher 会准备 RIME schema，并把 applet 加入 COSMIC Dock。
+首次登录时 launcher 会准备 RIME schema，并把 applet 加入 COSMIC 顶部 Panel 的右侧状态区。
 
 ### 方式二：从源码安装（用户级）
 
@@ -85,7 +85,7 @@ cd rpci
 - 准备 `~/.local/share/rpci/rime`
 - 安装 systemd XDG autostart
 - 安装设置菜单入口
-- 把 applet 加入 COSMIC Dock 的 `plugins_center`
+- 把 applet 加入 COSMIC 顶部 Panel 的 `plugins_wings` 右侧状态区
 
 启动：
 
@@ -106,7 +106,7 @@ systemctl --user start 'app-rpci\x2dime@autostart.service'
 
 1. 打开任意 Wayland 文本应用（cosmic-edit、Chrome、VS Code 等）
 2. 输入 `wqiy`，按空格，应上屏「你」
-3. 按 F2 切换中英；Dock 中的 applet 应同步显示 `中 五` / `英`
+3. 按 F2 切换中英；顶部 Panel 中的 applet 应同步显示 `中 五` / `英`
 4. 点击 applet 的状态文字切换中英；点击齿轮打开设置
 
 设置也可以从应用菜单打开「COSMIC IME 设置」，或执行：
@@ -161,7 +161,7 @@ sudo apt remove rpci-ime
 
 ![设置窗口](docs/assets/settings-iced.png)
 
-![Dock applet](docs/assets/applet-panel.png)
+![顶部 Panel applet](docs/assets/applet-panel.png)
 
 ## 应用兼容性
 
@@ -196,7 +196,7 @@ cargo test -p rpci-settings-iced
 
 ## 已知限制
 
-- `Ctrl+Space` 不再绑定：在 COSMIC 上会触发焦点/文本输入丢失；请用 F2 或 Dock applet
+- `Ctrl+Space` 不再绑定：在 COSMIC 上会触发焦点/文本输入丢失；请用 F2 或顶部 Panel applet
 - Qt6 6.4.2 缺少 `zwp_text_input_v3` 支持，详见 [docs/QT6-AUDIT.md](docs/QT6-AUDIT.md)
 - Firefox 在当前 COSMIC 版本下没有发送 `Activate`，详见 [docs/FIREFOX.md](docs/FIREFOX.md)
 - XWayland 需要 XIM，当前不支持，详见 [docs/XWAYLAND-AUDIT.md](docs/XWAYLAND-AUDIT.md)
