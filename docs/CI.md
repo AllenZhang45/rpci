@@ -98,6 +98,8 @@ git push origin v0.1.0
 
 ## 下一步
 
-- 上传/部署公共 HTTPS APT 源
-- 在仓库配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID`
+- 在仓库配置 `APT_GPG_PRIVATE_KEY` / `APT_GPG_KEY_ID`（仅用于 Release 附件，不部署公共源）
 - 可选 nightly 真实 COSMIC 会话 E2E
+- 非 amd64 构建
+
+公共 HTTPS APT 源已明确不做，见 [ROADMAP.md](ROADMAP.md)「暂不执行」。
