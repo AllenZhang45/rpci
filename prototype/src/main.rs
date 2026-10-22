@@ -6,8 +6,8 @@ use std::time::SystemTime;
 use ime_probe::config::{CandidateLayout, Config};
 use ime_probe::engine::{EngineOutput, HybridEngine};
 use ime_probe::popup::{
-    POPUP_PIXEL_W, POPUP_W, PopupRenderer, compose_lines, effective_layout, popup_height,
-    popup_pixel_height,
+    POPUP_DEFAULT_W, POPUP_SCALE, PopupRenderer, compose_lines, effective_layout, popup_height,
+    popup_pixel_height, required_width,
 };
 use memmap2::MmapMut;
 use smithay_client_toolkit::reexports::calloop::{
@@ -41,6 +41,9 @@ struct State {
     done_count: u32,
     candidate_count: usize,
     candidate_layout: CandidateLayout,
+    popup_logical_width: u32,
+    popup_logical_height: u32,
+    shm: wl_shm::WlShm,
     config_mtime: Option<SystemTime>,
     _popup: ZwpInputPopupSurfaceV2,
     _popup_surface: wl_surface::WlSurface,
@@ -479,12 +482,42 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                         }
                     }
 
+                    let desired_width = required_width(
+                        &preedit,
+                        &candidates,
+                        page,
+                        state.candidate_layout,
+                        state.candidate_count,
+                    );
+                    let desired_height =
+                        popup_height(state.candidate_layout, state.candidate_count);
+                    if desired_width != state.popup_logical_width
+                        || desired_height != state.popup_logical_height
+                    {
+                        if let Ok((pool, buffer, mmap)) = create_popup_buffer(
+                            &state.shm,
+                            qh,
+                            desired_width * POPUP_SCALE,
+                            popup_pixel_height(desired_height),
+                        ) {
+                            state.popup_renderer.resize(
+                                buffer,
+                                pool,
+                                mmap,
+                                desired_width,
+                                desired_height,
+                            );
+                            state.popup_logical_width = desired_width;
+                            state.popup_logical_height = desired_height;
+                        }
+                    }
                     let lines = compose_lines(
                         &preedit,
                         &candidates,
                         page,
                         state.candidate_layout,
                         state.candidate_count,
+                        state.popup_logical_width,
                     );
                     let line_refs = lines.iter().map(String::as_str).collect::<Vec<_>>();
                     if line_refs.is_empty() {
@@ -510,9 +543,10 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
 fn create_popup_buffer(
     shm: &wl_shm::WlShm,
     qh: &QueueHandle<State>,
+    pixel_width: u32,
     pixel_height: u32,
 ) -> Result<(wl_shm_pool::WlShmPool, wl_buffer::WlBuffer, MmapMut), Box<dyn std::error::Error>> {
-    let stride = POPUP_PIXEL_W as i32 * 4;
+    let stride = pixel_width as i32 * 4;
     let size = stride * pixel_height as i32;
 
     let cname = std::ffi::CString::new("ime-popup")?;
@@ -529,7 +563,7 @@ fn create_popup_buffer(
     let pool = shm.create_pool(file.as_fd(), size, qh, ());
     let buffer = pool.create_buffer(
         0,
-        POPUP_PIXEL_W as i32,
+        pixel_width as i32,
         pixel_height as i32,
         stride,
         wl_shm::Format::Argb8888,
@@ -581,22 +615,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let popup_pixel_h = popup_pixel_height(popup_logical_height);
     let popup_surface = compositor.create_surface(&qh, ());
     let popup = im.get_input_popup_surface(&popup_surface, &qh, ());
-    let (pool, buffer, mmap) = create_popup_buffer(&shm, &qh, popup_pixel_h)?;
+    let (pool, buffer, mmap) =
+        create_popup_buffer(&shm, &qh, POPUP_DEFAULT_W * POPUP_SCALE, popup_pixel_h)?;
     let popup_renderer = PopupRenderer::new(
         popup_surface.clone(),
         buffer.clone(),
         pool,
         mmap,
         config.theme,
+        POPUP_DEFAULT_W,
         popup_logical_height,
     );
 
     popup_surface.attach(Some(&buffer), 0, 0);
-    popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, popup_pixel_h as i32);
+    popup_surface.damage_buffer(
+        0,
+        0,
+        (POPUP_DEFAULT_W * POPUP_SCALE) as i32,
+        popup_pixel_h as i32,
+    );
     popup_surface.commit();
 
     println!(
-        "bound input method + popup surface ({POPUP_W}x{popup_logical_height}, {popup_layout:?}); waiting for activate..."
+        "bound input method + popup surface ({POPUP_DEFAULT_W}x{popup_logical_height}, {popup_layout:?}); waiting for activate..."
     );
     let mut state = State {
         _seat: seat,
@@ -605,6 +646,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         done_count: 0,
         candidate_count: config.candidate_count,
         candidate_layout: config.candidate_layout,
+        popup_logical_width: POPUP_DEFAULT_W,
+        popup_logical_height: popup_logical_height,
+        shm: shm.clone(),
         config_mtime: config_mtime(),
         _popup: popup,
         _popup_surface: popup_surface,

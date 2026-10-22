@@ -8,12 +8,13 @@ use crate::config::{CandidateLayout, ThemePreference};
 use crate::engine::PageInfo;
 
 /// Logical size in surface coordinates.
-pub const POPUP_W: u32 = 520;
+pub const POPUP_MIN_W: u32 = 260;
+pub const POPUP_MAX_W: u32 = 760;
+pub const POPUP_DEFAULT_W: u32 = 520;
 pub const POPUP_SINGLE_H: u32 = 48;
 pub const POPUP_TWO_ROW_H: u32 = 96;
 /// Render at 2x for HiDPI; the compositor scales down on 1x outputs.
 pub const POPUP_SCALE: u32 = 2;
-pub const POPUP_PIXEL_W: u32 = POPUP_W * POPUP_SCALE;
 /// COSMIC HIG-style corner radius in logical pixels.
 const POPUP_RADIUS: f32 = 10.0 * POPUP_SCALE as f32;
 
@@ -36,12 +37,67 @@ pub fn popup_pixel_height(logical_height: u32) -> u32 {
     logical_height * POPUP_SCALE
 }
 
+fn approx_text_width(text: &str) -> f32 {
+    text.chars()
+        .map(|c| if c.is_ascii() { 9.0 } else { 17.0 })
+        .sum()
+}
+
+pub fn required_width(
+    preedit: &str,
+    candidates: &[String],
+    page: PageInfo,
+    layout: CandidateLayout,
+    candidate_count: usize,
+) -> u32 {
+    let candidate_text = candidates
+        .iter()
+        .take(candidate_count)
+        .enumerate()
+        .map(|(i, candidate)| format!("{}.{}", i + 1, candidate))
+        .collect::<Vec<_>>()
+        .join("  ");
+    let page_text = page.label().unwrap_or_default();
+    let first_line = if preedit.is_empty() {
+        page_text.clone()
+    } else if page_text.is_empty() {
+        preedit.to_string()
+    } else {
+        format!("{preedit}   {page_text}")
+    };
+    let content = match effective_layout(layout, candidate_count) {
+        CandidateLayout::TwoRow => {
+            approx_text_width(&candidate_text).max(approx_text_width(&first_line))
+        }
+        _ => approx_text_width(&format!("{preedit}   {candidate_text}   {page_text}")),
+    };
+    ((content + 32.0).ceil() as u32).clamp(POPUP_MIN_W, POPUP_MAX_W)
+}
+
+fn pad_page_right(mut line: String, page: &str, width: u32) -> String {
+    if page.is_empty() {
+        return line;
+    }
+    let space = approx_text_width(" ");
+    let target = width as f32 - 16.0 - approx_text_width(page);
+    let current = approx_text_width(&line);
+    if current + space < target {
+        let spaces = (((target - current) / space).floor() as usize).max(1);
+        line.push_str(&" ".repeat(spaces));
+    } else if !line.is_empty() {
+        line.push_str("  ");
+    }
+    line.push_str(page);
+    line
+}
+
 pub fn compose_lines(
     preedit: &str,
     candidates: &[String],
     page: PageInfo,
     layout: CandidateLayout,
     candidate_count: usize,
+    width: u32,
 ) -> Vec<String> {
     let candidate_text = candidates
         .iter()
@@ -71,16 +127,7 @@ pub fn compose_lines(
             }
         }
         CandidateLayout::TwoRow => {
-            let mut first = String::new();
-            if !preedit.is_empty() {
-                first.push_str(preedit);
-            }
-            if !page_text.is_empty() {
-                if !first.is_empty() {
-                    first.push_str("   ");
-                }
-                first.push_str(&page_text);
-            }
+            let first = pad_page_right(preedit.to_string(), &page_text, width);
             if first.is_empty() && candidate_text.is_empty() {
                 Vec::new()
             } else {
@@ -152,6 +199,8 @@ pub struct PopupRenderer {
     theme: Theme,
     pixel_width: u32,
     pixel_height: u32,
+    logical_width: u32,
+    logical_height: u32,
 }
 
 impl PopupRenderer {
@@ -161,6 +210,7 @@ impl PopupRenderer {
         pool: wl_shm_pool::WlShmPool,
         mmap: MmapMut,
         preference: ThemePreference,
+        logical_width: u32,
         logical_height: u32,
     ) -> Self {
         let mut font_system = FontSystem::new();
@@ -178,9 +228,36 @@ impl PopupRenderer {
             _pool: pool,
             mmap,
             theme: Theme::detect(preference),
-            pixel_width: POPUP_PIXEL_W,
+            pixel_width: logical_width * POPUP_SCALE,
             pixel_height: popup_pixel_height(logical_height),
+            logical_width,
+            logical_height,
         }
+    }
+
+    pub fn resize(
+        &mut self,
+        buffer: wl_buffer::WlBuffer,
+        pool: wl_shm_pool::WlShmPool,
+        mmap: MmapMut,
+        logical_width: u32,
+        logical_height: u32,
+    ) {
+        self._buffer = buffer;
+        self._pool = pool;
+        self.mmap = mmap;
+        self.pixel_width = logical_width * POPUP_SCALE;
+        self.pixel_height = popup_pixel_height(logical_height);
+        self.logical_width = logical_width;
+        self.logical_height = logical_height;
+    }
+
+    pub fn pixel_width(&self) -> u32 {
+        self.pixel_width
+    }
+
+    pub fn pixel_height(&self) -> u32 {
+        self.pixel_height
     }
 
     fn save_debug_png(canvas: &[u8], width: usize, height: usize) {
@@ -364,8 +441,11 @@ mod layout_tests {
             page_size: 5,
             is_last_page: true,
         };
-        let lines = compose_lines("wqiy", &candidates, page, CandidateLayout::TwoRow, 6);
-        assert_eq!(lines, vec!["wqiy   第 2 页", "1.你  2.您"]);
+        let lines = compose_lines("wqiy", &candidates, page, CandidateLayout::TwoRow, 6, 520);
+        assert_eq!(lines.len(), 2);
+        assert!(lines[0].starts_with("wqiy"));
+        assert!(lines[0].ends_with("第 2 页"));
+        assert_eq!(lines[1], "1.你  2.您");
     }
 
     #[test]
@@ -377,6 +457,7 @@ mod layout_tests {
             PageInfo::default(),
             CandidateLayout::Single,
             6,
+            520,
         );
         assert_eq!(lines, vec!["wqiy   1.你  2.您"]);
     }

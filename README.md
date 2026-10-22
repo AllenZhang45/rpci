@@ -14,7 +14,7 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 - 候选窗使用 `input_popup_surface`，2x 渲染、明暗主题、HIG 圆角
 - 中英切换：Ctrl+Space
 - 中文标点、Enter 换行、方向键/Ctrl 组合/功能键透传
-- 候选翻页，候选窗可选单行/两行布局
+- 候选翻页，候选窗可选单行/两行布局，宽度自适应
 - COSMIC 顶部 Panel（任务栏）Applet：只读显示 `中 五` / `中 拼` / `英`，不抢键盘焦点
 - iced 设置窗口：候选数量、候选布局、主题、词库备份/导出/导入
 - XDG 配置/数据/缓存分离
