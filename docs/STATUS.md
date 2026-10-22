@@ -40,7 +40,7 @@
 | iced 设置界面 + 应用菜单入口 | ✅ |
 | Debian `.deb` 构建/校验 | ✅ amd64 包；APT 元数据使用签名仓库 |
 | APT 仓库 / 元数据签名 / 升级回滚 | ✅ `build-repo.sh` + `test-repo.sh`；公共 HTTPS 源已上线 |
-| GitHub Actions CI | ✅ 格式、测试、`.deb`、仓库验证 |
+| GitHub Actions | ✅ 仅发版 tag 运行 Release；日常 push 不触发 |
 | Tag Release CI | ✅ `vX.Y.Z` 触发，附加 `.deb` 和签名仓库，自动触发 APT Pages |
 | 公共 HTTPS APT | ✅ GitHub Pages 已部署并完成 HTTPS `apt update` 验证 |
 | 保存并应用（systemd 重启） | ✅ |

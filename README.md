@@ -17,7 +17,7 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 - COSMIC 顶部 Panel（任务栏）Applet：只读显示 `中 五` / `中 拼` / `英`，不抢键盘焦点
 - iced 设置窗口：候选数量、主题、词库备份/导出/导入
 - XDG 配置/数据/缓存分离
-- 签名 APT 仓库、`.deb`、GitHub Actions CI 与 Release
+- 签名 APT 仓库、`.deb`、仅 Release 的 GitHub Actions
 
 ## 安装
 

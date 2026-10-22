@@ -14,6 +14,10 @@
 - `rpci-ime-doctor` 校验 `/usr/share/rpci/version` 与已安装包版本是否一致。
 - VS Code Wayland IME 启动参数说明：[docs/VSCODE.md](docs/VSCODE.md)。
 
+### CI
+
+- GitHub Actions 改为仅发版 tag 触发；日常 push 和文档提交不运行 CI。
+
 ### Changed
 
 - 修正 STATUS 中 applet、APT 签名、Release 和版本状态等过期事实。
