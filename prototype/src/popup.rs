@@ -115,6 +115,10 @@ pub fn compose_lines(
     let page_text = page.label().unwrap_or_default();
     let nav = page.nav();
 
+    if preedit.is_empty() && candidates.is_empty() {
+        return Vec::new();
+    }
+
     match effective_layout(layout, candidate_count) {
         CandidateLayout::Single | CandidateLayout::Auto => {
             let mut line = String::new();
@@ -489,6 +493,17 @@ mod layout_tests {
         assert!(lines[0].ends_with("第 2 页"));
         assert!(lines[1].starts_with("1.你  2.您"));
         assert!(lines[1].ends_with("‹ ›"));
+    }
+
+    #[test]
+    fn empty_composition_hides_page_indicator() {
+        let page = PageInfo {
+            page_no: 0,
+            page_size: 5,
+            is_last_page: false,
+        };
+        let lines = compose_lines("", &[], page, CandidateLayout::TwoRow, 6, 200);
+        assert!(lines.is_empty());
     }
 
     #[test]

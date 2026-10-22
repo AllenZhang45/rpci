@@ -358,6 +358,17 @@ impl HybridEngine {
                 self.feed(&self.wubi, keysym);
                 self.feed_pinyin(keysym);
                 self.letters.pop();
+                if self.letters.is_empty() {
+                    self.reset();
+                    return EngineOutput {
+                        mode: Mode::Wubi,
+                        preedit: String::new(),
+                        candidates: Vec::new(),
+                        commit: None,
+                        passthrough: false,
+                        page: PageInfo::default(),
+                    };
+                }
                 self.recur_mode();
                 let (preedit, candidates, page) = self.candidates_of(self.active());
                 EngineOutput {
