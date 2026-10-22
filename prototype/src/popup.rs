@@ -325,6 +325,8 @@ impl PopupRenderer {
             None,
         );
         self.text_buffer
+            .shape_until_scroll(&mut self.font_system, false);
+        self.text_buffer
             .layout_runs()
             .map(|run| run.line_w)
             .fold(0.0, f32::max)
