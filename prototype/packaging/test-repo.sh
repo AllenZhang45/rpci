@@ -9,7 +9,7 @@ case "$TMP" in
 esac
 trap 'rm -rf "$TMP"' EXIT
 
-VERSION="${VERSION:-0.1.4}"
+VERSION="${VERSION:-0.1.5}"
 UPGRADE_VERSION="$(awk -F. '{print $1"."$2"."$3+1}' <<< "$VERSION")"
 DEB="$ROOT/dist/rpci-ime_${VERSION}_amd64.deb"
 if [ ! -f "$DEB" ]; then

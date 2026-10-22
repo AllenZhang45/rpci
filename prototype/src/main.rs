@@ -3,9 +3,12 @@ use std::io::Write;
 use std::os::fd::{AsFd, FromRawFd};
 use std::time::SystemTime;
 
-use ime_probe::config::Config;
+use ime_probe::config::{CandidateLayout, Config};
 use ime_probe::engine::{EngineOutput, HybridEngine};
-use ime_probe::popup::{POPUP_H, POPUP_PIXEL_H, POPUP_PIXEL_W, POPUP_W, PopupRenderer};
+use ime_probe::popup::{
+    POPUP_PIXEL_W, POPUP_W, PopupRenderer, compose_lines, effective_layout, popup_height,
+    popup_pixel_height,
+};
 use memmap2::MmapMut;
 use smithay_client_toolkit::reexports::calloop::{
     EventLoop,
@@ -37,6 +40,7 @@ struct State {
     grab: Option<ZwpInputMethodKeyboardGrabV2>,
     done_count: u32,
     candidate_count: usize,
+    candidate_layout: CandidateLayout,
     config_mtime: Option<SystemTime>,
     _popup: ZwpInputPopupSurfaceV2,
     _popup_surface: wl_surface::WlSurface,
@@ -475,23 +479,19 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                         }
                     }
 
-                    let mut popup_text = String::new();
-                    if !preedit.is_empty() {
-                        popup_text.push_str(&preedit);
-                        popup_text.push_str("   ");
+                    let lines = compose_lines(
+                        &preedit,
+                        &candidates,
+                        page,
+                        state.candidate_layout,
+                        state.candidate_count,
+                    );
+                    let line_refs = lines.iter().map(String::as_str).collect::<Vec<_>>();
+                    if line_refs.is_empty() {
+                        state.popup_renderer.draw("");
+                    } else {
+                        state.popup_renderer.draw_lines(&line_refs);
                     }
-                    if let Some(label) = page.label() {
-                        popup_text.push_str(&label);
-                        popup_text.push_str("   ");
-                    }
-                    for (i, candidate) in candidates.iter().take(state.candidate_count).enumerate()
-                    {
-                        if i > 0 {
-                            popup_text.push_str("  ");
-                        }
-                        popup_text.push_str(&format!("{}.{}", i + 1, candidate));
-                    }
-                    state.popup_renderer.draw(&popup_text);
 
                     println!(
                         "KEY keycode={key} sym={name} mode={mode:?} preedit={preedit:?} candidates={candidates:?}"
@@ -510,9 +510,10 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
 fn create_popup_buffer(
     shm: &wl_shm::WlShm,
     qh: &QueueHandle<State>,
+    pixel_height: u32,
 ) -> Result<(wl_shm_pool::WlShmPool, wl_buffer::WlBuffer, MmapMut), Box<dyn std::error::Error>> {
     let stride = POPUP_PIXEL_W as i32 * 4;
-    let size = stride * POPUP_PIXEL_H as i32;
+    let size = stride * pixel_height as i32;
 
     let cname = std::ffi::CString::new("ime-popup")?;
     let fd = unsafe { libc::memfd_create(cname.as_ptr(), libc::MFD_CLOEXEC) };
@@ -529,7 +530,7 @@ fn create_popup_buffer(
     let buffer = pool.create_buffer(
         0,
         POPUP_PIXEL_W as i32,
-        POPUP_PIXEL_H as i32,
+        pixel_height as i32,
         stride,
         wl_shm::Format::Argb8888,
         qh,
@@ -574,29 +575,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         vk.keymap(1, file.as_fd(), text.len() as u32);
     }
 
+    let config = Config::load();
+    let popup_layout = effective_layout(config.candidate_layout, config.candidate_count);
+    let popup_logical_height = popup_height(popup_layout, config.candidate_count);
+    let popup_pixel_h = popup_pixel_height(popup_logical_height);
     let popup_surface = compositor.create_surface(&qh, ());
     let popup = im.get_input_popup_surface(&popup_surface, &qh, ());
-    let (pool, buffer, mmap) = create_popup_buffer(&shm, &qh)?;
-    let config = Config::load();
+    let (pool, buffer, mmap) = create_popup_buffer(&shm, &qh, popup_pixel_h)?;
     let popup_renderer = PopupRenderer::new(
         popup_surface.clone(),
         buffer.clone(),
         pool,
         mmap,
         config.theme,
+        popup_logical_height,
     );
 
     popup_surface.attach(Some(&buffer), 0, 0);
-    popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
+    popup_surface.damage_buffer(0, 0, POPUP_PIXEL_W as i32, popup_pixel_h as i32);
     popup_surface.commit();
 
-    println!("bound input method + popup surface ({POPUP_W}x{POPUP_H}); waiting for activate...");
+    println!(
+        "bound input method + popup surface ({POPUP_W}x{popup_logical_height}, {popup_layout:?}); waiting for activate..."
+    );
     let mut state = State {
         _seat: seat,
         im,
         grab: None,
         done_count: 0,
         candidate_count: config.candidate_count,
+        candidate_layout: config.candidate_layout,
         config_mtime: config_mtime(),
         _popup: popup,
         _popup_surface: popup_surface,

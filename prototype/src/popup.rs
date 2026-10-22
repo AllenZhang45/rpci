@@ -4,17 +4,91 @@ use std::path::PathBuf;
 use memmap2::MmapMut;
 use wayland_client::protocol::{wl_buffer, wl_shm_pool, wl_surface};
 
-use crate::config::ThemePreference;
+use crate::config::{CandidateLayout, ThemePreference};
+use crate::engine::PageInfo;
 
 /// Logical size in surface coordinates.
 pub const POPUP_W: u32 = 520;
-pub const POPUP_H: u32 = 48;
+pub const POPUP_SINGLE_H: u32 = 48;
+pub const POPUP_TWO_ROW_H: u32 = 96;
 /// Render at 2x for HiDPI; the compositor scales down on 1x outputs.
 pub const POPUP_SCALE: u32 = 2;
 pub const POPUP_PIXEL_W: u32 = POPUP_W * POPUP_SCALE;
-pub const POPUP_PIXEL_H: u32 = POPUP_H * POPUP_SCALE;
 /// COSMIC HIG-style corner radius in logical pixels.
 const POPUP_RADIUS: f32 = 10.0 * POPUP_SCALE as f32;
+
+pub fn effective_layout(layout: CandidateLayout, candidate_count: usize) -> CandidateLayout {
+    match layout {
+        CandidateLayout::Auto if candidate_count > 5 => CandidateLayout::TwoRow,
+        CandidateLayout::Auto => CandidateLayout::Single,
+        other => other,
+    }
+}
+
+pub fn popup_height(layout: CandidateLayout, candidate_count: usize) -> u32 {
+    match effective_layout(layout, candidate_count) {
+        CandidateLayout::Single | CandidateLayout::Auto => POPUP_SINGLE_H,
+        CandidateLayout::TwoRow => POPUP_TWO_ROW_H,
+    }
+}
+
+pub fn popup_pixel_height(logical_height: u32) -> u32 {
+    logical_height * POPUP_SCALE
+}
+
+pub fn compose_lines(
+    preedit: &str,
+    candidates: &[String],
+    page: PageInfo,
+    layout: CandidateLayout,
+    candidate_count: usize,
+) -> Vec<String> {
+    let candidate_text = candidates
+        .iter()
+        .take(candidate_count)
+        .enumerate()
+        .map(|(i, candidate)| format!("{}.{}", i + 1, candidate))
+        .collect::<Vec<_>>()
+        .join("  ");
+    let page_text = page.label().unwrap_or_default();
+
+    match effective_layout(layout, candidate_count) {
+        CandidateLayout::Single | CandidateLayout::Auto => {
+            let mut line = String::new();
+            if !preedit.is_empty() {
+                line.push_str(preedit);
+                line.push_str("   ");
+            }
+            if !page_text.is_empty() {
+                line.push_str(&page_text);
+                line.push_str("   ");
+            }
+            line.push_str(&candidate_text);
+            if line.is_empty() {
+                Vec::new()
+            } else {
+                vec![line]
+            }
+        }
+        CandidateLayout::TwoRow => {
+            let mut first = String::new();
+            if !preedit.is_empty() {
+                first.push_str(preedit);
+            }
+            if !page_text.is_empty() {
+                if !first.is_empty() {
+                    first.push_str("   ");
+                }
+                first.push_str(&page_text);
+            }
+            if first.is_empty() && candidate_text.is_empty() {
+                Vec::new()
+            } else {
+                vec![first, candidate_text]
+            }
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Theme {
@@ -76,6 +150,8 @@ pub struct PopupRenderer {
     _pool: wl_shm_pool::WlShmPool,
     mmap: MmapMut,
     theme: Theme,
+    pixel_width: u32,
+    pixel_height: u32,
 }
 
 impl PopupRenderer {
@@ -85,6 +161,7 @@ impl PopupRenderer {
         pool: wl_shm_pool::WlShmPool,
         mmap: MmapMut,
         preference: ThemePreference,
+        logical_height: u32,
     ) -> Self {
         let mut font_system = FontSystem::new();
         let text_buffer = Buffer::new(
@@ -101,6 +178,8 @@ impl PopupRenderer {
             _pool: pool,
             mmap,
             theme: Theme::detect(preference),
+            pixel_width: POPUP_PIXEL_W,
+            pixel_height: popup_pixel_height(logical_height),
         }
     }
 
@@ -126,8 +205,18 @@ impl PopupRenderer {
     }
 
     pub fn draw(&mut self, text: &str) {
-        let width = POPUP_PIXEL_W as usize;
-        let height = POPUP_PIXEL_H as usize;
+        self.draw_lines(&[text]);
+    }
+
+    pub fn draw_lines(&mut self, lines: &[&str]) {
+        let width = self.pixel_width as usize;
+        let height = self.pixel_height as usize;
+        let text = lines
+            .iter()
+            .filter(|line| !line.is_empty())
+            .copied()
+            .collect::<Vec<_>>()
+            .join("\n");
         let mut canvas = vec![0u8; width * height * 4];
 
         if text.is_empty() {
@@ -136,7 +225,7 @@ impl PopupRenderer {
             self.mmap.copy_from_slice(&canvas);
             self.surface.attach(Some(&self._buffer), 0, 0);
             self.surface
-                .damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
+                .damage_buffer(0, 0, self.pixel_width as i32, self.pixel_height as i32);
             self.surface.commit();
             return;
         }
@@ -168,7 +257,7 @@ impl PopupRenderer {
         self.text_buffer
             .set_size(Some(width as f32 - 24.0), Some(height as f32));
         self.text_buffer.set_text(
-            text,
+            &text,
             &Attrs::new().family(Family::SansSerif),
             Shaping::Advanced,
             None,
@@ -211,7 +300,7 @@ impl PopupRenderer {
         self.mmap.copy_from_slice(&canvas);
         self.surface.attach(Some(&self._buffer), 0, 0);
         self.surface
-            .damage_buffer(0, 0, POPUP_PIXEL_W as i32, POPUP_PIXEL_H as i32);
+            .damage_buffer(0, 0, self.pixel_width as i32, self.pixel_height as i32);
         self.surface.commit();
     }
 }
@@ -241,6 +330,55 @@ fn inside_rounded_rect(x: f32, y: f32, width: f32, height: f32, radius: f32) -> 
         dx * dx + dy * dy <= radius * radius
     } else {
         true
+    }
+}
+
+#[cfg(test)]
+mod layout_tests {
+    use super::*;
+
+    #[test]
+    fn single_is_default_height() {
+        assert_eq!(popup_height(CandidateLayout::Single, 9), POPUP_SINGLE_H);
+        assert_eq!(popup_height(CandidateLayout::TwoRow, 1), POPUP_TWO_ROW_H);
+    }
+
+    #[test]
+    fn auto_uses_two_rows_for_large_pages() {
+        assert_eq!(
+            effective_layout(CandidateLayout::Auto, 5),
+            CandidateLayout::Single
+        );
+        assert_eq!(
+            effective_layout(CandidateLayout::Auto, 6),
+            CandidateLayout::TwoRow
+        );
+        assert_eq!(popup_height(CandidateLayout::Auto, 6), POPUP_TWO_ROW_H);
+    }
+
+    #[test]
+    fn two_row_separates_preedit_from_candidates() {
+        let candidates = vec!["你".to_string(), "您".to_string()];
+        let page = PageInfo {
+            page_no: 1,
+            page_size: 5,
+            is_last_page: true,
+        };
+        let lines = compose_lines("wqiy", &candidates, page, CandidateLayout::TwoRow, 6);
+        assert_eq!(lines, vec!["wqiy   第 2 页", "1.你  2.您"]);
+    }
+
+    #[test]
+    fn single_row_keeps_one_line() {
+        let candidates = vec!["你".to_string(), "您".to_string()];
+        let lines = compose_lines(
+            "wqiy",
+            &candidates,
+            PageInfo::default(),
+            CandidateLayout::Single,
+            6,
+        );
+        assert_eq!(lines, vec!["wqiy   1.你  2.您"]);
     }
 }
 

@@ -2,6 +2,18 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+
+- 候选翻页：组合输入时 `PageUp` / `PageDown` 在当前候选页前后翻页，单页时不显示页码。
+- 候选窗布局配置：`candidate_layout = "single" | "two-row" | "auto"`，默认单行。
+- 两行布局第一行显示预编辑和页码，第二行显示编号候选。
+
+### Changed
+
+- 候选窗高度按布局动态创建；默认仍为 520×48。
+
 ## [0.1.4] - 2026-10-23
 
 ### Added

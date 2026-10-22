@@ -18,12 +18,27 @@ impl Default for ThemePreference {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum CandidateLayout {
+    Single,
+    TwoRow,
+    Auto,
+}
+
+impl Default for CandidateLayout {
+    fn default() -> Self {
+        Self::Single
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub ascii_mode_default: bool,
     pub pinyin_fallback: bool,
     pub candidate_count: usize,
+    pub candidate_layout: CandidateLayout,
     pub theme: ThemePreference,
 }
 
@@ -33,6 +48,7 @@ impl Default for Config {
             ascii_mode_default: false,
             pinyin_fallback: true,
             candidate_count: 6,
+            candidate_layout: CandidateLayout::Single,
             theme: ThemePreference::Auto,
         }
     }
@@ -83,6 +99,14 @@ impl Config {
             "ascii_mode_default" | "ascii" => Some(self.ascii_mode_default.to_string()),
             "pinyin_fallback" | "pinyin" => Some(self.pinyin_fallback.to_string()),
             "candidate_count" | "candidates" => Some(self.candidate_count.to_string()),
+            "candidate_layout" | "layout" => Some(
+                match self.candidate_layout {
+                    CandidateLayout::Single => "single",
+                    CandidateLayout::TwoRow => "two-row",
+                    CandidateLayout::Auto => "auto",
+                }
+                .to_string(),
+            ),
             "theme" => Some(
                 match self.theme {
                     ThemePreference::Auto => "auto",
@@ -111,6 +135,14 @@ impl Config {
                     return Err("candidate_count must be 1..=9".to_string());
                 }
                 self.candidate_count = count;
+            }
+            "candidate_layout" | "layout" => {
+                self.candidate_layout = match value {
+                    "single" => CandidateLayout::Single,
+                    "two-row" | "two_row" => CandidateLayout::TwoRow,
+                    "auto" => CandidateLayout::Auto,
+                    _ => return Err(format!("invalid candidate_layout: {value}")),
+                };
             }
             "theme" => {
                 self.theme = match value {
@@ -146,6 +178,7 @@ mod tests {
         assert!(!config.ascii_mode_default);
         assert!(config.pinyin_fallback);
         assert_eq!(config.candidate_count, 6);
+        assert_eq!(config.candidate_layout, CandidateLayout::Single);
         assert_eq!(config.theme, ThemePreference::Auto);
     }
 
@@ -155,10 +188,12 @@ mod tests {
         config.apply("ascii", "on").unwrap();
         config.apply("pinyin", "off").unwrap();
         config.apply("candidates", "3").unwrap();
+        config.apply("layout", "two-row").unwrap();
         config.apply("theme", "light").unwrap();
         assert!(config.ascii_mode_default);
         assert!(!config.pinyin_fallback);
         assert_eq!(config.candidate_count, 3);
+        assert_eq!(config.candidate_layout, CandidateLayout::TwoRow);
         assert_eq!(config.theme, ThemePreference::Light);
     }
 

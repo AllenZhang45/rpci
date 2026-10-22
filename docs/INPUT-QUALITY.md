@@ -33,7 +33,13 @@ P1/P2/P3 是相对顺序，不是发布日期承诺。
 
 ### 候选布局
 
-当前固定单行：
+当前开发分支已实现：
+
+- `PageUp` / `PageDown` 翻页
+- `candidate_layout = "single" | "two-row" | "auto"`
+- 默认单行，两行显式开启
+
+原固定尺寸：
 
 ```text
 POPUP_W = 520
@@ -70,7 +76,12 @@ POPUP_H = 48
 - 默认保持单行；两行作为配置项，不改变现有用户界面
 - 不复制搜狗的广告、品牌、皮肤或红色首选词样式；只借鉴信息层级
 
-建议配置：
+配置：
+
+```bash
+ime-settings set layout two-row
+# 或编辑 ~/.config/rpci/config.toml
+```
 
 ```toml
 candidate_layout = "single"  # single | two-row | auto
