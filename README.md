@@ -1,6 +1,6 @@
 # RPCI IME
 
-COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 RIME。
+COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 [RIME](https://rime.im/)。
 
 [![Release](https://img.shields.io/github/v/release/AllenZhang45/rpci)](https://github.com/AllenZhang45/rpci/releases)
 
@@ -9,7 +9,7 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 ## 特性
 
 - COSMIC 1.11 / Wayland 原生输入法
-- 五笔 86 优先，超过 4 码或无候选时自动转拼音
+- 五笔 86 优先，超过 4 码或无候选时自动转拼音；输入引擎使用 [librime](https://github.com/rime/librime) / [rime-api](https://crates.io/crates/rime-api)
 - 候选窗使用 `input_popup_surface`，2x 渲染、明暗主题、HIG 圆角
 - 中英切换：Ctrl+Space
 - 中文标点、Enter 换行、方向键/Ctrl 组合/功能键透传
@@ -215,6 +215,14 @@ cargo test -p rpci-settings-iced
 - XWayland 需要 XIM，当前不支持，详见 [docs/XWAYLAND-AUDIT.md](docs/XWAYLAND-AUDIT.md)
 - Panel applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持
 - 仅 amd64
+
+## 依赖与致谢
+
+- [RIME](https://rime.im/) / [librime](https://github.com/rime/librime)：输入法引擎，`wubi86` 与 `pinyin_simp` schema 来源
+- [Smithay Client Toolkit](https://github.com/Smithay/client-toolkit)：Wayland 客户端
+- [cosmic-text](https://github.com/pop-os/cosmic-text)：候选窗文本渲染
+- [iced](https://iced.rs/)：设置窗口
+- COSMIC / Pop!_OS：目标桌面环境
 
 ## 文档
 
