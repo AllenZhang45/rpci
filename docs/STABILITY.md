@@ -61,22 +61,23 @@
 - [x] `cargo test -p rpci-settings-iced` 通过（4 passed）
 - [x] `prototype/packaging/test-deb.sh` 通过
 - [x] `prototype/packaging/test-repo.sh` 通过
-- [ ] 连续 3 天没有新的 P0/P1（进行中）
+- [x] 连续 3 天没有新的 P0/P1（用户于 2026-10-23 明确豁免剩余观察期）
 - [ ] 公共 APT 的候选版本与 Release 资产一致（发布时检查）
 
 ## 观察记录
 
 | 日期 | 版本 | 级别 | 应用 | 现象 | 状态 |
 |---|---|---|---|---|---|
-| 2026-10-23 | 0.1.4 | - | cosmic-edit / Chrome / VS Code | 安装 0.1.4；cosmic-edit 与 Chrome 通过；VS Code 需 Wayland IME flags，加 flags 后通过 | 观察中（第 1 天） |
+| 2026-10-23 | 0.1.4 | - | cosmic-edit / Chrome / VS Code | 安装 0.1.4；cosmic-edit 与 Chrome 通过；VS Code 加 Wayland IME flags 后通过 | 用户豁免观察期，提前发布 |
 
 ## 观察期状态
 
 - 开始日期：2026-10-23
-- 当前安装：`rpci-ime 0.1.4`（候选，未发布）
+- 结果：用户于 2026-10-23 明确决定跳过剩余观察期，直接发布 v0.1.4
+- 例外记录：未满 3 天；已确认 cosmic-edit、Chrome、VS Code 基本输入，未发现 P0/P1
+- 当前安装：`rpci-ime 0.1.4`
 - 已通过：doctor、物理键盘检查、包/仓库测试
-- 最早评估日期：2026-10-25 结束后，即 2026-10-26
-- 评估条件：2026-10-23、24、25 三个自然日有真实使用，且没有新的 P0/P1
+- 发布决定：2026-10-23
 
 ## 停止扩展
 
