@@ -8,12 +8,40 @@ pub enum Mode {
     Pinyin,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PageInfo {
+    pub page_no: usize,
+    pub page_size: usize,
+    pub is_last_page: bool,
+}
+
+impl Default for PageInfo {
+    fn default() -> Self {
+        Self {
+            page_no: 0,
+            page_size: 0,
+            is_last_page: true,
+        }
+    }
+}
+
+impl PageInfo {
+    pub fn label(self) -> Option<String> {
+        if self.page_no == 0 && self.is_last_page {
+            None
+        } else {
+            Some(format!("第 {} 页", self.page_no + 1))
+        }
+    }
+}
+
 pub struct EngineOutput {
     pub mode: Mode,
     pub preedit: String,
     pub candidates: Vec<String>,
     pub commit: Option<String>,
     pub passthrough: bool,
+    pub page: PageInfo,
 }
 
 const MOD_CTRL: u32 = 1 << 2;
@@ -24,6 +52,10 @@ fn should_toggle(keysym: u32, _mods: u32) -> bool {
     // Ctrl+Space is deliberately not bound: COSMIC consumes it in a way that
     // drops text-input focus on this setup. F2 is the reliable shortcut.
     keysym == 0xffbf
+}
+
+fn is_page_key(keysym: u32) -> bool {
+    matches!(keysym, 0xff55 | 0xff56)
 }
 
 fn is_punctuation(keysym: u32) -> bool {
@@ -144,23 +176,24 @@ impl HybridEngine {
         }
     }
 
-    fn candidates_of(&self, session: &Session) -> (String, Vec<String>) {
+    fn candidates_of(&self, session: &Session) -> (String, Vec<String>, PageInfo) {
         if let Some(ctx) = session.context() {
             let preedit = ctx.composition().preedit.unwrap_or_default().to_string();
-            let candidates = ctx
-                .menu()
-                .candidates
-                .iter()
-                .map(|c| c.text.to_string())
-                .collect();
-            (preedit, candidates)
+            let menu = ctx.menu();
+            let page = PageInfo {
+                page_no: menu.page_no,
+                page_size: menu.page_size,
+                is_last_page: menu.is_last_page,
+            };
+            let candidates = menu.candidates.iter().map(|c| c.text.to_string()).collect();
+            (preedit, candidates, page)
         } else {
-            (String::new(), Vec::new())
+            (String::new(), Vec::new(), PageInfo::default())
         }
     }
 
     fn recur_mode(&mut self) {
-        let (_, wubi_candidates) = self.candidates_of(&self.wubi);
+        let (_, wubi_candidates, _) = self.candidates_of(&self.wubi);
         self.mode = choose_mode_with_fallback(
             self.letters.len(),
             wubi_candidates.len(),
@@ -208,6 +241,7 @@ impl HybridEngine {
                 candidates: Vec::new(),
                 commit: None,
                 passthrough: false,
+                page: PageInfo::default(),
             };
         }
 
@@ -218,6 +252,7 @@ impl HybridEngine {
                 candidates: Vec::new(),
                 commit: None,
                 passthrough: true,
+                page: PageInfo::default(),
             };
         }
 
@@ -232,6 +267,20 @@ impl HybridEngine {
                 candidates: Vec::new(),
                 commit: Some("\n".to_string()),
                 passthrough: false,
+                page: PageInfo::default(),
+            };
+        }
+
+        if is_page_key(keysym) && !self.letters.is_empty() {
+            self.feed(self.active(), keysym);
+            let (preedit, candidates, page) = self.candidates_of(self.active());
+            return EngineOutput {
+                mode: self.mode,
+                preedit,
+                candidates,
+                commit: None,
+                passthrough: false,
+                page,
             };
         }
 
@@ -242,6 +291,7 @@ impl HybridEngine {
                 candidates: Vec::new(),
                 commit: None,
                 passthrough: true,
+                page: PageInfo::default(),
             };
         }
 
@@ -250,13 +300,14 @@ impl HybridEngine {
             self.feed_pinyin(keysym);
             self.letters.push_str(text);
             self.recur_mode();
-            let (preedit, candidates) = self.candidates_of(self.active());
+            let (preedit, candidates, page) = self.candidates_of(self.active());
             return EngineOutput {
                 mode: self.mode,
                 preedit,
                 candidates,
                 commit: None,
                 passthrough: false,
+                page,
             };
         }
 
@@ -274,6 +325,7 @@ impl HybridEngine {
                 candidates: Vec::new(),
                 commit,
                 passthrough,
+                page: PageInfo::default(),
             };
         }
 
@@ -290,6 +342,7 @@ impl HybridEngine {
                     candidates: Vec::new(),
                     commit,
                     passthrough: false,
+                    page: PageInfo::default(),
                 }
             }
             0xff08 => {
@@ -297,13 +350,14 @@ impl HybridEngine {
                 self.feed_pinyin(keysym);
                 self.letters.pop();
                 self.recur_mode();
-                let (preedit, candidates) = self.candidates_of(self.active());
+                let (preedit, candidates, page) = self.candidates_of(self.active());
                 EngineOutput {
                     mode: self.mode,
                     preedit,
                     candidates,
                     commit: None,
                     passthrough: false,
+                    page,
                 }
             }
             0xff1b => {
@@ -314,6 +368,7 @@ impl HybridEngine {
                     candidates: Vec::new(),
                     commit: None,
                     passthrough: false,
+                    page: PageInfo::default(),
                 }
             }
             _ => EngineOutput {
@@ -322,6 +377,7 @@ impl HybridEngine {
                 candidates: Vec::new(),
                 commit: None,
                 passthrough: true,
+                page: PageInfo::default(),
             },
         }
     }
@@ -368,6 +424,39 @@ mod passthrough_tests {
     fn plain_letters_are_handled() {
         assert!(!should_passthrough(0x77, "w", 0, false));
         assert!(!should_passthrough(0x57, "W", 0, true));
+    }
+
+    #[test]
+    fn page_keys_are_page_keys() {
+        assert!(is_page_key(0xff55));
+        assert!(is_page_key(0xff56));
+        assert!(!is_page_key(0xff53));
+        assert!(!is_page_key(0x2e));
+    }
+
+    #[test]
+    fn page_label_hides_single_page() {
+        assert_eq!(PageInfo::default().label(), None);
+        assert_eq!(
+            PageInfo {
+                page_no: 0,
+                page_size: 5,
+                is_last_page: false
+            }
+            .label()
+            .as_deref(),
+            Some("第 1 页")
+        );
+        assert_eq!(
+            PageInfo {
+                page_no: 1,
+                page_size: 5,
+                is_last_page: true
+            }
+            .label()
+            .as_deref(),
+            Some("第 2 页")
+        );
     }
 
     #[test]

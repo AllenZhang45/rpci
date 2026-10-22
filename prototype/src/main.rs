@@ -451,6 +451,7 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                         candidates,
                         commit,
                         passthrough,
+                        page,
                     } = state.rime.handle(sym_raw, &text, mods);
 
                     if passthrough {
@@ -477,6 +478,10 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                     let mut popup_text = String::new();
                     if !preedit.is_empty() {
                         popup_text.push_str(&preedit);
+                        popup_text.push_str("   ");
+                    }
+                    if let Some(label) = page.label() {
+                        popup_text.push_str(&label);
                         popup_text.push_str("   ");
                     }
                     for (i, candidate) in candidates.iter().take(state.candidate_count).enumerate()
