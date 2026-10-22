@@ -108,7 +108,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           awk -v ver="$VERSION" '
             $0 ~ "^## \\[" ver "\\]" { capture = 1 }
-            capture && substr($0, 1, 3) == "## [" && $0 !~ "^## \\[" ver "\\]" { exit }
+            capture && substr($0, 1, 4) == "## [" && $0 !~ "^## \\[" ver "\\]" { exit }
             capture { print }
           ' CHANGELOG.md > dist/release-notes.md
           if [ -s dist/release-notes.md ]; then
