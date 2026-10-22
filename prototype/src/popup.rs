@@ -8,11 +8,11 @@ use crate::config::{CandidateLayout, ThemePreference};
 use crate::engine::PageInfo;
 
 /// Logical size in surface coordinates.
-pub const POPUP_MIN_W: u32 = 260;
+pub const POPUP_MIN_W: u32 = 200;
 pub const POPUP_MAX_W: u32 = 760;
 pub const POPUP_DEFAULT_W: u32 = 520;
 pub const POPUP_SINGLE_H: u32 = 48;
-pub const POPUP_TWO_ROW_H: u32 = 96;
+pub const POPUP_TWO_ROW_H: u32 = 64;
 /// Render at 2x for HiDPI; the compositor scales down on 1x outputs.
 pub const POPUP_SCALE: u32 = 2;
 /// COSMIC HIG-style corner radius in logical pixels.
@@ -43,6 +43,16 @@ fn approx_text_width(text: &str) -> f32 {
         .sum()
 }
 
+fn candidate_text(candidates: &[String], candidate_count: usize) -> String {
+    candidates
+        .iter()
+        .take(candidate_count)
+        .enumerate()
+        .map(|(i, candidate)| format!("{}.{}", i + 1, candidate))
+        .collect::<Vec<_>>()
+        .join("  ")
+}
+
 pub fn required_width(
     preedit: &str,
     candidates: &[String],
@@ -50,36 +60,31 @@ pub fn required_width(
     layout: CandidateLayout,
     candidate_count: usize,
 ) -> u32 {
-    let candidate_text = candidates
-        .iter()
-        .take(candidate_count)
-        .enumerate()
-        .map(|(i, candidate)| format!("{}.{}", i + 1, candidate))
-        .collect::<Vec<_>>()
-        .join("  ");
+    let candidates = candidate_text(candidates, candidate_count);
     let page_text = page.label().unwrap_or_default();
-    let first_line = if preedit.is_empty() {
-        page_text.clone()
-    } else if page_text.is_empty() {
-        preedit.to_string()
-    } else {
-        format!("{preedit}   {page_text}")
+    let nav = page.nav();
+    let first_line = match (preedit.is_empty(), page_text.is_empty()) {
+        (true, true) => String::new(),
+        (true, false) => page_text.clone(),
+        (false, true) => preedit.to_string(),
+        (false, false) => format!("{preedit}   {page_text}"),
     };
     let content = match effective_layout(layout, candidate_count) {
         CandidateLayout::TwoRow => {
-            approx_text_width(&candidate_text).max(approx_text_width(&first_line))
+            let second = format!("{candidates}   {nav}");
+            approx_text_width(&second).max(approx_text_width(&first_line))
         }
-        _ => approx_text_width(&format!("{preedit}   {candidate_text}   {page_text}")),
+        _ => approx_text_width(&format!("{preedit}   {candidates}   {page_text}   {nav}")),
     };
     ((content + 32.0).ceil() as u32).clamp(POPUP_MIN_W, POPUP_MAX_W)
 }
 
-fn pad_page_right(mut line: String, page: &str, width: u32) -> String {
-    if page.is_empty() {
+fn pad_page_right(mut line: String, right: &str, width: u32) -> String {
+    if right.is_empty() {
         return line;
     }
     let space = approx_text_width(" ");
-    let target = width as f32 - 16.0 - approx_text_width(page);
+    let target = width as f32 - 16.0 - approx_text_width(right);
     let current = approx_text_width(&line);
     if current + space < target {
         let spaces = (((target - current) / space).floor() as usize).max(1);
@@ -87,7 +92,7 @@ fn pad_page_right(mut line: String, page: &str, width: u32) -> String {
     } else if !line.is_empty() {
         line.push_str("  ");
     }
-    line.push_str(page);
+    line.push_str(right);
     line
 }
 
@@ -99,14 +104,9 @@ pub fn compose_lines(
     candidate_count: usize,
     width: u32,
 ) -> Vec<String> {
-    let candidate_text = candidates
-        .iter()
-        .take(candidate_count)
-        .enumerate()
-        .map(|(i, candidate)| format!("{}.{}", i + 1, candidate))
-        .collect::<Vec<_>>()
-        .join("  ");
+    let candidates = candidate_text(candidates, candidate_count);
     let page_text = page.label().unwrap_or_default();
+    let nav = page.nav();
 
     match effective_layout(layout, candidate_count) {
         CandidateLayout::Single | CandidateLayout::Auto => {
@@ -115,11 +115,9 @@ pub fn compose_lines(
                 line.push_str(preedit);
                 line.push_str("   ");
             }
-            if !page_text.is_empty() {
-                line.push_str(&page_text);
-                line.push_str("   ");
-            }
-            line.push_str(&candidate_text);
+            line.push_str(&candidates);
+            let right = format!("{page_text}{nav}");
+            let line = pad_page_right(line, &right, width);
             if line.is_empty() {
                 Vec::new()
             } else {
@@ -128,10 +126,11 @@ pub fn compose_lines(
         }
         CandidateLayout::TwoRow => {
             let first = pad_page_right(preedit.to_string(), &page_text, width);
-            if first.is_empty() && candidate_text.is_empty() {
+            let second = pad_page_right(candidates, nav, width);
+            if first.is_empty() && second.is_empty() {
                 Vec::new()
             } else {
-                vec![first, candidate_text]
+                vec![first, second]
             }
         }
     }
@@ -445,7 +444,8 @@ mod layout_tests {
         assert_eq!(lines.len(), 2);
         assert!(lines[0].starts_with("wqiy"));
         assert!(lines[0].ends_with("第 2 页"));
-        assert_eq!(lines[1], "1.你  2.您");
+        assert!(lines[1].starts_with("1.你  2.您"));
+        assert!(lines[1].ends_with("‹ ›"));
     }
 
     #[test]

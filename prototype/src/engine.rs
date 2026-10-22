@@ -33,6 +33,15 @@ impl PageInfo {
             Some(format!("第 {} 页", self.page_no + 1))
         }
     }
+
+    pub fn nav(self) -> &'static str {
+        match (self.page_no > 0, !self.is_last_page) {
+            (false, false) => "",
+            (true, false) => "‹ ›",
+            (false, true) => "›",
+            (true, true) => "‹ ›",
+        }
+    }
 }
 
 pub struct EngineOutput {
