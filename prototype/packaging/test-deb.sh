@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'code=$?; echo "::error title=test-deb failed::line $LINENO exit $code"' ERR
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 VERSION="${VERSION:-0.1.4}"

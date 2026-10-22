@@ -1,17 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.agents/**'
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.agents/**'
+  # Release tags run CI from release.yml. Manual runs remain available for debugging.
   workflow_dispatch:
 
 permissions:
