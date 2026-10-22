@@ -170,7 +170,7 @@ sudo apt remove rpci-ime
 
 ## 截图
 
-![候选窗](docs/assets/popup-hig.png)
+![两行候选窗](docs/assets/popup-two-row.webp)
 
 ![设置窗口](docs/assets/settings-iced.png)
 

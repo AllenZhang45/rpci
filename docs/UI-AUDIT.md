@@ -56,7 +56,7 @@ cargo test -p rpci-settings-iced
 | 间距 | 左右 12 逻辑像素 |
 | 缩放 | 固定 2x buffer scale |
 
-![HIG 候选窗](assets/popup-hig.png)
+![HIG 候选窗](assets/popup-two-row.webp)
 
 ### 候选窗不显示修复（2026-10-20）
 

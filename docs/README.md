@@ -66,7 +66,7 @@
 
 - [assets/applet-panel.png](assets/applet-panel.png) — COSMIC Dock 中的 IME applet
 - [assets/popup-visible.png](assets/popup-visible.png) — 候选窗实际显示
-- [assets/popup-hig.png](assets/popup-hig.png) — 候选窗 2x buffer
+- [assets/popup-two-row.webp](assets/popup-two-row.webp) — 候选窗 2x buffer
 - [assets/app-qt6.png](assets/app-qt6.png) — Qt6 未激活
 - [assets/app-vscode.png](assets/app-vscode.png) — VS Code 提交
 - [assets/app-flatpak.png](assets/app-flatpak.png) — Flatpak 提交
