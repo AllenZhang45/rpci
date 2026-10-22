@@ -3,6 +3,12 @@ name = "rpci-settings-iced"
 version = "0.1.6"
 edition = "2024"
 license = "GPL-3.0-or-later"
+description = "COSMIC IME settings application"
+repository = "https://github.com/AllenZhang45/rpci"
+homepage = "https://github.com/AllenZhang45/rpci"
+authors = ["RPCI IME contributors"]
+keywords = ["input-method", "cosmic", "settings", "wayland"]
+categories = ["gui", "internationalization"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = ["wgpu", "tiny-skia", "wayland", "x11", "crisp", "web-colors", "tokio"] }

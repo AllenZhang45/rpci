@@ -3,6 +3,13 @@ name = "ime-probe"
 version = "0.1.6"
 edition = "2024"
 license = "GPL-3.0-or-later"
+description = "Native COSMIC/Wayland Wubi and Pinyin input method"
+repository = "https://github.com/AllenZhang45/rpci"
+homepage = "https://github.com/AllenZhang45/rpci"
+readme = "README.md"
+authors = ["RPCI IME contributors"]
+keywords = ["input-method", "wubi", "pinyin", "wayland", "cosmic"]
+categories = ["gui", "internationalization"]
 
 [dependencies]
 cosmic-protocols = "0.2.0"
