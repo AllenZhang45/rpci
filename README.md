@@ -2,7 +2,6 @@
 
 COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 RIME。
 
-[![CI](https://github.com/AllenZhang45/rpci/actions/workflows/ci.yml/badge.svg)](https://github.com/AllenZhang45/rpci/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/AllenZhang45/rpci)](https://github.com/AllenZhang45/rpci/releases)
 
 > 当前公共版本 `0.1.5`。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
@@ -122,7 +121,7 @@ sudo apt install rpci-ime
 3. 按 Ctrl+Space 切换中英；顶部 Panel 中的 applet 应同步显示 `中 五` / `英`
 4. 设置从应用菜单打开「COSMIC IME 设置」
 
-设置也可以从应用菜单打开「COSMIC IME 设置」，或执行：
+也可以直接执行：
 
 ```bash
 ime-settings-iced
@@ -182,7 +181,8 @@ sudo apt remove rpci-ime
 | 应用 | 状态 |
 |---|---|
 | cosmic-edit、LibreOffice | ✅ |
-| Google Chrome / VS Code | ✅（Wayland IME 已启用） |
+| Google Chrome | ✅ |
+| VS Code | ✅ 需 Wayland IME flags，见 [VSCODE.md](docs/VSCODE.md) |
 | GNOME Text Editor（Flatpak） | ✅ |
 | Qt6 6.4.2 | ❌ 上游只支持 text-input v1/v2 |
 | Firefox | ❌ 当前 COSMIC 下收不到 `Activate` |
@@ -231,4 +231,5 @@ cargo test -p rpci-settings-iced
 - [打包](docs/PACKAGING.md)
 - [APT 仓库](docs/APT-REPO.md)
 - [CI](docs/CI.md)
+- [VS Code 中文输入](docs/VSCODE.md)
 - [DSH Skills](docs/SKILLS.md)
