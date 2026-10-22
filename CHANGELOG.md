@@ -2,13 +2,24 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [0.1.6] - 2026-10-23
+
+### Added
+
+- 项目采用 GPL-3.0-or-later；新增 `LICENSE`、`THIRD-PARTY-LICENSES.md` 和完整第三方许可证文本。
+- `.deb` 包安装许可证文件到 `/usr/share/doc/rpci-ime/`。
+- 新增 `InputEngine` seam 和 `FakeEngine` 测试替身，按键行为测试不再依赖真实 RIME。
 
 ### Changed
 
-- 项目代码、文档和打包配置改为 GPL-3.0-or-later；新增第三方许可证清单和打包内许可证文件。
 - 候选窗生命周期收进 `CandidateWindow`：surface、buffer、尺寸、测量和绘制不再由 `main` 逐步编排。
-- 按键状态机收进 `InputSession`；新增 `InputEngine` seam，main 只执行 Action。
+- 按键状态机收进 `InputSession`；main 只执行 Action。
+- Cargo 元数据补充 description、repository、homepage、authors、keywords、categories 和许可证。
+- README 更新许可证、RIME 引用、VS Code 说明和两行候选窗截图。
+
+### Fixed
+
+- GitHub Release 更新日志只提取当前版本，不再带入历史版本。
 
 ## [0.1.5] - 2026-10-23
 
