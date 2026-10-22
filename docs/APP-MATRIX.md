@@ -1,6 +1,6 @@
 # 应用矩阵
 
-> 状态：2026-10-20。原型阶段的应用兼容性记录，按 [PRINCIPLES.md](PRINCIPLES.md) 第 4 条执行。
+> 状态：2026-10-23。原型阶段的应用兼容性记录，按 [PRINCIPLES.md](PRINCIPLES.md) 第 4 条执行。
 
 ## 结论
 
@@ -21,9 +21,9 @@
 | Firefox | 158.0 | Gecko | Wayland | ❌ | — | 未收到 `Activate`，见 [FIREFOX.md](FIREFOX.md) |
 | xterm | 390 | X11 / XWayland | XWayland | ❌ | — | 无 XIM 服务端；见 [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md) |
 | Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 客户端只支持 v1/v2，不支持 text-input-v3；见 [QT6-AUDIT.md](QT6-AUDIT.md) |
-| VS Code | 1.142.0 | Electron/Chromium | Wayland | ✅ | ✅ | Wubi 提交进聊天输入框 |
+| VS Code | 1.100.0 / 1.142.0 | Electron/Chromium | Wayland | ✅ | ✅ | 必须加 Wayland IME flags；见 [VSCODE.md](VSCODE.md) |
 | GNOME Text Editor | 51.0 | GTK4 / Flatpak | Wayland | ✅ | ✅ | 提交「你」，收到 surrounding text |
-| Google Chrome | 155.0.8059.84 | Chromium | Wayland | ✅ | ✅ | `wqiy` + space 提交「你」 |
+| Google Chrome | 156.0.8078.47 | Chromium / Flatpak | Wayland | ✅ | ✅ | 手动输入「你」通过 |
 
 ## 说明
 
@@ -54,15 +54,16 @@ xterm 390 通过 XWayland 运行。COSMIC 没有向输入法发送 `Activate`；
 
 ### Electron / VS Code
 
-VS Code 1.142.0，使用：
+VS Code 1.100.0 / 1.142.0，必须使用：
 
 ```
---ozone-platform=wayland --enable-wayland-ime --no-sandbox
+--ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3
 ```
 
-- 输入法收到 `Activate`。
-- `wqiy` + space 提交「你」到聊天输入框。
-- 说明 Electron/Chromium 系应用在启用 Wayland IME 后可用。
+- 不加 flags 时，VS Code 可能走 XWayland 或不创建 text-input-v3，只能输入英文。
+- 加 flags 后，输入法收到 `Activate`，`wqiy` + space 提交「你」。
+- 官方 issue：https://github.com/microsoft/vscode/issues/237061
+- 永久配置与 single-instance 注意事项见 [VSCODE.md](VSCODE.md)。
 
 ![VS Code 提交](assets/app-vscode.png)
 

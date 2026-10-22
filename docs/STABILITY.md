@@ -68,7 +68,7 @@
 
 | 日期 | 版本 | 级别 | 应用 | 现象 | 状态 |
 |---|---|---|---|---|---|
-| 2026-10-23 | 0.1.4 | - | cosmic-edit / 日常会话 | 安装 0.1.4 候选包，doctor 与物理键盘检查通过 | 观察中（第 1 天） |
+| 2026-10-23 | 0.1.4 | - | cosmic-edit / Chrome / VS Code | 安装 0.1.4；cosmic-edit 与 Chrome 通过；VS Code 需 Wayland IME flags，加 flags 后通过 | 观察中（第 1 天） |
 
 ## 观察期状态
 
