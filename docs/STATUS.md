@@ -1,6 +1,6 @@
 # 当前状态
 
-> 最后更新：2026-10-20。这里是当前事实；历史过程见 [history/](history/)。
+> 最后更新：2026-10-23。这里是当前事实；历史过程见 [history/](history/)。
 
 ## 一句话
 
@@ -25,20 +25,21 @@
 | 候选窗显示、主题、HiDPI 2x、HIG 圆角 | ✅ |
 | Enter 换行 | ✅（中文模式经 `commit_string("\n")`） |
 | 方向键 / Ctrl 组合 / F1 透传 | ✅ |
-| 中英切换（Ctrl+Space / applet） | ✅ 直接拦截 Ctrl+Space，不转发半按 Ctrl |
+| 中英切换（Ctrl+Space） | ✅ 直接拦截 Ctrl+Space，不转发半按 Ctrl；applet 不参与切换 |
 | 中文标点 | ✅ |
 | XDG 配置 / 数据 / 缓存分离 | ✅ |
 | release 安装 + systemd autostart | ✅ |
 | iced 设置界面 + 应用菜单入口 | ✅ |
-| Debian `.deb` 构建/校验 | ✅ amd64 本地包，未签名 |
-| APT 仓库 / 元数据签名 / 升级回滚 | ✅ `build-repo.sh` + `test-repo.sh`；未上传公共源 |
+| Debian `.deb` 构建/校验 | ✅ amd64 包；APT 元数据使用签名仓库 |
+| APT 仓库 / 元数据签名 / 升级回滚 | ✅ `build-repo.sh` + `test-repo.sh`；公共 HTTPS 源已上线 |
 | GitHub Actions CI | ✅ 格式、测试、`.deb`、仓库验证 |
-| Tag Release CI | ✅ `vX.Y.Z` 触发，附加 `.deb`；可选签名仓库 |
+| Tag Release CI | ✅ `vX.Y.Z` 触发，附加 `.deb` 和签名仓库，自动触发 APT Pages |
 | 公共 HTTPS APT | ✅ GitHub Pages 已部署并完成 HTTPS `apt update` 验证 |
 | 保存并应用（systemd 重启） | ✅ |
 | 安全项热加载 | ✅ 候选数量/主题，重新聚焦后生效 |
 | 词库备份 / 导出 / 导入 | ✅ CLI；GUI 备份 + 恢复 |
-| COSMIC Panel Applet（顶部 Panel） | ✅ iced 按钮 + 运行时状态 |
+| COSMIC Panel Applet（顶部 Panel） | ✅ SCTK 只读状态，不处理点击 |
+| 稳定性诊断 / 升级快照 | ✅ `rpci-ime-doctor`；版本变化时快照 RIME/配置 |
 
 ## 验证基线
 
@@ -87,4 +88,4 @@ cargo test -p rpci-settings-iced  # 4 passed
 
 ## 文档导航
 
-从 [README.md](README.md) 开始。当前事实看本页；计划看 [ROADMAP.md](ROADMAP.md)；架构看 [ARCHITECTURE.md](ARCHITECTURE.md) 和 [ADR 0004](adr/0004-three-layer.md)。
+从 [README.md](README.md) 开始。当前事实看本页；计划看 [ROADMAP.md](ROADMAP.md)；架构看 [ARCHITECTURE.md](ARCHITECTURE.md)、[ADR 0004](adr/0004-three-layer.md) 和 [ADR 0005](adr/0005-system-apt-readonly-applet.md)。

@@ -10,9 +10,11 @@
 - ADR 0005：日常安装走系统 APT，Panel applet 只读。
 - 只读诊断命令 `rpci-ime-doctor`。
 - 版本变化时自动创建 RIME/配置快照，校验失败则阻止启动。
+- 设计与依赖证据审计：[docs/EVIDENCE-AUDIT.md](docs/EVIDENCE-AUDIT.md)。
 
 ### Changed
 
+- 修正 STATUS 中 applet、APT 签名、Release 和版本状态等过期事实。
 - 系统包 launcher 检测到用户级 autostart 时，将其重命名为 `.disabled-by-system-package`；保留配置、数据和二进制。
 
 ## [0.1.3] - 2026-10-23
