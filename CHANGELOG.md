@@ -8,6 +8,7 @@
 
 - 项目代码、文档和打包配置改为 GPL-3.0-or-later；新增第三方许可证清单和打包内许可证文件。
 - 候选窗生命周期收进 `CandidateWindow`：surface、buffer、尺寸、测量和绘制不再由 `main` 逐步编排。
+- 按键状态机收进 `InputSession`；新增 `InputEngine` seam，main 只执行 Action。
 
 ## [0.1.5] - 2026-10-23
 

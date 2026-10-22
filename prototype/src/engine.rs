@@ -120,6 +120,13 @@ fn choose_mode_with_fallback(
     }
 }
 
+pub trait InputEngine {
+    fn handle(&mut self, keysym: u32, text: &str, mods: u32) -> EngineOutput;
+    fn cancel(&mut self);
+    fn toggle_ascii(&mut self);
+    fn status_label(&self) -> String;
+}
+
 pub struct HybridEngine {
     _traits: Traits,
     wubi: Session,
@@ -410,6 +417,24 @@ impl Drop for HybridEngine {
             let _ = pinyin.close();
         }
         rime_api::finalize();
+    }
+}
+
+impl InputEngine for HybridEngine {
+    fn handle(&mut self, keysym: u32, text: &str, mods: u32) -> EngineOutput {
+        HybridEngine::handle(self, keysym, text, mods)
+    }
+
+    fn cancel(&mut self) {
+        HybridEngine::cancel(self);
+    }
+
+    fn toggle_ascii(&mut self) {
+        HybridEngine::toggle_ascii(self);
+    }
+
+    fn status_label(&self) -> String {
+        HybridEngine::status_label(self)
     }
 }
 

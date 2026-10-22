@@ -1,6 +1,7 @@
 pub mod backup;
 pub mod config;
 pub mod engine;
+pub mod input_session;
 pub mod paths;
 pub mod popup;
 pub mod service;

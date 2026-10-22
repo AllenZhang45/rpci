@@ -2,13 +2,13 @@ mod candidate_window;
 
 use candidate_window::CandidateWindow;
 
-use std::collections::HashSet;
 use std::io::Write;
 use std::os::fd::{AsFd, FromRawFd};
 use std::time::SystemTime;
 
 use ime_probe::config::{CandidateLayout, Config};
-use ime_probe::engine::{EngineOutput, HybridEngine};
+use ime_probe::engine::HybridEngine;
+use ime_probe::input_session::{Action, InputSession, KeyEvent};
 use ime_probe::popup::CandidateView;
 
 use smithay_client_toolkit::reexports::calloop::{
@@ -47,11 +47,7 @@ struct State {
     xkb_context: xkbcommon::xkb::Context,
     xkb_state: Option<xkbcommon::xkb::State>,
     mods: u32,
-    forwarded_keys: HashSet<u32>,
-    pending_taps: HashSet<u32>,
-    deferred_ctrl: Option<u32>,
-    ctrl_toggled: bool,
-    rime: HybridEngine,
+    input: InputSession,
     vk: ZwpVirtualKeyboardV1,
 }
 
@@ -211,12 +207,8 @@ impl Dispatch<ZwpInputMethodV2, ()> for State {
                 std::process::exit(1);
             }
             zwp_input_method_v2::Event::Deactivate => {
-                state.rime.cancel();
-                state.forwarded_keys.clear();
-                state.pending_taps.clear();
-                state.deferred_ctrl = None;
-                state.ctrl_toggled = false;
-                state.candidate_window.hide();
+                let actions = state.input.cancel();
+                apply_actions(state, qh, actions);
                 if let Some(grab) = state.grab.take() {
                     grab.release();
                     println!("  -> released grab");
@@ -268,12 +260,45 @@ fn start_control_listener(sender: Sender<Control>) {
     });
 }
 
-fn toggle_from_control(state: &mut State, source: &str) {
-    state.rime.toggle_ascii();
-    let label = state.rime.status_label();
-    write_state(&label);
-    state.candidate_window.hide();
+fn toggle_from_control(state: &mut State, qh: &QueueHandle<State>, source: &str) {
+    let actions = state.input.toggle_ascii();
+    let label = state.input.status_label();
+    apply_actions(state, qh, actions);
     println!("{source} toggle -> {label}");
+}
+
+fn apply_actions(state: &mut State, qh: &QueueHandle<State>, actions: Vec<Action>) {
+    for action in actions {
+        match action {
+            Action::Forward { keycode, pressed } => forward_key(state, qh, keycode, pressed),
+            Action::Tap { keycode } => forward_tap(state, qh, keycode),
+            Action::Commit(commit) => {
+                state.im.commit_string(commit.clone());
+                state.im.commit(state.done_count);
+                println!("COMMIT = {commit:?}");
+            }
+            Action::ShowCandidates {
+                preedit,
+                candidates,
+                page,
+            } => state.candidate_window.show(
+                qh,
+                CandidateView {
+                    preedit,
+                    candidates,
+                    page,
+                    layout: state.candidate_layout,
+                    candidate_count: state.candidate_count,
+                },
+            ),
+            Action::Hide => state.candidate_window.hide(),
+            Action::Status(label) => write_state(&label),
+            Action::SetModifiers(mods) => {
+                state.mods = mods;
+                state.vk.modifiers(mods, 0, 0, 0);
+            }
+        }
+    }
 }
 
 fn write_state(label: &str) {
@@ -347,10 +372,6 @@ fn forward_tap(state: &mut State, qh: &QueueHandle<State>, keycode: u32) {
     println!("PASSTHROUGH tap keycode={keycode}");
 }
 
-fn is_modifier_key(keycode: u32) -> bool {
-    matches!(keycode, 29 | 97 | 42 | 54 | 56 | 100 | 125 | 126 | 58)
-}
-
 impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
     fn event(
         state: &mut Self,
@@ -400,102 +421,26 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                 let pressed = matches!(&key_state, WEnum::Value(wl_keyboard::KeyState::Pressed));
                 let is_ctrl = matches!(key, 29 | 97);
 
-                // Ctrl+Space must be consumed before the application sees Ctrl.
-                // Forwarding a half-pressed Ctrl and then swallowing Space drops
-                // text-input focus on COSMIC. Defer Ctrl and toggle directly.
-                if pressed && is_ctrl {
-                    state.deferred_ctrl = Some(key);
-                    return;
-                }
-                if !pressed && is_ctrl {
-                    if state.ctrl_toggled {
-                        state.ctrl_toggled = false;
-                        state.deferred_ctrl = None;
-                        // Clear Ctrl from the virtual keyboard too; otherwise a
-                        // physical Ctrl can remain logically pressed in the
-                        // focused client after Ctrl+Space.
-                        state.mods &= !4;
-                        state.vk.modifiers(state.mods, 0, 0, 0);
-                    } else if state.deferred_ctrl.take().is_some() {
-                        // Bare Ctrl is not forwarded.
-                    } else if state.forwarded_keys.remove(&key) {
-                        forward_key(state, qh, key, false);
-                    }
-                    return;
-                }
-
-                if pressed {
-                    if key == 57 && state.deferred_ctrl.is_some() {
-                        state.deferred_ctrl = None;
-                        state.ctrl_toggled = true;
-                        toggle_from_control(state, "CTRL+SPACE");
+                let (sym, name, text) = {
+                    let Some(xkb_state) = state.xkb_state.as_ref() else {
                         return;
-                    }
-                    if let Some(ctrl_key) = state.deferred_ctrl.take() {
-                        state.forwarded_keys.insert(ctrl_key);
-                        forward_key(state, qh, ctrl_key, true);
-                    }
-
-                    let (sym, name, text) = {
-                        let Some(xkb_state) = state.xkb_state.as_ref() else {
-                            return;
-                        };
-                        let sym = xkb_state.key_get_one_sym((key + 8).into());
-                        let name = xkbcommon::xkb::keysym_get_name(sym);
-                        let text = xkb_state.key_get_utf8((key + 8).into());
-                        (sym, name, text)
                     };
-                    let sym_raw = u32::from(sym);
-                    let mods = state.mods;
+                    let sym = xkb_state.key_get_one_sym((key + 8).into());
+                    let name = xkbcommon::xkb::keysym_get_name(sym);
+                    let text = xkb_state.key_get_utf8((key + 8).into());
+                    (sym, name, text)
+                };
 
-                    let EngineOutput {
-                        mode,
-                        preedit,
-                        candidates,
-                        commit,
-                        passthrough,
-                        page,
-                    } = state.rime.handle(sym_raw, &text, mods);
-
-                    if passthrough {
-                        if is_modifier_key(key) {
-                            state.forwarded_keys.insert(key);
-                            forward_key(state, qh, key, true);
-                        } else {
-                            state.pending_taps.insert(key);
-                        }
-                        return;
-                    }
-
-                    let label = state.rime.status_label();
-                    write_state(&label);
-
-                    if let Some(commit) = commit {
-                        if !commit.is_empty() {
-                            state.im.commit_string(commit.clone());
-                            state.im.commit(state.done_count);
-                            println!("COMMIT = {commit:?}");
-                        }
-                    }
-
-                    println!(
-                        "KEY keycode={key} sym={name} mode={mode:?} preedit={preedit:?} candidates={candidates:?}"
-                    );
-                    state.candidate_window.show(
-                        qh,
-                        CandidateView {
-                            preedit,
-                            candidates,
-                            page,
-                            layout: state.candidate_layout,
-                            candidate_count: state.candidate_count,
-                        },
-                    );
-                } else if state.pending_taps.remove(&key) {
-                    forward_tap(state, qh, key);
-                } else if state.forwarded_keys.remove(&key) {
-                    forward_key(state, qh, key, false);
-                }
+                println!("KEY keycode={key} sym={name} pressed={pressed}");
+                let actions = state.input.handle(KeyEvent {
+                    keycode: key,
+                    pressed,
+                    is_ctrl,
+                    keysym: u32::from(sym),
+                    text,
+                    mods: state.mods,
+                });
+                apply_actions(state, qh, actions);
             }
             _ => {}
         }
@@ -556,15 +501,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         xkb_context: xkbcommon::xkb::Context::new(xkbcommon::xkb::CONTEXT_NO_FLAGS),
         xkb_state: None,
         mods: 0,
-        forwarded_keys: HashSet::new(),
-        pending_taps: HashSet::new(),
-        deferred_ctrl: None,
-        ctrl_toggled: false,
-        rime: HybridEngine::new(&config),
+        input: InputSession::new(Box::new(HybridEngine::new(&config))),
         vk,
     };
 
-    let label = state.rime.status_label();
+    let label = state.input.status_label();
     write_state(&label);
 
     let mut event_loop: EventLoop<State> = EventLoop::try_new()?;
@@ -572,10 +513,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     WaylandSource::new(conn.clone(), event_queue).insert(handle.clone())?;
 
     let (sender, receiver) = channel::<Control>();
+    let control_qh = qh.clone();
     handle
-        .insert_source(receiver, |event, _, state| {
+        .insert_source(receiver, move |event, _, state| {
             if let ChannelEvent::Msg(Control::Toggle) = event {
-                toggle_from_control(state, "control");
+                toggle_from_control(state, &control_qh, "control");
             }
         })
         .map_err(|err| format!("control channel: {err}"))?;
