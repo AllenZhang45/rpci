@@ -11,10 +11,12 @@ use crate::engine::PageInfo;
 pub const POPUP_MIN_W: u32 = 200;
 pub const POPUP_MAX_W: u32 = 760;
 pub const POPUP_DEFAULT_W: u32 = 520;
-pub const POPUP_SINGLE_H: u32 = 48;
-pub const POPUP_TWO_ROW_H: u32 = 64;
-/// Render at 2x for HiDPI; the compositor scales down on 1x outputs.
 pub const POPUP_SCALE: u32 = 2;
+/// Actual text metrics used by cosmic-text, in logical pixels.
+pub const LINE_HEIGHT: u32 = 22;
+pub const PADDING_X: u32 = 12;
+pub const PADDING_Y: u32 = 8;
+pub const LINE_GAP: u32 = 6;
 /// COSMIC HIG-style corner radius in logical pixels.
 const POPUP_RADIUS: f32 = 10.0 * POPUP_SCALE as f32;
 
@@ -26,10 +28,15 @@ pub fn effective_layout(layout: CandidateLayout, candidate_count: usize) -> Cand
     }
 }
 
+pub fn height_for_lines(lines: usize) -> u32 {
+    let lines = lines.max(1) as u32;
+    PADDING_Y * 2 + lines * LINE_HEIGHT + (lines.saturating_sub(1) as u32) * LINE_GAP
+}
+
 pub fn popup_height(layout: CandidateLayout, candidate_count: usize) -> u32 {
     match effective_layout(layout, candidate_count) {
-        CandidateLayout::Single | CandidateLayout::Auto => POPUP_SINGLE_H,
-        CandidateLayout::TwoRow => POPUP_TWO_ROW_H,
+        CandidateLayout::Single | CandidateLayout::Auto => height_for_lines(1),
+        CandidateLayout::TwoRow => height_for_lines(2),
     }
 }
 
@@ -185,6 +192,13 @@ impl Theme {
             Theme::Light => Color::rgb(0x1E, 0x1E, 0x1E),
         }
     }
+
+    fn separator(self) -> [u8; 4] {
+        match self {
+            Theme::Dark => [0x80, 0x80, 0x80, 0xB0],
+            Theme::Light => [0x60, 0x60, 0x60, 0xB0],
+        }
+    }
 }
 
 pub struct PopupRenderer {
@@ -287,16 +301,9 @@ impl PopupRenderer {
     pub fn draw_lines(&mut self, lines: &[&str]) {
         let width = self.pixel_width as usize;
         let height = self.pixel_height as usize;
-        let text = lines
-            .iter()
-            .filter(|line| !line.is_empty())
-            .copied()
-            .collect::<Vec<_>>()
-            .join("\n");
         let mut canvas = vec![0u8; width * height * 4];
 
-        if text.is_empty() {
-            // Transparent: make the popup invisible.
+        if lines.iter().all(|line| line.is_empty()) {
             Self::save_debug_png(&canvas, width, height);
             self.mmap.copy_from_slice(&canvas);
             self.surface.attach(Some(&self._buffer), 0, 0);
@@ -306,8 +313,6 @@ impl PopupRenderer {
             return;
         }
 
-        // wl_shm ARGB8888 on little-endian: B, G, R, A.
-        // Draw a rounded COSMIC-HIG-like surface; outside the radius stays transparent.
         let background = self.theme.background();
         for y in 0..height {
             for x in 0..width {
@@ -330,46 +335,74 @@ impl PopupRenderer {
             }
         }
 
-        self.text_buffer
-            .set_size(Some(width as f32 - 24.0), Some(height as f32));
-        self.text_buffer.set_text(
-            &text,
-            &Attrs::new().family(Family::SansSerif),
-            Shaping::Advanced,
-            None,
-        );
+        let scale = POPUP_SCALE as usize;
+        let pad_x = PADDING_X as usize * scale;
+        let pad_y = PADDING_Y as usize * scale;
+        let line_h = LINE_HEIGHT as usize * scale;
+        let gap = LINE_GAP as usize * scale;
+
+        // A contrasting separator between the two rows, with extra breathing room.
+        if lines.len() > 1 {
+            let separator_y = pad_y + line_h + gap / 2;
+            let color = self.theme.separator();
+            for x in pad_x..width.saturating_sub(pad_x) {
+                let idx = (separator_y * width + x) * 4;
+                canvas[idx] = color[0];
+                canvas[idx + 1] = color[1];
+                canvas[idx + 2] = color[2];
+                canvas[idx + 3] = color[3];
+            }
+        }
 
         let color = self.theme.text_color();
-        {
-            let PopupRenderer {
-                font_system,
-                swash_cache,
-                text_buffer,
-                ..
-            } = self;
-            let mut borrowed = text_buffer.borrow_with(font_system);
-            borrowed.draw(swash_cache, color, |x, y, gw, gh, c| {
-                let a = c.a() as u32;
-                if a == 0 {
-                    return;
-                }
-                let inv = 255 - a;
-                for yy in y..y + gh as i32 {
-                    for xx in x..x + gw as i32 {
-                        if xx < 0 || yy < 0 || xx >= width as i32 || yy >= height as i32 {
-                            continue;
-                        }
-                        let idx = ((yy as usize) * width + xx as usize) * 4;
-                        let b = (c.b() as u32 * a + canvas[idx] as u32 * inv) / 255;
-                        let g = (c.g() as u32 * a + canvas[idx + 1] as u32 * inv) / 255;
-                        let r = (c.r() as u32 * a + canvas[idx + 2] as u32 * inv) / 255;
-                        canvas[idx] = b as u8;
-                        canvas[idx + 1] = g as u8;
-                        canvas[idx + 2] = r as u8;
-                        canvas[idx + 3] = 0xFF;
+        for (line_index, line) in lines.iter().enumerate() {
+            if line.is_empty() {
+                continue;
+            }
+            let offset_y = pad_y + line_index * (line_h + gap);
+            self.text_buffer.set_size(
+                Some((width.saturating_sub(pad_x * 2)) as f32),
+                Some(line_h as f32),
+            );
+            self.text_buffer.set_text(
+                line,
+                &Attrs::new().family(Family::SansSerif),
+                Shaping::Advanced,
+                None,
+            );
+            {
+                let PopupRenderer {
+                    font_system,
+                    swash_cache,
+                    text_buffer,
+                    ..
+                } = self;
+                let mut borrowed = text_buffer.borrow_with(font_system);
+                borrowed.draw(swash_cache, color, |x, y, gw, gh, c| {
+                    let a = c.a() as u32;
+                    if a == 0 {
+                        return;
                     }
-                }
-            });
+                    let inv = 255 - a;
+                    for yy in y..y + gh as i32 {
+                        for xx in x..x + gw as i32 {
+                            let px = xx + pad_x as i32;
+                            let py = yy + offset_y as i32;
+                            if px < 0 || py < 0 || px >= width as i32 || py >= height as i32 {
+                                continue;
+                            }
+                            let idx = ((py as usize) * width + px as usize) * 4;
+                            let b = (c.b() as u32 * a + canvas[idx] as u32 * inv) / 255;
+                            let g = (c.g() as u32 * a + canvas[idx + 1] as u32 * inv) / 255;
+                            let r = (c.r() as u32 * a + canvas[idx + 2] as u32 * inv) / 255;
+                            canvas[idx] = b as u8;
+                            canvas[idx + 1] = g as u8;
+                            canvas[idx + 2] = r as u8;
+                            canvas[idx + 3] = 0xFF;
+                        }
+                    }
+                });
+            }
         }
 
         Self::save_debug_png(&canvas, width, height);
@@ -415,8 +448,18 @@ mod layout_tests {
 
     #[test]
     fn single_is_default_height() {
-        assert_eq!(popup_height(CandidateLayout::Single, 9), POPUP_SINGLE_H);
-        assert_eq!(popup_height(CandidateLayout::TwoRow, 1), POPUP_TWO_ROW_H);
+        assert_eq!(
+            popup_height(CandidateLayout::Single, 9),
+            height_for_lines(1)
+        );
+        assert_eq!(
+            popup_height(CandidateLayout::TwoRow, 1),
+            height_for_lines(2)
+        );
+        assert_eq!(
+            height_for_lines(2),
+            PADDING_Y * 2 + LINE_HEIGHT * 2 + LINE_GAP
+        );
     }
 
     #[test]
@@ -429,7 +472,7 @@ mod layout_tests {
             effective_layout(CandidateLayout::Auto, 6),
             CandidateLayout::TwoRow
         );
-        assert_eq!(popup_height(CandidateLayout::Auto, 6), POPUP_TWO_ROW_H);
+        assert_eq!(popup_height(CandidateLayout::Auto, 6), height_for_lines(2));
     }
 
     #[test]
