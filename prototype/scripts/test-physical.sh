@@ -37,6 +37,9 @@ cleanup() {
         kill "$EDITOR_PID" 2>/dev/null || true
         wait "$EDITOR_PID" 2>/dev/null || true
     fi
+    if [ -n "${TEST_FILE:-}" ]; then
+        pkill -f "$TEST_FILE" 2>/dev/null || true
+    fi
     if [ -n "$ORIGINAL_STATE" ] && [ "$(cat "$STATE_FILE" 2>/dev/null || true)" != "$ORIGINAL_STATE" ]; then
         set_state "toggle" || true
     fi
@@ -137,8 +140,22 @@ fi
 TEST_FILE="$TMP/physical.txt"
 cosmic-edit "$TEST_FILE" >/dev/null 2>&1 &
 EDITOR_PID=$!
-sleep 3
-"$FOCUS" "$(basename "$TEST_FILE")" >/dev/null
+FOCUS_OUT=""
+for _ in 1 2 3 4 5; do
+    sleep 1
+    FOCUS_OUT="$("$FOCUS" "$(basename "$TEST_FILE")" 2>&1 || true)"
+    case "$FOCUS_OUT" in
+        *"$(basename "$TEST_FILE")"*) break ;;
+    esac
+done
+case "$FOCUS_OUT" in
+    *"$(basename "$TEST_FILE")"*) ;;
+    *)
+        echo "could not focus cosmic-edit window for $TEST_FILE" >&2
+        printf '%s\n' "$FOCUS_OUT" >&2
+        exit 1
+        ;;
+esac
 
 "$TMP/uinput-key"
 sleep 1

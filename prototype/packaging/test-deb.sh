@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${VERSION:-0.1.3}"
+VERSION="${VERSION:-0.1.4}"
 PACKAGE="${1:-$ROOT/dist/rpci-ime_${VERSION}_amd64.deb}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -11,7 +11,7 @@ trap 'rm -rf "$TMP"' EXIT
 dpkg-deb --info "$PACKAGE" >/dev/null
 dpkg-deb --extract "$PACKAGE" "$TMP/root"
 
-for bin in ime-probe ime-settings ime-settings-gui ime-settings-iced ime-applet rpci-ime-launch rpci-ime-setup; do
+for bin in ime-probe ime-settings ime-settings-gui ime-settings-iced ime-applet rpci-ime-launch rpci-ime-setup rpci-ime-doctor; do
     test -x "$TMP/root/usr/bin/$bin" || { echo "missing $bin" >&2; exit 1; }
 done
 for schema in wubi86.schema.yaml wubi86.dict.yaml pinyin_simp.schema.yaml pinyin_simp.dict.yaml default.custom.yaml; do
@@ -40,7 +40,7 @@ mkdir -p "$TMP/xdg/autostart"
 printf '[Desktop Entry]\nType=Application\nName=legacy\n' > "$TMP/xdg/autostart/rpci-ime.desktop"
 
 RPCI_TEST_MARKER="$TMP/marker" \
-XDG_DATA_HOME="$TMP/launch" \
+XDG_DATA_HOME="$TMP/data" \
 XDG_CONFIG_HOME="$TMP/xdg" \
 XDG_CACHE_HOME="$TMP/cache" \
 RPCI_IME_BIN_DIR="$TMP/fakebin" \
@@ -52,5 +52,10 @@ test -f "$TMP/marker"
 grep -q 'com.github.alec.RpciImeApplet' \
     "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
 test -f "$TMP/xdg/autostart/rpci-ime.desktop.disabled-by-system-package"
+test -f "$TMP/data/rpci/.last-version"
+snapshot="$(ls -1 "$TMP/data/rpci/backups"/upgrade-*.tar.gz 2>/dev/null | head -1)"
+test -n "$snapshot"
+tar -tzf "$snapshot" | grep -q 'default.custom.yaml'
+"$TMP/root/usr/bin/rpci-ime-doctor" --help | grep -q 'read-only'
 
 echo "package verification passed: $PACKAGE"

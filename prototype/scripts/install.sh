@@ -38,6 +38,7 @@ install -Dm755 "$TARGET_DIR/ime-settings" "$BIN_DIR/ime-settings"
 install -Dm755 "$TARGET_DIR/ime-settings-gui" "$BIN_DIR/ime-settings-gui"
 install -Dm755 "$TARGET_DIR/rpci-settings-iced" "$BIN_DIR/ime-settings-iced"
 install -Dm755 "$TARGET_DIR/applet" "$BIN_DIR/ime-applet"
+install -Dm755 "$ROOT/prototype/packaging/rpci-ime-doctor.sh" "$BIN_DIR/rpci-ime-doctor"
 
 if [ -x "$ROOT/prototype/scripts/setup-rime.sh" ]; then
     "$ROOT/prototype/scripts/setup-rime.sh"

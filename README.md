@@ -136,6 +136,7 @@ ime-settings-gui
 ## 验证安装
 
 ```bash
+rpci-ime-doctor
 systemctl --user status 'app-rpci\x2dime@autostart.service'
 pgrep -a ime-probe
 cat /run/user/$(id -u)/rpci/state
@@ -219,6 +220,7 @@ cargo test -p rpci-settings-iced
 - [更新日志](CHANGELOG.md)
 - [文档索引](docs/README.md)
 - [当前状态](docs/STATUS.md)
+- [稳定性门槛](docs/STABILITY.md)
 - [路线图](docs/ROADMAP.md)
 - [架构](docs/ARCHITECTURE.md)
 - [协议审计](docs/PROTOCOL-AUDIT.md)

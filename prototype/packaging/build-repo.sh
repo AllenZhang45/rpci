@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${VERSION:-0.1.3}"
+VERSION="${VERSION:-0.1.4}"
 REPO="${RPCI_REPO_DIR:-$ROOT/dist/apt}"
 KEY_HOME="${RPCI_GPG_HOME:-$REPO/gnupg}"
 SKIP_BUILD="${RPCI_SKIP_BUILD:-0}"

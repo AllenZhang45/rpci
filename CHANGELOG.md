@@ -8,6 +8,8 @@
 
 - 本地物理键盘发布检查：`prototype/scripts/test-physical.sh`（使用 `/dev/uinput`，不进入 CI，不打包）。
 - ADR 0005：日常安装走系统 APT，Panel applet 只读。
+- 只读诊断命令 `rpci-ime-doctor`。
+- 版本变化时自动创建 RIME/配置快照，校验失败则阻止启动。
 
 ### Changed
 

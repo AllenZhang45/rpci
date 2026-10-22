@@ -18,6 +18,12 @@ Panel applet 曾经支持点击切换中英，但点击顶部 Panel 会让面板
 4. 中英切换只通过 `Ctrl+Space`；不使用 F2，也不依赖 applet 点击。
 5. 发布前使用本地 `/dev/uinput` 脚本验证物理键盘；该脚本不进入 CI，也不打包。
 
+## 稳定性工具
+
+- `rpci-ime-doctor` 只读检查系统包、autostart、IME 进程、Panel applet、RIME 目录、APT 源和运行时状态。
+- launcher 在包版本变化时创建一次用户配置/RIME 快照，并验证 tar 可读；失败时阻止启动。
+- 观察期和 P0/P1 门槛见 [STABILITY.md](../STABILITY.md)。
+
 ## 后果
 
 - 用户不能通过点击 applet 切换中英；这是为了避免焦点被抢走。

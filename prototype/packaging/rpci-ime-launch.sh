@@ -7,13 +7,56 @@ SCHEMA_DIR="${RPCI_IME_SCHEMA_DIR:-/usr/share/rpci/rime}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 case "$DATA_HOME" in /*) ;; *) DATA_HOME="$HOME/.local/share" ;; esac
 RIME_DIR="${IME_RIME_USER_DIR:-$DATA_HOME/rpci/rime}"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
+
+# Take one snapshot when the installed package version changes. A failed
+# snapshot blocks startup so a migration cannot silently destroy user data.
+BACKUP_DIR="$DATA_HOME/rpci/backups"
+VERSION_FILE="$DATA_HOME/rpci/.last-version"
+CURRENT_VERSION="${RPCI_IME_VERSION:-}"
+if [ -z "$CURRENT_VERSION" ] && command -v dpkg-query >/dev/null 2>&1; then
+    CURRENT_VERSION="$(dpkg-query -W -f='${Version}' rpci-ime 2>/dev/null || true)"
+fi
+if [ -n "$CURRENT_VERSION" ]; then
+    PREVIOUS_VERSION="$(cat "$VERSION_FILE" 2>/dev/null || true)"
+    if [ "$PREVIOUS_VERSION" != "$CURRENT_VERSION" ]; then
+        mkdir -p "$BACKUP_DIR" 2>/dev/null || {
+            echo "rpci-ime: cannot create backup directory $BACKUP_DIR" >&2
+            exit 1
+        }
+        LIST="$BACKUP_DIR/.upgrade-files.$$"
+        : > "$LIST"
+        if [ -d "$CONFIG_HOME/rpci" ]; then
+            printf '%s\n' "${CONFIG_HOME#/}/rpci" >> "$LIST"
+        fi
+        if [ -d "$RIME_DIR" ]; then
+            printf '%s\n' "${RIME_DIR#/}" >> "$LIST"
+        fi
+        if [ -s "$LIST" ]; then
+            SNAPSHOT="$BACKUP_DIR/upgrade-${CURRENT_VERSION}-$(date +%Y%m%d-%H%M%S).tar.gz"
+            if ! tar -czf "$SNAPSHOT" -C / -T "$LIST" || ! tar -tzf "$SNAPSHOT" >/dev/null 2>&1; then
+                rm -f "$SNAPSHOT" "$LIST"
+                echo "rpci-ime: upgrade snapshot failed; refusing to start" >&2
+                exit 1
+            fi
+            echo "rpci-ime: upgrade snapshot created: $SNAPSHOT" >&2
+            ls -1t "$BACKUP_DIR"/upgrade-*.tar.gz 2>/dev/null | tail -n +4 | while IFS= read -r old; do
+                rm -f "$old"
+            done
+        fi
+        rm -f "$LIST"
+        if ! printf '%s\n' "$CURRENT_VERSION" > "$VERSION_FILE"; then
+            echo "rpci-ime: cannot write version marker $VERSION_FILE" >&2
+            exit 1
+        fi
+    fi
+fi
 
 if [ ! -f "$RIME_DIR/default.custom.yaml" ]; then
     IME_RIME_SCHEMA_SRC="$SCHEMA_DIR" "$SETUP" >/dev/null 2>&1 || true
 fi
 
-CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
 APP_ID="com.github.alec.RpciImeApplet"
 
 # One daily installation path: if the system package is installed, retire a

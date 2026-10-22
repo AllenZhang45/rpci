@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${VERSION:-0.1.3}"
+VERSION="${VERSION:-0.1.4}"
 DIST="$ROOT/dist"
 STAGE="$DIST/rpci-ime"
 PACKAGE="$DIST/rpci-ime_${VERSION}_amd64.deb"
@@ -31,6 +31,7 @@ install -Dm755 target/release/ime-settings-gui "$STAGE/usr/bin/ime-settings-gui"
 install -Dm755 target/release/rpci-settings-iced "$STAGE/usr/bin/ime-settings-iced"
 install -Dm755 target/release/applet "$STAGE/usr/bin/ime-applet"
 install -Dm755 prototype/packaging/rpci-ime-launch.sh "$STAGE/usr/bin/rpci-ime-launch"
+install -Dm755 prototype/packaging/rpci-ime-doctor.sh "$STAGE/usr/bin/rpci-ime-doctor"
 install -Dm755 prototype/scripts/setup-rime.sh "$STAGE/usr/bin/rpci-ime-setup"
 
 # Build the RIME schema payload from the same schema sources as the installer.

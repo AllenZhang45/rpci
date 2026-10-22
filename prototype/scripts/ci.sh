@@ -13,6 +13,7 @@ cargo fmt --all --check
 cargo test --locked -p ime-probe
 cargo test --locked -p rpci-settings-iced
 ./prototype/scripts/check-docs.py
+./prototype/scripts/test-doctor.sh
 
 ./prototype/packaging/build-deb.sh
 ./prototype/packaging/test-deb.sh

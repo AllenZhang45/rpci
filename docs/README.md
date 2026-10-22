@@ -43,6 +43,7 @@
 | [APT-REPO.md](APT-REPO.md) | 签名 APT 仓库、升级与回滚 |
 | [CI.md](CI.md) | GitHub Actions 工作流与本地复现 |
 | [../CHANGELOG.md](../CHANGELOG.md) | 版本更新日志 |
+| [STABILITY.md](STABILITY.md) | P0/P1 定义、3 天观察期与发布检查清单 |
 | [APT-PAGES.md](APT-PAGES.md) | GitHub Pages 公共 HTTPS APT 部署 |
 | [SKILLS.md](SKILLS.md) | DSH 工程技能来源、适用条件与全自动适配 |
 

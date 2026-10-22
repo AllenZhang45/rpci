@@ -56,6 +56,14 @@ _Avoid_: User install, local install
 从源码构建、用于开发和调试的安装，不是日常运行路径。
 _Avoid_: Dev install, test install
 
+**Doctor**:
+只读检查日常安装是否健康，并给出修复建议，不自动修改配置。
+_Avoid_: Health check, auto-fix
+
+**Upgrade snapshot**:
+在包版本变化时创建的用户配置和 RIME 数据快照，用于回滚数据损坏。
+_Avoid_: Backup, restore point
+
 **Release gate**:
 发布前必须通过的本地验证，当前包括物理键盘 uinput 检查和真实使用观察。
 _Avoid_: CI gate, test suite

@@ -39,6 +39,8 @@
 - 单一系统 APT 安装
 - 物理键盘 uinput 回归脚本
 - 真实使用中的 P0/P1 输入问题
+- 只读 `rpci-ime-doctor`
+- 版本变化时的升级前快照
 
 不进入范围：用户词库、表情、更多输入方案、Qt6 workaround、XWayland、libcosmic applet。
 
@@ -47,6 +49,8 @@
 - `prototype/scripts/test-physical.sh` 通过
 - 至少 3 天日常使用没有新的 P0/P1 输入问题
 - 当前公共 APT 仍是稳定的 0.1.3，满足门槛后再升版本
+
+详细定义见 [STABILITY.md](STABILITY.md)。
 
 ## 下一阶段
 
