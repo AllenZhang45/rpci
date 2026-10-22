@@ -31,6 +31,7 @@
 | 五笔 86 + 拼音兜底 | ✅ |
 | 数字选词、退格、Esc 取消 | ✅ |
 | 候选窗显示、主题、HiDPI 2x、HIG 圆角 | ✅ |
+| 候选翻页 / 单行/两行布局 | ✅ `PageUp` / `PageDown`；`candidate_layout` |
 | Enter 换行 | ✅（中文模式经 `commit_string("\n")`） |
 | 方向键 / Ctrl 组合 / F1 透传 | ✅ |
 | 中英切换（Ctrl+Space） | ✅ 直接拦截 Ctrl+Space，不转发半按 Ctrl；applet 不参与切换 |

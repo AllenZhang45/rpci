@@ -6,11 +6,16 @@ use iced::widget::{
 };
 use iced::{Alignment, Border, Color, Element, Length, Task, Theme};
 use ime_probe::backup::{self, KEEP_BACKUPS, default_paths};
-use ime_probe::config::{Config, ThemePreference};
+use ime_probe::config::{CandidateLayout, Config, ThemePreference};
 use ime_probe::service;
 use ime_probe::settings_model::SettingsModel;
 
 const THEMES: [ThemeChoice; 3] = [ThemeChoice::Auto, ThemeChoice::Dark, ThemeChoice::Light];
+const LAYOUTS: [LayoutChoice; 3] = [
+    LayoutChoice::Single,
+    LayoutChoice::TwoRow,
+    LayoutChoice::Auto,
+];
 
 fn main() -> iced::Result {
     iced::application(App::default, App::update, App::view)
@@ -55,11 +60,47 @@ impl fmt::Display for ThemeChoice {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LayoutChoice {
+    Single,
+    TwoRow,
+    Auto,
+}
+
+impl LayoutChoice {
+    fn from_config(layout: CandidateLayout) -> Self {
+        match layout {
+            CandidateLayout::Single => Self::Single,
+            CandidateLayout::TwoRow => Self::TwoRow,
+            CandidateLayout::Auto => Self::Auto,
+        }
+    }
+
+    fn to_config(self) -> CandidateLayout {
+        match self {
+            Self::Single => CandidateLayout::Single,
+            Self::TwoRow => CandidateLayout::TwoRow,
+            Self::Auto => CandidateLayout::Auto,
+        }
+    }
+}
+
+impl fmt::Display for LayoutChoice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Single => "单行",
+            Self::TwoRow => "两行",
+            Self::Auto => "自动",
+        })
+    }
+}
+
 #[derive(Debug, Clone)]
 enum Message {
     AsciiToggled(bool),
     PinyinToggled(bool),
     CountChanged(u8),
+    LayoutSelected(LayoutChoice),
     ThemeSelected(ThemeChoice),
     Save,
     Apply,
@@ -138,6 +179,10 @@ impl App {
             }
             Message::CountChanged(value) => {
                 self.model.config.candidate_count = value as usize;
+                self.model.mark_dirty();
+            }
+            Message::LayoutSelected(value) => {
+                self.model.config.candidate_layout = value.to_config();
                 self.model.mark_dirty();
             }
             Message::ThemeSelected(value) => {
@@ -243,6 +288,18 @@ impl App {
                 ]
                 .align_y(Alignment::Center),
                 slider(1..=9, count, Message::CountChanged),
+                row![
+                    text("候选布局"),
+                    Space::new().width(Length::Fill),
+                    pick_list(
+                        LAYOUTS,
+                        Some(LayoutChoice::from_config(
+                            self.model.config.candidate_layout
+                        )),
+                        Message::LayoutSelected,
+                    ),
+                ]
+                .align_y(Alignment::Center),
                 row![
                     text("主题"),
                     Space::new().width(Length::Fill),
@@ -402,6 +459,8 @@ mod tests {
         assert!(!app.model.config.pinyin_fallback);
         let _ = app.update(Message::CountChanged(7));
         assert_eq!(app.model.config.candidate_count, 7);
+        let _ = app.update(Message::LayoutSelected(LayoutChoice::TwoRow));
+        assert_eq!(app.model.config.candidate_layout, CandidateLayout::TwoRow);
         let _ = app.update(Message::ThemeSelected(ThemeChoice::Light));
         assert_eq!(app.model.config.theme, ThemePreference::Light);
     }
