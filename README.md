@@ -221,6 +221,7 @@ cargo test -p rpci-settings-iced
 - [文档索引](docs/README.md)
 - [当前状态](docs/STATUS.md)
 - [稳定性门槛](docs/STABILITY.md)
+- [输入质量 backlog](docs/INPUT-QUALITY.md)
 - [路线图](docs/ROADMAP.md)
 - [架构](docs/ARCHITECTURE.md)
 - [协议审计](docs/PROTOCOL-AUDIT.md)

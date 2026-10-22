@@ -28,6 +28,22 @@ _Avoid_: Shape input, Wubi 98
 在五笔没有可用结果时切换到拼音输入的策略，不是独立的拼音模式。
 _Avoid_: Pinyin mode, mixed mode
 
+**Mixed input**:
+同一组合中同时产生五笔和拼音候选，并在同一候选窗排序；不是独立的拼音模式。
+_Avoid_: Pinyin mode, schema switching
+
+**Pure Pinyin mode**:
+所有输入都走拼音的独立模式；本项目不做。
+_Avoid_: Pinyin fallback, mixed input
+
+**User dictionary**:
+用户通过自造词、删词和调频形成的本机词条集合。
+_Avoid_: Custom dictionary, personal corpus
+
+**Custom phrase**:
+由短码展开为固定文本的本地快捷输入。
+_Avoid_: Macro, shortcut
+
 **Mode**:
 输入法当前的输入/透传状态，例如中文五笔或英文透传。
 _Avoid_: Layout, keyboard state
