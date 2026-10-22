@@ -7,7 +7,7 @@ use ime_probe::config::{CandidateLayout, Config};
 use ime_probe::engine::{EngineOutput, HybridEngine};
 use ime_probe::popup::{
     POPUP_DEFAULT_W, POPUP_SCALE, PopupRenderer, compose_lines, effective_layout, popup_height,
-    popup_pixel_height, required_width,
+    popup_pixel_height, required_width_with,
 };
 use memmap2::MmapMut;
 use smithay_client_toolkit::reexports::calloop::{
@@ -482,13 +482,17 @@ impl Dispatch<ZwpInputMethodKeyboardGrabV2, ()> for State {
                         }
                     }
 
-                    let desired_width = required_width(
-                        &preedit,
-                        &candidates,
-                        page,
-                        state.candidate_layout,
-                        state.candidate_count,
-                    );
+                    let desired_width = {
+                        let renderer = &mut state.popup_renderer;
+                        required_width_with(
+                            &preedit,
+                            &candidates,
+                            page,
+                            state.candidate_layout,
+                            state.candidate_count,
+                            |text| renderer.measure_text_width(text),
+                        )
+                    };
                     let desired_height =
                         popup_height(state.candidate_layout, state.candidate_count);
                     if desired_width != state.popup_logical_width

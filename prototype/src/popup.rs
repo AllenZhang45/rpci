@@ -60,13 +60,17 @@ fn candidate_text(candidates: &[String], candidate_count: usize) -> String {
         .join("  ")
 }
 
-pub fn required_width(
+pub fn required_width_with<F>(
     preedit: &str,
     candidates: &[String],
     page: PageInfo,
     layout: CandidateLayout,
     candidate_count: usize,
-) -> u32 {
+    mut measure: F,
+) -> u32
+where
+    F: FnMut(&str) -> f32,
+{
     let candidates = candidate_text(candidates, candidate_count);
     let page_text = page.label().unwrap_or_default();
     let nav = page.nav();
@@ -79,11 +83,29 @@ pub fn required_width(
     let content = match effective_layout(layout, candidate_count) {
         CandidateLayout::TwoRow => {
             let second = format!("{candidates}   {nav}");
-            approx_text_width(&second).max(approx_text_width(&first_line))
+            measure(&second).max(measure(&first_line))
         }
-        _ => approx_text_width(&format!("{preedit}   {candidates}   {page_text}   {nav}")),
+        _ => measure(&format!("{preedit}   {candidates}   {page_text}   {nav}")),
     };
     ((content + 32.0).ceil() as u32).clamp(POPUP_MIN_W, POPUP_MAX_W)
+}
+
+#[cfg(test)]
+pub fn required_width(
+    preedit: &str,
+    candidates: &[String],
+    page: PageInfo,
+    layout: CandidateLayout,
+    candidate_count: usize,
+) -> u32 {
+    required_width_with(
+        preedit,
+        candidates,
+        page,
+        layout,
+        candidate_count,
+        approx_text_width,
+    )
 }
 
 fn pad_page_right(mut line: String, right: &str, width: u32) -> String {
@@ -293,6 +315,22 @@ impl PopupRenderer {
         }
     }
 
+    /// Measure a single line in logical pixels using the renderer's font.
+    pub fn measure_text_width(&mut self, text: &str) -> f32 {
+        self.text_buffer.set_size(None, None);
+        self.text_buffer.set_text(
+            text,
+            &Attrs::new().family(Family::SansSerif),
+            Shaping::Advanced,
+            None,
+        );
+        self.text_buffer
+            .layout_runs()
+            .map(|run| run.line_w)
+            .fold(0.0, f32::max)
+            / POPUP_SCALE as f32
+    }
+
     /// Re-detect the theme after the user changes it in settings.
     pub fn set_preference(&mut self, preference: ThemePreference) {
         self.theme = Theme::detect(preference);
@@ -493,6 +531,21 @@ mod layout_tests {
         assert!(lines[0].ends_with("第 2 页"));
         assert!(lines[1].starts_with("1.你  2.您"));
         assert!(lines[1].ends_with("‹ ›"));
+    }
+
+    #[test]
+    fn measured_width_uses_supplied_measure() {
+        let candidates = vec!["你".to_string(), "您".to_string()];
+        let width = required_width_with(
+            "wqiy",
+            &candidates,
+            PageInfo::default(),
+            CandidateLayout::Single,
+            6,
+            |text| text.chars().count() as f32 * 10.0,
+        );
+        assert!(width >= POPUP_MIN_W);
+        assert!(width <= POPUP_MAX_W);
     }
 
     #[test]
