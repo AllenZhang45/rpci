@@ -48,6 +48,7 @@ XDG_CACHE_HOME="$TMP/cache" \
 RPCI_IME_BIN_DIR="$TMP/fakebin" \
 RPCI_IME_SETUP="$TMP/root/usr/bin/rpci-ime-setup" \
 RPCI_IME_SCHEMA_DIR="$TMP/root/usr/share/rpci/rime" \
+RPCI_IME_VERSION="$VERSION" \
 RPCI_IME_SYSTEM_PACKAGE=1 \
     "$TMP/root/usr/bin/rpci-ime-launch"
 test -f "$TMP/marker"
