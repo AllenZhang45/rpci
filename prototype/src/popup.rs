@@ -125,6 +125,36 @@ fn pad_page_right(mut line: String, right: &str, width: u32) -> String {
     line
 }
 
+#[derive(Clone, Debug)]
+pub struct CandidateView {
+    pub preedit: String,
+    pub candidates: Vec<String>,
+    pub page: PageInfo,
+    pub layout: CandidateLayout,
+    pub candidate_count: usize,
+}
+
+impl CandidateView {
+    pub fn is_empty(&self) -> bool {
+        self.preedit.is_empty() && self.candidates.is_empty()
+    }
+
+    pub fn desired_height(&self) -> u32 {
+        popup_height(self.layout, self.candidate_count)
+    }
+
+    pub fn lines(&self, width: u32) -> Vec<String> {
+        compose_lines(
+            &self.preedit,
+            &self.candidates,
+            self.page,
+            self.layout,
+            self.candidate_count,
+            width,
+        )
+    }
+}
+
 pub fn compose_lines(
     preedit: &str,
     candidates: &[String],
@@ -232,9 +262,9 @@ pub struct PopupRenderer {
     swash_cache: SwashCache,
     text_buffer: Buffer,
     surface: wl_surface::WlSurface,
-    _buffer: wl_buffer::WlBuffer,
-    _pool: wl_shm_pool::WlShmPool,
-    mmap: MmapMut,
+    _buffer: Option<wl_buffer::WlBuffer>,
+    _pool: Option<wl_shm_pool::WlShmPool>,
+    mmap: Option<MmapMut>,
     theme: Theme,
     pixel_width: u32,
     pixel_height: u32,
@@ -243,15 +273,7 @@ pub struct PopupRenderer {
 }
 
 impl PopupRenderer {
-    pub fn new(
-        surface: wl_surface::WlSurface,
-        buffer: wl_buffer::WlBuffer,
-        pool: wl_shm_pool::WlShmPool,
-        mmap: MmapMut,
-        preference: ThemePreference,
-        logical_width: u32,
-        logical_height: u32,
-    ) -> Self {
+    pub fn new(surface: wl_surface::WlSurface, preference: ThemePreference) -> Self {
         let mut font_system = FontSystem::new();
         let text_buffer = Buffer::new(
             &mut font_system,
@@ -263,14 +285,14 @@ impl PopupRenderer {
             swash_cache: SwashCache::new(),
             text_buffer,
             surface,
-            _buffer: buffer,
-            _pool: pool,
-            mmap,
+            _buffer: None,
+            _pool: None,
+            mmap: None,
             theme: Theme::detect(preference),
-            pixel_width: logical_width * POPUP_SCALE,
-            pixel_height: popup_pixel_height(logical_height),
-            logical_width,
-            logical_height,
+            pixel_width: 0,
+            pixel_height: 0,
+            logical_width: 0,
+            logical_height: 0,
         }
     }
 
@@ -282,9 +304,9 @@ impl PopupRenderer {
         logical_width: u32,
         logical_height: u32,
     ) {
-        self._buffer = buffer;
-        self._pool = pool;
-        self.mmap = mmap;
+        self._buffer = Some(buffer);
+        self._pool = Some(pool);
+        self.mmap = Some(mmap);
         self.pixel_width = logical_width * POPUP_SCALE;
         self.pixel_height = popup_pixel_height(logical_height);
         self.logical_width = logical_width;
@@ -343,14 +365,20 @@ impl PopupRenderer {
     }
 
     pub fn draw_lines(&mut self, lines: &[&str]) {
+        let Some(buffer) = self._buffer.as_ref() else {
+            return;
+        };
+        let Some(mmap) = self.mmap.as_mut() else {
+            return;
+        };
         let width = self.pixel_width as usize;
         let height = self.pixel_height as usize;
         let mut canvas = vec![0u8; width * height * 4];
 
         if lines.iter().all(|line| line.is_empty()) {
             Self::save_debug_png(&canvas, width, height);
-            self.mmap.copy_from_slice(&canvas);
-            self.surface.attach(Some(&self._buffer), 0, 0);
+            mmap.copy_from_slice(&canvas);
+            self.surface.attach(Some(buffer), 0, 0);
             self.surface
                 .damage_buffer(0, 0, self.pixel_width as i32, self.pixel_height as i32);
             self.surface.commit();
@@ -450,8 +478,8 @@ impl PopupRenderer {
         }
 
         Self::save_debug_png(&canvas, width, height);
-        self.mmap.copy_from_slice(&canvas);
-        self.surface.attach(Some(&self._buffer), 0, 0);
+        mmap.copy_from_slice(&canvas);
+        self.surface.attach(Some(buffer), 0, 0);
         self.surface
             .damage_buffer(0, 0, self.pixel_width as i32, self.pixel_height as i32);
         self.surface.commit();
@@ -559,6 +587,43 @@ mod layout_tests {
         };
         let lines = compose_lines("", &[], page, CandidateLayout::TwoRow, 6, 200);
         assert!(lines.is_empty());
+    }
+
+    #[test]
+    fn candidate_view_owns_composition_and_size() {
+        let view = CandidateView {
+            preedit: "wqiy".to_string(),
+            candidates: vec!["你".to_string(), "您".to_string()],
+            page: PageInfo::default(),
+            layout: CandidateLayout::TwoRow,
+            candidate_count: 6,
+        };
+        assert!(!view.is_empty());
+        assert_eq!(
+            view.desired_height(),
+            popup_height(CandidateLayout::TwoRow, 6)
+        );
+        let lines = view.lines(520);
+        assert_eq!(lines.len(), 2);
+        assert!(lines[0].starts_with("wqiy"));
+        assert!(lines[1].starts_with("1.你  2.您"));
+    }
+
+    #[test]
+    fn empty_candidate_view_is_hidden() {
+        let view = CandidateView {
+            preedit: String::new(),
+            candidates: Vec::new(),
+            page: PageInfo {
+                page_no: 0,
+                page_size: 5,
+                is_last_page: false,
+            },
+            layout: CandidateLayout::TwoRow,
+            candidate_count: 6,
+        };
+        assert!(view.is_empty());
+        assert!(view.lines(520).is_empty());
     }
 
     #[test]
