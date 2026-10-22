@@ -54,21 +54,29 @@
 
 ## 发布检查清单
 
-- [ ] `prototype/scripts/test-physical.sh` 通过
-- [ ] `prototype/scripts/test-doctor.sh` 通过
-- [ ] `rpci-ime-doctor` 对真实会话通过
-- [ ] `cargo test -p ime-probe` 通过
-- [ ] `cargo test -p rpci-settings-iced` 通过
-- [ ] `prototype/packaging/test-deb.sh` 通过
-- [ ] `prototype/packaging/test-repo.sh` 通过
-- [ ] 连续 3 天没有新的 P0/P1
-- [ ] 公共 APT 的候选版本与 Release 资产一致
+- [x] `prototype/scripts/test-physical.sh` 通过（2026-10-23）
+- [x] `prototype/scripts/test-doctor.sh` 通过（2026-10-23）
+- [x] `rpci-ime-doctor` 对真实会话通过（2026-10-23）
+- [x] `cargo test -p ime-probe` 通过（35 passed）
+- [x] `cargo test -p rpci-settings-iced` 通过（4 passed）
+- [x] `prototype/packaging/test-deb.sh` 通过
+- [x] `prototype/packaging/test-repo.sh` 通过
+- [ ] 连续 3 天没有新的 P0/P1（进行中）
+- [ ] 公共 APT 的候选版本与 Release 资产一致（发布时检查）
 
 ## 观察记录
 
 | 日期 | 版本 | 级别 | 应用 | 现象 | 状态 |
 |---|---|---|---|---|---|
-| 2026-10-23 | 0.1.3 | - | - | 观察期开始前，等待 0.1.4 候选版本 | 未开始 |
+| 2026-10-23 | 0.1.4 | - | cosmic-edit / 日常会话 | 安装 0.1.4 候选包，doctor 与物理键盘检查通过 | 观察中（第 1 天） |
+
+## 观察期状态
+
+- 开始日期：2026-10-23
+- 当前安装：`rpci-ime 0.1.4`（候选，未发布）
+- 已通过：doctor、物理键盘检查、包/仓库测试
+- 最早评估日期：2026-10-25 结束后，即 2026-10-26
+- 评估条件：2026-10-23、24、25 三个自然日有真实使用，且没有新的 P0/P1
 
 ## 停止扩展
 
