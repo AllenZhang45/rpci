@@ -1,7 +1,7 @@
-# 协议能力审计（COSMIC 1.10.0）
+# 协议能力审计（COSMIC 1.11.0）
 
-> 日期：2026-10-20
-> 环境：Pop!_OS 24.04 / COSMIC Epoch 1.10.0 / Wayland
+> 日期：2026-10-23
+> 环境：Pop!_OS 24.04 / COSMIC Epoch 1.11.0 / Wayland
 > 目标：确认 `zwp_input_method_v2` 相关协议在目标版本的真实可用性，而不是只依据协议名称。
 
 ## Wayland 全局
@@ -24,8 +24,22 @@
 - **键盘抓取**：激活后 `grab_keyboard` 成功，xkb keymap 从 fd 加载。
 - **提交**：`commit_string` 在验证应用中上屏。
 - **候选窗**：`input_popup_surface` 创建成功，键盘事件中的光标矩形驱动位置；候选窗可渲染并提交。
-- **透传**：方向键、Ctrl 组合、F1 通过释放 grab + `zwp_virtual_keyboard_v1` 注入，再重新 grab。
+- **透传**：非修饰键在物理释放后通过 `zwp_virtual_keyboard_v1` 发送完整 tap，再重新 grab；修饰键仍即时转发。
 - **扩展协议**：`wp_fractional_scale_manager_v1` 存在；候选窗目前固定 2x，未接 fractional scale。
+
+## COSMIC 1.11 virtual-keyboard 变化
+
+1.11 的 `cosmic-comp`：
+
+- #2925：更新 Smithay virtual-keyboard API 和 keymap 处理。
+- #2944：IME 产生的 virtual-keyboard 事件不再回送给 IME grab。
+- #2928 / cosmic-osk #55：OSK 激活改用私有 D-Bus signal。
+
+对客户端 API 透明，本项目仍使用标准 `zwp_virtual_keyboard_v1`。在 1.11 上实测：
+
+- `Ctrl+Space` 切换正常。
+- 物理键盘（uinput 模拟）英文 `abc` 正常进入 cosmic-edit。
+- 0.1.2 的 tap-on-release 方案继续有效；暂不切回即时转发。
 
 ## 单 seat 单输入法
 
@@ -36,11 +50,11 @@ IM event: Unavailable
 another input method is already active on this seat; exiting
 ```
 
-结论：COSMIC 1.10 强制执行一个 seat 一个 `zwp_input_method_v2` 对象。第二个实例不能静默接管；当前实现选择直接退出。
+结论：COSMIC 1.11 仍强制执行一个 seat 一个 `zwp_input_method_v2` 对象。第二个实例不能静默接管；当前实现选择直接退出。
 
 ## cosmic-osk 共存
 
-- 系统正在运行 `cosmic-osk` 1.10.0（PID 1826）。
+- 系统正在运行 `cosmic-osk` 1.11.0；1.11 起 OSK 激活走私有 D-Bus signal。
 - `cosmic-osk` 二进制包含 `zwp_text_input_v3` / `get_text_input` 路径，是 text-input 的**客户端**；未发现它绑定 `zwp_input_method_v2` 的证据。
 - 当前会话中，本项目输入法持有 input-method 槽位，同时 `cosmic-osk` 运行，没有观察到两者同时争抢槽位。
 - 仍未验证：如果 `cosmic-osk` 在未来版本改为占用 input-method 槽位，或启动顺序改变，第三方输入法可能收到 `Unavailable`。这需要上游确认仲裁策略。
@@ -55,7 +69,7 @@ another input method is already active on this seat; exiting
 
 ## 结论
 
-第一层（协议）当前实现符合 `zwp_input_method_v2` + `zwp_text_input_v3` + `zwp_input_popup_surface_v2` 的基本工作流，并在 COSMIC 1.10 上实际工作。需要持续审计：
+第一层（协议）当前实现符合 `zwp_input_method_v2` + `zwp_text_input_v3` + `zwp_input_popup_surface_v2` 的基本工作流，并在 COSMIC 1.11 上实际工作。需要持续审计：
 
 1. fractional scale / 多显示器 / 屏幕边缘；
 2. `cosmic-osk` 的槽位仲裁；

@@ -2,6 +2,22 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.1.3] - 2026-10-23
+
+### Added
+
+- COSMIC Epoch 1.11 兼容性审计：[docs/COSMIC-1.11-AUDIT.md](docs/COSMIC-1.11-AUDIT.md)。
+- 在 1.11 上验证中文、`Ctrl+Space`、物理键盘英文透传和 applet。
+
+### Fixed
+
+- COSMIC 1.11 升级重置 Panel 配置后，applet 不再出现：launcher 只检查 active 配置，忽略 `.bak`，并重新放入顶部 Panel 右侧。
+- launcher 在旧的 Dock/center 配置中清理重复 applet。
+
+### Changed
+
+- 文档基线从 COSMIC 1.10 更新到 1.11。
+
 ## [0.1.2] - 2026-10-20
 
 ### Added

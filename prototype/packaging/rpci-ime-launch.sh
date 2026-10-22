@@ -15,20 +15,29 @@ fi
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
 APP_ID="com.github.alec.RpciImeApplet"
-if ! grep -Rq "$APP_ID" "$CONFIG_HOME"/cosmic/com.system76.CosmicPanel.*/v1/plugins_* 2>/dev/null; then
-    WINGS="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
-    if [ -f "$WINGS" ] && grep -q '"com.system76.CosmicAppletInputSources"' "$WINGS"; then
+WINGS="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
+CENTER="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_center"
+DOCK="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
+
+# COSMIC major upgrades can reset the panel config. Check only active files,
+# never .bak files, and keep the applet in the top Panel's right wing.
+if [ -f "$WINGS" ] && grep -q '"com.system76.CosmicAppletInputSources"' "$WINGS"; then
+    if ! grep -q "$APP_ID" "$WINGS"; then
+        for f in "$CENTER" "$DOCK" "$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_wings"; do
+            [ -f "$f" ] && sed -i "/$APP_ID/d" "$f" 2>/dev/null || true
+        done
         cp "$WINGS" "$WINGS.bak.rpci" 2>/dev/null || true
         sed -i "/\"com.system76.CosmicAppletInputSources\"/i\    \"$APP_ID\"," "$WINGS" 2>/dev/null || true
-    else
-        PANEL="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_center"
-        if [ ! -f "$PANEL" ]; then
-            PANEL="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"
-        fi
-        if [ -f "$PANEL" ]; then
-            cp "$PANEL" "$PANEL.bak.rpci" 2>/dev/null || true
-            sed -i "/^])/i\    \"$APP_ID\"," "$PANEL" 2>/dev/null || true
-        fi
+    fi
+elif [ -f "$CENTER" ]; then
+    if ! grep -q "$APP_ID" "$CENTER"; then
+        cp "$CENTER" "$CENTER.bak.rpci" 2>/dev/null || true
+        sed -i "/^])/i\    \"$APP_ID\"," "$CENTER" 2>/dev/null || true
+    fi
+elif [ -f "$DOCK" ]; then
+    if ! grep -q "$APP_ID" "$DOCK"; then
+        cp "$DOCK" "$DOCK.bak.rpci" 2>/dev/null || true
+        sed -i "/^])/i\    \"$APP_ID\"," "$DOCK" 2>/dev/null || true
     fi
 fi
 

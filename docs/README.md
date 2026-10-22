@@ -16,7 +16,8 @@
 | 文档 | 内容 |
 |---|---|
 | [STATUS.md](STATUS.md) | 当前能力、测试基线、限制 |
-| [PROTOCOL-AUDIT.md](PROTOCOL-AUDIT.md) | Wayland input-method 协议与 COSMIC 1.10 实测 |
+| [PROTOCOL-AUDIT.md](PROTOCOL-AUDIT.md) | Wayland input-method 协议与 COSMIC 1.11 实测 |
+| [COSMIC-1.11-AUDIT.md](COSMIC-1.11-AUDIT.md) | COSMIC 1.11 变更、兼容性与 Panel 重置处理 |
 | [XDG-AUDIT.md](XDG-AUDIT.md) | 配置/数据/缓存/运行时路径 |
 | [UI-AUDIT.md](UI-AUDIT.md) | iced 设置、候选窗 HIG、协议约束 |
 | [APP-MATRIX.md](APP-MATRIX.md) | 应用兼容性矩阵 |

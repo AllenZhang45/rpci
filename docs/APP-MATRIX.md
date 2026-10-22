@@ -15,9 +15,9 @@
 | 应用 | 版本 | 工具链 | 会话 | 激活 | 提交 | 备注 |
 |---|---|---|---|---|---|---|
 | 合成 text-input 客户端 | 本仓库 | SCTK | Wayland | ✅ | ✅ | 收到 `COMMIT "你"` |
-| cosmic-edit | 1.10.0 | libcosmic | Wayland | ✅ | ✅ | Ctrl+S 后文件为 `你` |
+| cosmic-edit | 1.11.0 | libcosmic | Wayland | ✅ | ✅ | Ctrl+S 后文件为 `你` |
 | LibreOffice Writer | 24.2.7 | GTK3 | Wayland | ✅ | ✅ | ODT `content.xml` 含 `你` |
-| cosmic-term | 1.10.0 | libcosmic | Wayland | ✅ | ⚠️ | 提交未进 PTY |
+| cosmic-term | 1.11.0 | libcosmic | Wayland | ✅ | ⚠️ | 提交未进 PTY（1.10 结论，1.11 待复测） |
 | Firefox | 158.0 | Gecko | Wayland | ❌ | — | 未收到 `Activate`，见 [FIREFOX.md](FIREFOX.md) |
 | xterm | 390 | X11 / XWayland | XWayland | ❌ | — | 无 XIM 服务端；见 [XWAYLAND-AUDIT.md](XWAYLAND-AUDIT.md) |
 | Qt6 textedit/lineedits | 6.4.2 | Qt6 / QtWayland | Wayland | ❌ | — | 客户端只支持 v1/v2，不支持 text-input-v3；见 [QT6-AUDIT.md](QT6-AUDIT.md) |

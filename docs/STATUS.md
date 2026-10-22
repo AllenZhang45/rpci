@@ -9,7 +9,7 @@
 ## 技术栈
 
 - Rust 2024，单进程 Wayland 客户端
-- COSMIC Epoch 1.10 / Pop!_OS 24.04
+- COSMIC Epoch 1.11 / Pop!_OS 24.04
 - RIME（Wubi86 + Pinyin 兜底）
 - `zwp_input_method_v2`、`zwp_text_input_v3`、`zwp_input_popup_surface_v2`
 - 候选窗：raw `wl_shm` + cosmic-text，COSMIC HIG 风格
