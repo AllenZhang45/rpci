@@ -10,8 +10,8 @@
 
 | 范围 | 版本 |
 |---|---|
-| 公共 Release / APT | `0.1.4` |
-| 工作区源码 | `0.1.5`，开发中 |
+| 公共 Release / APT | `0.1.5` |
+| 工作区源码 | `0.1.5` |
 | 本机已安装包 | 用 `dpkg-query -W -f='${Version}' rpci-ime` 或 `rpci-ime-doctor` 查看 |
 
 ## 技术栈

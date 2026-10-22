@@ -18,7 +18,7 @@ dist/apt/
   dists/stable/Release.gpg
   dists/stable/main/binary-amd64/Packages
   dists/stable/main/binary-amd64/Packages.gz
-  pool/main/r/rpci-ime/rpci-ime_0.1.4_amd64.deb
+  pool/main/r/rpci-ime/rpci-ime_0.1.5_amd64.deb
   rpci-ime-archive-keyring.asc
   rpci-ime-archive-keyring.gpg
   gnupg/                      # 默认本地测试密钥，不要提交或公开
@@ -90,7 +90,7 @@ sudo apt install --only-upgrade rpci-ime
 
 ```bash
 sudo apt update
-sudo apt install rpci-ime=0.1.4
+sudo apt install rpci-ime=0.1.5
 ```
 
 或先禁止自动升级：
@@ -109,13 +109,13 @@ systemctl --user restart 'app-rpci\x2dime@autostart.service'
 
 `test-repo.sh` 会：
 
-- 生成 0.1.4 包和一个仅改版本号的 0.1.5 测试包
+- 生成 0.1.5 包和一个仅改版本号的 0.1.6 测试包
 - 构建并签名仓库
 - 用 `gpgv` 验证 `InRelease`
 - 在隔离的 APT 目录中 `apt-get update`
-- 断言候选版本为 0.1.4
-- 断言默认安装解析到 0.1.4
-- 断言 `rpci-ime=0.1.4` 解析到 0.1.2
+- 断言候选版本为 0.1.5
+- 断言默认安装解析到 0.1.5
+- 断言 `rpci-ime=0.1.5` 解析到 0.1.2
 
 在无 root 环境下使用宿主 `/var/lib/dpkg/status` 做依赖解析，不实际安装包。
 
@@ -125,4 +125,4 @@ systemctl --user restart 'app-rpci\x2dime@autostart.service'
 - 未做仓库内的自动构建/发布 CI
 - `.deb` 本身未做二进制签名；当前签名保护的是 APT 元数据
 - 仅 amd64
-- 仓库的 0.1.5 仅用于升级/回滚验证，内容与 0.1.4 相同
+- 仓库的 0.1.6 仅用于升级/回滚验证，内容与 0.1.5 相同
