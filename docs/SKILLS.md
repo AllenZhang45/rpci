@@ -23,6 +23,44 @@
 | `grill-me` | 只要 grilling 的入口 | 路由到 `grilling` |
 | `grill-with-docs` | grilling + 领域文档 | 路由到 `grilling` + `domain-modeling`，决策落 GLOSSARY/ADR |
 
+## DSH 全局技能库
+
+除项目内的 9 个技能外，2026-10-23 将上游稳定的 engineering/productivity 技能安装到了 DSH 用户目录：
+
+```text
+~/.dsh/skills/
+```
+
+- 来源：[mattpocock/skills](https://github.com/mattpocock/skills)
+- commit：`5beb35b040e3de97e54fa9e386d7e42d15c295c2`
+- 排除：`setup-matt-pocock-skills`（会改 DSH 配置）
+- 许可：MIT，见 `~/.dsh/skills/LICENSE-mattpocock-skills`
+
+为了能从 DSH 显式调用，已移除全局副本中的 `disable-model-invocation: true`；上游原本把这些技能设计为“仅用户可调用”。这是本项目对 DSH 的适配，不改变项目内 `.agents/skills` 的同名技能。
+
+DSH 的查找顺序是项目优先：
+
+```text
+.agents/skills/<name>   # 本项目，rank 200
+~/.dsh/skills/<name>    # 全局，rank 400
+```
+
+因此 `tdd`、`grilling`、`grill-with-docs`、`diagnosing-bugs` 等仍使用项目内版本。
+
+### 全局技能的本项目用法
+
+| 全局技能 | RPCI 中的用途 |
+|---|---|
+| `to-spec` | 把 grilling 共识写成 `docs/` 下的可验收规格；本项目没有 issue tracker，不发布到外部 tracker |
+| `to-tickets` | 拆成 todo / 任务清单；不创建外部 ticket |
+| `implement`、`implement-spec` | 按规格实现；仍必须遵守 AGENTS.md 的测试和 commit 要求 |
+| `improve-codebase-architecture` | 扫描 `engine`、`popup`、`paths`、`main` 等模块的耦合 |
+| `research` | 查 Wayland/COSMIC/RIME 上游资料，结果写入 `docs/` |
+| `pr` | 写 PR 描述 |
+| `triage`、`wayfinder`、`wizard`、`retro`、`handoff` 等 | 按需使用；本项目当前没有 issue tracker，外部动作前先确认 |
+
+“按需调用”指任务匹配时再加载对应技能，不代表每次任务都跑完整流程。
+
 ## 全自动模式适配
 
 这些技能默认假设可以随时向用户确认。本项目在“全自动开发”模式下采用以下规则：
@@ -32,6 +70,7 @@
 - `diagnosing-bugs`：保留复现、最小化、假设、验证的循环；跳过交互式 HITL 脚本，改为记录证据。
 - `tdd`、`code-review`、`diagnosing-bugs` 仍按全自动模式执行；`grilling` 是例外，必须由用户显式触发并等待回答。
 - 任何技能都不得覆盖 [AGENTS.md](../AGENTS.md) 的提交和测试要求。
+- 全局技能中的 `to-spec` / `to-tickets` 默认面向 issue tracker；本项目改写为 `docs/` 和 todo，不擅自创建外部 issue。
 
 ## Grilling 项目适配
 
