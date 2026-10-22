@@ -4,7 +4,7 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 [
 
 [![Release](https://img.shields.io/github/v/release/AllenZhang45/rpci)](https://github.com/AllenZhang45/rpci/releases)
 
-> 当前公共版本 `0.1.5`。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
+> 当前公共版本 `0.1.5`；工作区 `0.1.6` 开发中。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
 
 ## 特性
 
@@ -215,6 +215,16 @@ cargo test -p rpci-settings-iced
 - XWayland 需要 XIM，当前不支持，详见 [docs/XWAYLAND-AUDIT.md](docs/XWAYLAND-AUDIT.md)
 - Panel applet 尚无 AccessKit/AT-SPI 屏幕阅读器支持
 - 仅 amd64
+
+## 许可证
+
+本项目代码、文档和打包配置使用 **GPL-3.0-or-later**。
+
+- [LICENSE](LICENSE)
+- [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md)
+- [LICENSES/](LICENSES/)
+
+第三方组件保留原许可证，尤其是 RIME 词库和 librime 依赖。详见第三方清单。
 
 ## 依赖与致谢
 

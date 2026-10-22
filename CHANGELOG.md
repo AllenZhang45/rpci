@@ -2,6 +2,12 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Changed
+
+- 项目代码、文档和打包配置改为 GPL-3.0-or-later；新增第三方许可证清单和打包内许可证文件。
+
 ## [0.1.5] - 2026-10-23
 
 ### Added

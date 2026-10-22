@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${VERSION:-0.1.5}"
+VERSION="${VERSION:-0.1.6}"
 DIST="$ROOT/dist"
 STAGE="$DIST/rpci-ime"
 PACKAGE="$DIST/rpci-ime_${VERSION}_amd64.deb"
@@ -92,6 +92,10 @@ DESKTOP
 
 cp "$ROOT/prototype/README.md" "$STAGE/usr/share/doc/rpci-ime/README.md"
 cp "$ROOT/docs/STATUS.md" "$STAGE/usr/share/doc/rpci-ime/STATUS.md"
+cp "$ROOT/LICENSE" "$STAGE/usr/share/doc/rpci-ime/copyright"
+cp "$ROOT/THIRD-PARTY-LICENSES.md" "$STAGE/usr/share/doc/rpci-ime/THIRD-PARTY-LICENSES.md"
+mkdir -p "$STAGE/usr/share/doc/rpci-ime/LICENSES"
+cp "$ROOT"/LICENSES/* "$STAGE/usr/share/doc/rpci-ime/LICENSES/"
 
 INSTALLED_SIZE="$(du -sk "$STAGE" | cut -f1)"
 cat > "$STAGE/DEBIAN/control" <<CONTROL

@@ -3,7 +3,7 @@ set -euo pipefail
 trap 'code=$?; echo "::error title=test-deb failed::line $LINENO exit $code"' ERR
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${VERSION:-0.1.5}"
+VERSION="${VERSION:-0.1.6}"
 PACKAGE="${1:-$ROOT/dist/rpci-ime_${VERSION}_amd64.deb}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -15,6 +15,9 @@ dpkg-deb --extract "$PACKAGE" "$TMP/root"
 for bin in ime-probe ime-settings ime-settings-gui ime-settings-iced ime-applet rpci-ime-launch rpci-ime-setup rpci-ime-doctor; do
     test -x "$TMP/root/usr/bin/$bin" || { echo "missing $bin" >&2; exit 1; }
 done
+test -f "$TMP/root/usr/share/doc/rpci-ime/copyright"
+test -f "$TMP/root/usr/share/doc/rpci-ime/THIRD-PARTY-LICENSES.md"
+test -f "$TMP/root/usr/share/doc/rpci-ime/LICENSES/LGPL-3.0-rime-wubi.txt"
 test -f "$TMP/root/usr/share/rpci/version"
 grep -qx "$VERSION" "$TMP/root/usr/share/rpci/version"
 for schema in wubi86.schema.yaml wubi86.dict.yaml pinyin_simp.schema.yaml pinyin_simp.dict.yaml default.custom.yaml; do

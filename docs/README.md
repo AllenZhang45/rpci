@@ -47,6 +47,7 @@
 | [EVIDENCE-AUDIT.md](EVIDENCE-AUDIT.md) | 代码、协议、上游文档与依赖行为的事实核对 |
 | [INPUT-QUALITY.md](INPUT-QUALITY.md) | v0.1.4 之后的输入质量 backlog 与优先级 |
 | [VSCODE.md](VSCODE.md) | VS Code Wayland IME flags 与 permanent desktop override |
+| [../THIRD-PARTY-LICENSES.md](../THIRD-PARTY-LICENSES.md) | 第三方组件许可证与来源 |
 | [APT-PAGES.md](APT-PAGES.md) | GitHub Pages 公共 HTTPS APT 部署 |
 | [SKILLS.md](SKILLS.md) | DSH 工程技能来源、适用条件与全自动适配 |
 
