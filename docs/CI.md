@@ -19,8 +19,9 @@ git push origin v0.1.4
 2. 安装构建依赖
 3. 使用 tag 版本执行完整 `prototype/scripts/ci.sh`
 4. 构建签名 APT 仓库并打包
-5. 创建/更新 GitHub Release，附加 `.deb` + `rpci-ime-apt-repo.tar.gz`
-6. 触发 APT Pages 更新公共仓库
+5. 从 `CHANGELOG.md` 提取当前 `## [X.Y.Z]` 段落，作为 GitHub Release 更新日志
+6. 创建/更新 GitHub Release，附加 `.deb` + `rpci-ime-apt-repo.tar.gz`
+7. 触发 APT Pages 更新公共仓库
 
 ## 本地验证
 
@@ -51,6 +52,16 @@ cargo test --locked -p rpci-settings-iced
 - `APT_GPG_KEY_ID`：key ID/fingerprint，可留空自动推导
 
 缺少签名密钥时 Release 会失败，避免发布未签名仓库。
+
+## Release 更新日志
+
+发版前必须先把 `CHANGELOG.md` 的 `## [Unreleased]` 改成：
+
+```text
+## [X.Y.Z] - YYYY-MM-DD
+```
+
+Release 工作流会提取该段落写入 GitHub Release body。找不到对应版本段落时回退到 GitHub 自动生成说明。
 
 ## 不覆盖
 
