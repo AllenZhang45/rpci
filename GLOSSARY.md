@@ -1,15 +1,55 @@
-# 术语表
+# RPCI IME
 
-供 Agent 技能和文档共享的简短词汇。详细状态见 [docs/STATUS.md](docs/STATUS.md)。
+COSMIC 桌面上的本地中文输入法；本文件只定义领域词汇，不记录实现或规格。
 
-- **Engine / `HybridEngine`**：输入状态与五笔/拼音策略；不依赖 Wayland 或 UI。
-- **Wubi**：五笔 86；RIME schema `wubi86`。
-- **Pinyin fallback**：超过 4 码或没有五笔候选时使用 `pinyin_simp`。
-- **Candidate popup**：`input_popup_surface` 上的候选条；不是普通 GUI 窗口。
-- **Status applet**：COSMIC Dock 中的 iced applet，显示 `中 五` / `中 拼` / `英`。
-- **Control socket**：`$XDG_RUNTIME_DIR/rpci/control.sock`，applet 用它发送 `toggle`。
-- **State file**：`$XDG_RUNTIME_DIR/rpci/state`，IME 发布当前状态给 applet。
-- **XDG paths**：配置 `~/.config/rpci`、数据 `~/.local/share/rpci`、缓存 `~/.cache/rpci`。
-- **Protocol audit**：COSMIC 1.10 上 input-method/text-input/popup 的实际能力记录。
+## Language
 
-领域文档入口：[docs/README.md](docs/README.md)。
+**Input session**:
+一次从输入法激活到取消或失活的输入上下文。
+_Avoid_: Connection, client session
+
+**Composition**:
+尚未提交到应用的候选输入状态，包括预编辑文本和候选列表。
+_Avoid_: Preedit buffer, pending text
+
+**Candidate**:
+当前组合中可被选择并提交的一项文本。
+_Avoid_: Suggestion, completion
+
+**Commit**:
+把选定文本正式写入应用的行为。
+_Avoid_: Send, insert
+
+**Wubi**:
+以五笔 86 码表为基础的形码输入方式。
+_Avoid_: Shape input, Wubi 98
+
+**Pinyin fallback**:
+在五笔没有可用结果时切换到拼音输入的策略，不是独立的拼音模式。
+_Avoid_: Pinyin mode, mixed mode
+
+**Mode**:
+输入法当前的输入/透传状态，例如中文五笔或英文透传。
+_Avoid_: Layout, keyboard state
+
+**Passthrough**:
+把按键交给应用处理而不提交中文文本的行为。
+_Avoid_: Forward, raw mode
+
+**Panel applet**:
+位于 COSMIC 顶部 Panel 的只读输入法状态显示。
+_Avoid_: Dock icon, tray applet
+
+**Status state**:
+输入法发布给 applet 的简短状态，例如 `中 五` 或 `英`。
+_Avoid_: Badge, indicator
+
+**Control request**:
+外部组件要求输入法执行的状态切换请求。
+_Avoid_: IPC command, signal
+
+**Protocol audit**:
+对目标 COSMIC 版本实际暴露的 Wayland 输入法能力所做的记录。
+_Avoid_: Protocol spec, API list
+
+领域状态入口：[docs/STATUS.md](docs/STATUS.md)。
