@@ -32,6 +32,7 @@ install -Dm755 target/release/rpci-settings-iced "$STAGE/usr/bin/ime-settings-ic
 install -Dm755 target/release/applet "$STAGE/usr/bin/ime-applet"
 install -Dm755 prototype/packaging/rpci-ime-launch.sh "$STAGE/usr/bin/rpci-ime-launch"
 install -Dm755 prototype/packaging/rpci-ime-doctor.sh "$STAGE/usr/bin/rpci-ime-doctor"
+printf '%s\n' "$VERSION" > "$STAGE/usr/share/rpci/version"
 install -Dm755 prototype/scripts/setup-rime.sh "$STAGE/usr/bin/rpci-ime-setup"
 
 # Build the RIME schema payload from the same schema sources as the installer.

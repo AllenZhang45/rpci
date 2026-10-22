@@ -11,6 +11,7 @@
 - 只读诊断命令 `rpci-ime-doctor`。
 - 版本变化时自动创建 RIME/配置快照，校验失败则阻止启动。
 - 设计与依赖证据审计：[docs/EVIDENCE-AUDIT.md](docs/EVIDENCE-AUDIT.md)。
+- `rpci-ime-doctor` 校验 `/usr/share/rpci/version` 与已安装包版本是否一致。
 
 ### Changed
 

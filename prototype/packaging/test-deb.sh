@@ -14,6 +14,8 @@ dpkg-deb --extract "$PACKAGE" "$TMP/root"
 for bin in ime-probe ime-settings ime-settings-gui ime-settings-iced ime-applet rpci-ime-launch rpci-ime-setup rpci-ime-doctor; do
     test -x "$TMP/root/usr/bin/$bin" || { echo "missing $bin" >&2; exit 1; }
 done
+test -f "$TMP/root/usr/share/rpci/version"
+grep -qx "$VERSION" "$TMP/root/usr/share/rpci/version"
 for schema in wubi86.schema.yaml wubi86.dict.yaml pinyin_simp.schema.yaml pinyin_simp.dict.yaml default.custom.yaml; do
     test -f "$TMP/root/usr/share/rpci/rime/$schema" || { echo "missing $schema" >&2; exit 1; }
 done

@@ -31,7 +31,8 @@ dist/rpci-ime_0.1.3_amd64.deb
 | `/usr/bin/ime-settings-gui` | SCTK 兼容设置窗口 |
 | `/usr/bin/ime-applet` | COSMIC 顶部 Panel 只读 applet |
 | `/usr/bin/rpci-ime-launch` | 初始化 RIME、维护 applet、版本变化时快照，然后启动 IME |
-| `/usr/bin/rpci-ime-doctor` | 只读安装健康检查 |
+| `/usr/bin/rpci-ime-doctor` | 只读安装健康检查，含版本匹配 |
+| `/usr/share/rpci/version` | 构建时写入的期望版本，供 doctor 校验 |
 | `/usr/bin/rpci-ime-setup` | 把 schema 复制到用户 XDG data |
 | `/etc/xdg/autostart/rpci-ime.desktop` | 系统级 XDG autostart |
 | `/usr/share/applications/rpci-settings*.desktop` | 应用菜单入口 |

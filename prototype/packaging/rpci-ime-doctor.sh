@@ -36,9 +36,17 @@ warn() { printf 'WARN %s\n' "$*"; issues=1; }
 
 package_status="$(dpkg-query -W -f='${Status}' rpci-ime 2>/dev/null || true)"
 package_version="$(dpkg-query -W -f='${Version}' rpci-ime 2>/dev/null || true)"
+expected_version="${RPCI_DOCTOR_EXPECTED_VERSION:-}"
+if [ -z "$expected_version" ] && [ -f /usr/share/rpci/version ]; then
+    expected_version="$(sed -n '1p' /usr/share/rpci/version 2>/dev/null || true)"
+fi
 case "$package_status" in
     *"install ok installed"*)
-        ok "system package rpci-ime ${package_version:-unknown}"
+        if [ -n "$expected_version" ] && [ "$package_version" != "$expected_version" ]; then
+            warn "system package is ${package_version:-unknown}; expected ${expected_version}"
+        else
+            ok "system package rpci-ime ${package_version:-unknown}"
+        fi
         ;;
     *)
         warn "system package rpci-ime is not installed"

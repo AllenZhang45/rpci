@@ -6,6 +6,14 @@
 
 一个可安装、可自启动、能实际打字的 COSMIC 原生中文五笔/拼音输入法原型，已通过 cosmic-edit、LibreOffice 和合成 text-input 客户端的验证。
 
+## 版本状态
+
+| 范围 | 版本 |
+|---|---|
+| 公共 Release / APT | `0.1.3` |
+| 工作区源码 | `0.1.4`，未发布 |
+| 本机已安装包 | 用 `dpkg-query -W -f='${Version}' rpci-ime` 或 `rpci-ime-doctor` 查看 |
+
 ## 技术栈
 
 - Rust 2024，单进程 Wayland 客户端

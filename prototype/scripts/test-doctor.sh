@@ -33,6 +33,7 @@ XDG_CONFIG_HOME="$TMP/xdg" \
 XDG_DATA_HOME="$TMP/data" \
 XDG_RUNTIME_DIR="$TMP/runtime" \
 RPCI_DOCTOR_APT_SOURCES="$TMP/apt-sources" \
+RPCI_DOCTOR_EXPECTED_VERSION=0.1.3 \
 PATH="$TMP/bin:$PATH" \
     "$ROOT/prototype/packaging/rpci-ime-doctor.sh" >"$TMP/out" 2>"$TMP/err"
 grep -q 'doctor: all checks passed' "$TMP/out"
@@ -42,11 +43,24 @@ if XDG_CONFIG_HOME="$TMP/xdg" \
     XDG_DATA_HOME="$TMP/data" \
     XDG_RUNTIME_DIR="$TMP/runtime" \
     RPCI_DOCTOR_APT_SOURCES="$TMP/apt-sources" \
+    RPCI_DOCTOR_EXPECTED_VERSION=0.1.3 \
     PATH="$TMP/bin:$PATH" \
         "$ROOT/prototype/packaging/rpci-ime-doctor.sh" >"$TMP/out2" 2>&1; then
     echo "doctor should fail when applet is missing" >&2
     exit 1
 fi
 grep -q 'applet is not registered' "$TMP/out2"
+
+if XDG_CONFIG_HOME="$TMP/xdg" \
+    XDG_DATA_HOME="$TMP/data" \
+    XDG_RUNTIME_DIR="$TMP/runtime" \
+    RPCI_DOCTOR_APT_SOURCES="$TMP/apt-sources" \
+    RPCI_DOCTOR_EXPECTED_VERSION=9.9.9 \
+    PATH="$TMP/bin:$PATH" \
+        "$ROOT/prototype/packaging/rpci-ime-doctor.sh" >"$TMP/out3" 2>&1; then
+    echo "doctor should detect version mismatch" >&2
+    exit 1
+fi
+grep -q 'expected 9.9.9' "$TMP/out3"
 
 echo "doctor tests passed"

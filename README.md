@@ -5,7 +5,7 @@ COSMIC 原生五笔/拼音输入法，基于 Wayland `zwp_input_method_v2` 与 R
 [![CI](https://github.com/AllenZhang45/rpci/actions/workflows/ci.yml/badge.svg)](https://github.com/AllenZhang45/rpci/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/AllenZhang45/rpci)](https://github.com/AllenZhang45/rpci/releases)
 
-> 当前版本 `0.1.3`。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
+> 当前公共版本 `0.1.3`。工作区源码 `0.1.4` 尚未发布。这是个人使用的原型，不是通用发行版；安装前请先看[已知限制](#已知限制)。
 
 ## 特性
 
