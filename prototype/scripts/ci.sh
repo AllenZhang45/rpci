@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-trap 'code=$?; echo "::error title=CI failed::command failed at line $LINENO with exit $code"' ERR
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
