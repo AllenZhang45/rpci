@@ -48,6 +48,18 @@ _Avoid_: Badge, indicator
 外部组件要求输入法执行的状态切换请求。
 _Avoid_: IPC command, signal
 
+**Daily installation**:
+通过系统 APT 安装、由系统 autostart 启动的日常运行路径。
+_Avoid_: User install, local install
+
+**Developer build**:
+从源码构建、用于开发和调试的安装，不是日常运行路径。
+_Avoid_: Dev install, test install
+
+**Release gate**:
+发布前必须通过的本地验证，当前包括物理键盘 uinput 检查和真实使用观察。
+_Avoid_: CI gate, test suite
+
 **Protocol audit**:
 对目标 COSMIC 版本实际暴露的 Wayland 输入法能力所做的记录。
 _Avoid_: Protocol spec, API list

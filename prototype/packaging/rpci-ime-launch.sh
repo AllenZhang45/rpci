@@ -15,6 +15,27 @@ fi
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 case "$CONFIG_HOME" in /*) ;; *) CONFIG_HOME="$HOME/.config" ;; esac
 APP_ID="com.github.alec.RpciImeApplet"
+
+# One daily installation path: if the system package is installed, retire a
+# user-level autostart left over from a source install. Keep its data and
+# binaries; only the autostart is disabled.
+SYSTEM_PACKAGE="${RPCI_IME_SYSTEM_PACKAGE:-}"
+if [ -z "$SYSTEM_PACKAGE" ]; then
+    if command -v dpkg-query >/dev/null 2>&1 &&
+        dpkg-query -W -f='${Status}' rpci-ime 2>/dev/null | grep -q 'install ok installed'; then
+        SYSTEM_PACKAGE=1
+    else
+        SYSTEM_PACKAGE=0
+    fi
+fi
+if [ "$SYSTEM_PACKAGE" = 1 ]; then
+    USER_AUTOSTART="$CONFIG_HOME/autostart/rpci-ime.desktop"
+    if [ -f "$USER_AUTOSTART" ]; then
+        mv -f "$USER_AUTOSTART" "$USER_AUTOSTART.disabled-by-system-package"
+        printf '%s\n' "rpci-ime: disabled user-level autostart; using the system package" >&2
+    fi
+fi
+
 WINGS="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
 CENTER="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_center"
 DOCK="$CONFIG_HOME/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center"

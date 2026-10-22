@@ -1,6 +1,6 @@
 # 路线图
 
-> 状态：2026-10-20。当前事实以 [STATUS.md](STATUS.md) 为准；历史验证见 [history/](history/)。
+> 状态：2026-10-23。当前事实以 [STATUS.md](STATUS.md) 为准；历史验证见 [history/](history/)。
 > 本文件是唯一的路线图；`NEXT-STEPS.md` 已合并到这里。
 
 ## 已完成
@@ -15,7 +15,7 @@
 | 透传 / 中英切换 / 标点 | ✅ |
 | Enter 换行 | ✅ 中文模式经 `commit_string("\n")` |
 | 应用验证 | ✅ cosmic-edit、LibreOffice、合成 text-input 客户端 |
-| 测试 | ✅ `ime-probe` 34、`rpci-settings-iced` 2 |
+| 测试 | ✅ `ime-probe` 35、`rpci-settings-iced` 4 |
 
 ### 产品化基础
 
@@ -26,10 +26,27 @@
 | 配置 | ✅ XDG 路径 + CLI |
 | 设置界面 | ✅ iced 0.14 主入口；SCTK 回退 |
 | 词库备份/导出/导入 | ✅ CLI；GUI 支持备份 |
-| 状态指示 | ✅ COSMIC Panel Applet（iced，顶部 Panel） |
+| 状态指示 | ✅ 顶部 Panel 只读 SCTK applet |
 | Debian 包 | ✅ `.deb` 构建、解包和脚本验证 |
 | APT 仓库 | ✅ 签名、升级/回滚自动验证 |
 | 架构/审计 | ✅ ADR 0004、协议/XDG/UI 审计 |
+
+## 当前：v0.1.4 稳定收口（未发布）
+
+范围固定为：
+
+- COSMIC 1.11 launcher / applet 兼容
+- 单一系统 APT 安装
+- 物理键盘 uinput 回归脚本
+- 真实使用中的 P0/P1 输入问题
+
+不进入范围：用户词库、表情、更多输入方案、Qt6 workaround、XWayland、libcosmic applet。
+
+发布门槛：
+
+- `prototype/scripts/test-physical.sh` 通过
+- 至少 3 天日常使用没有新的 P0/P1 输入问题
+- 当前公共 APT 仍是稳定的 0.1.3，满足门槛后再升版本
 
 ## 下一阶段
 
@@ -157,6 +174,7 @@
 - [STATUS.md](STATUS.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [ADR 0004](adr/0004-three-layer.md)
+- [ADR 0005](adr/0005-system-apt-readonly-applet.md)
 - [PROTOCOL-AUDIT.md](PROTOCOL-AUDIT.md)
 - [XDG-AUDIT.md](XDG-AUDIT.md)
 - [UI-AUDIT.md](UI-AUDIT.md)

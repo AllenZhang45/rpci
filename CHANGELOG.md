@@ -2,6 +2,17 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+
+- 本地物理键盘发布检查：`prototype/scripts/test-physical.sh`（使用 `/dev/uinput`，不进入 CI，不打包）。
+- ADR 0005：日常安装走系统 APT，Panel applet 只读。
+
+### Changed
+
+- 系统包 launcher 检测到用户级 autostart 时，将其重命名为 `.disabled-by-system-package`；保留配置、数据和二进制。
+
 ## [0.1.3] - 2026-10-23
 
 ### Added

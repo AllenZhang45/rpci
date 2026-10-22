@@ -36,6 +36,8 @@ chmod +x "$TMP/fakebin/ime-probe"
 mkdir -p "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1"
 printf 'Some(([\n], [\n    "com.system76.CosmicAppletInputSources",\n]))\n' \
     > "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
+mkdir -p "$TMP/xdg/autostart"
+printf '[Desktop Entry]\nType=Application\nName=legacy\n' > "$TMP/xdg/autostart/rpci-ime.desktop"
 
 RPCI_TEST_MARKER="$TMP/marker" \
 XDG_DATA_HOME="$TMP/launch" \
@@ -44,9 +46,11 @@ XDG_CACHE_HOME="$TMP/cache" \
 RPCI_IME_BIN_DIR="$TMP/fakebin" \
 RPCI_IME_SETUP="$TMP/root/usr/bin/rpci-ime-setup" \
 RPCI_IME_SCHEMA_DIR="$TMP/root/usr/share/rpci/rime" \
+RPCI_IME_SYSTEM_PACKAGE=1 \
     "$TMP/root/usr/bin/rpci-ime-launch"
 test -f "$TMP/marker"
 grep -q 'com.github.alec.RpciImeApplet' \
     "$TMP/xdg/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings"
+test -f "$TMP/xdg/autostart/rpci-ime.desktop.disabled-by-system-package"
 
 echo "package verification passed: $PACKAGE"
