@@ -31,7 +31,7 @@ sudo apt install rpci-ime
 触发：
 
 - GitHub Release `published`
-- 手动 `workflow_dispatch`，输入 tag（默认 `v0.1.8`）
+- 手动 `workflow_dispatch`，输入 tag（默认 `v0.1.9`）
 
 流程：
 
@@ -74,7 +74,7 @@ gh secret set APT_GPG_KEY_ID --body 38DE9A94D8BD8F4A
 
 仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
 
-然后运行 **Actions → APT Pages → Run workflow**，tag 填 `v0.1.8`；或重新发布一个 Release。
+然后运行 **Actions → APT Pages → Run workflow**，tag 填 `v0.1.9`；或重新发布一个 Release。
 
 ## 本地验证
 
@@ -84,7 +84,7 @@ gh secret set APT_GPG_KEY_ID --body 38DE9A94D8BD8F4A
 apt-get update
 Get:1 http://127.0.0.1:8766 stable InRelease
 Get:2 http://127.0.0.1:8766 stable/main amd64 Packages
-Candidate: 0.1.8
+Candidate: 0.1.9
 ```
 
 `gpgv` 验证通过，`index.html` 和公钥可访问。

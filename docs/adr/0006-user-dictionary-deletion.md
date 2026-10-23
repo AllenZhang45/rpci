@@ -1,6 +1,6 @@
 # ADR 0006：用户词库删除优先采用候选内删除
 
-> 状态：Proposed（2026-10-23）
+> 状态：Accepted（2026-10-23）
 > 关联：[USER-DICTIONARY-SPIKE.md](../USER-DICTIONARY-SPIKE.md)、[0005-system-apt-readonly-applet.md](0005-system-apt-readonly-applet.md)
 
 ## 背景
