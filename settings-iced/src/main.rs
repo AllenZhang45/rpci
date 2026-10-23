@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use iced::widget::{
     Space, button, checkbox, column, container, pick_list, row, scrollable, slider, text,
+    text_input,
 };
 use iced::{Alignment, Border, Color, Element, Length, Task, Theme};
 use ime_probe::config::{CandidateLayout, Config, ThemePreference};
@@ -108,6 +109,7 @@ enum Message {
     Restore,
     Reload,
     UserDictSelected(String),
+    UserDictQueryChanged(String),
     UserDictLoad,
     UserDictExport,
 }
@@ -160,6 +162,10 @@ impl App {
                 self.user_dictionary.select(value);
                 return Task::none();
             }
+            Message::UserDictQueryChanged(value) => {
+                self.user_dictionary.set_query(value);
+                return Task::none();
+            }
             Message::UserDictLoad => {
                 self.user_dictionary.load();
                 return Task::none();
@@ -189,7 +195,13 @@ impl App {
         let pending_restore = self.controller.pending_restore();
         let user_dicts = self.user_dictionary.dicts().to_vec();
         let selected_user_dict = self.user_dictionary.selected().map(str::to_string);
-        let user_entries = self.user_dictionary.entries().to_vec();
+        let user_query = self.user_dictionary.query().to_string();
+        let user_entries = self
+            .user_dictionary
+            .visible_entries()
+            .into_iter()
+            .cloned()
+            .collect::<Vec<_>>();
         let user_status = self.user_dictionary.status().to_string();
         let title = column![
             text("COSMIC IME 设置").size(26),
@@ -264,6 +276,7 @@ impl App {
                 .spacing(10)
                 .align_y(Alignment::Center),
                 text(user_status).size(13),
+                text_input("搜索词条或编码", &user_query).on_input(Message::UserDictQueryChanged),
                 scrollable(
                     column![
                         row![

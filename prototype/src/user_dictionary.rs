@@ -123,6 +123,7 @@ pub struct UserDictionary {
     dicts: Vec<String>,
     selected: Option<String>,
     entries: Vec<UserEntry>,
+    query: String,
     status: String,
 }
 
@@ -143,6 +144,7 @@ impl UserDictionary {
                     dicts,
                     selected,
                     entries: Vec::new(),
+                    query: String::new(),
                     status,
                 }
             }
@@ -151,6 +153,7 @@ impl UserDictionary {
                 dicts: Vec::new(),
                 selected: None,
                 entries: Vec::new(),
+                query: String::new(),
                 status: format!("读取用户词典失败: {err}"),
             },
         }
@@ -166,6 +169,28 @@ impl UserDictionary {
 
     pub fn entries(&self) -> &[UserEntry] {
         &self.entries
+    }
+
+    pub fn query(&self) -> &str {
+        &self.query
+    }
+
+    pub fn set_query(&mut self, query: String) {
+        self.query = query;
+    }
+
+    pub fn visible_entries(&self) -> Vec<&UserEntry> {
+        let query = self.query.trim().to_lowercase();
+        if query.is_empty() {
+            return self.entries.iter().collect();
+        }
+        self.entries
+            .iter()
+            .filter(|entry| {
+                entry.text.to_lowercase().contains(&query)
+                    || entry.code.to_lowercase().contains(&query)
+            })
+            .collect()
     }
 
     pub fn status(&self) -> &str {
@@ -285,6 +310,26 @@ mod tests {
         backend.dicts.clear();
         let dictionary = UserDictionary::new(Box::new(backend));
         assert_eq!(dictionary.status(), "未找到用户词典");
+    }
+
+    #[test]
+    fn query_filters_by_text_or_code() {
+        let mut dictionary = UserDictionary::new(Box::new(backend()));
+        dictionary.load();
+        dictionary.set_query("工".to_string());
+        assert_eq!(dictionary.visible_entries().len(), 1);
+        dictionary.set_query("a".to_string());
+        assert_eq!(dictionary.visible_entries().len(), 1);
+        dictionary.set_query("missing".to_string());
+        assert!(dictionary.visible_entries().is_empty());
+    }
+
+    #[test]
+    fn empty_query_shows_all_entries() {
+        let mut dictionary = UserDictionary::new(Box::new(backend()));
+        dictionary.load();
+        dictionary.set_query("  ".to_string());
+        assert_eq!(dictionary.visible_entries().len(), 1);
     }
 
     #[test]

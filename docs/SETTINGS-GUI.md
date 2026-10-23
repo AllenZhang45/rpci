@@ -139,6 +139,7 @@ cargo test -p rpci-settings-iced
 
 - 选择 `wubi86` / `pinyin_simp`
 - 加载后显示词条、编码、词频
+- 按词条或编码搜索
 - 导出到 `~/.local/share/rpci/exports/<dict>-userdict.tsv`
 
 加载会先停止输入法，导出后重新启动；删除词条不在当前范围内。

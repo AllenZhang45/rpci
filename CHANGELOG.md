@@ -2,6 +2,12 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+
+- 用户词库只读视图支持按词条或编码搜索。
+
 ## [0.1.9] - 2026-10-23
 
 ### Added
