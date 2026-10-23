@@ -2,6 +2,12 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+
+- `Ctrl+Shift+1..9` 删除当前候选页对应候选，使用 RIME `delete_candidate_on_current_page`；不重建用户词库。
+
 ## [0.1.8] - 2026-10-23
 
 ### Added

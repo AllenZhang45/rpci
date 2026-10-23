@@ -53,6 +53,7 @@ pub struct EngineOutput {
     pub page: PageInfo,
 }
 
+const MOD_SHIFT: u32 = 1 << 0;
 const MOD_CTRL: u32 = 1 << 2;
 const MOD_ALT: u32 = 1 << 3;
 const MOD_SUPER: u32 = 1 << 6;
@@ -65,6 +66,26 @@ fn should_toggle(keysym: u32, _mods: u32) -> bool {
 
 fn is_page_key(keysym: u32) -> bool {
     matches!(keysym, 0xff55 | 0xff56)
+}
+
+fn delete_candidate_index(keysym: u32, mods: u32) -> Option<usize> {
+    if mods & (MOD_CTRL | MOD_SHIFT) != MOD_CTRL | MOD_SHIFT {
+        return None;
+    }
+    let index = match keysym {
+        0x31..=0x39 => keysym - 0x31,
+        0x21 => 0,
+        0x40 => 1,
+        0x23 => 2,
+        0x24 => 3,
+        0x25 => 4,
+        0x5e => 5,
+        0x26 => 6,
+        0x2a => 7,
+        0x28 => 8,
+        _ => return None,
+    };
+    Some(index as usize)
 }
 
 fn is_punctuation(keysym: u32) -> bool {
@@ -231,6 +252,19 @@ impl HybridEngine {
         self.mode = Mode::Wubi;
     }
 
+    fn delete_candidate(&mut self, index: usize) -> bool {
+        let session_id = self.active().session_id;
+        unsafe {
+            let api = librime_sys::rime_get_api();
+            if api.is_null() {
+                return false;
+            }
+            (*api)
+                .delete_candidate_on_current_page
+                .is_some_and(|delete| delete(session_id, index) != 0)
+        }
+    }
+
     /// Clear any in-progress composition without changing the language mode.
     pub fn cancel(&mut self) {
         self.reset();
@@ -262,6 +296,29 @@ impl HybridEngine {
         }
 
         if self.ascii_mode {
+            return EngineOutput {
+                mode: self.mode,
+                preedit: String::new(),
+                candidates: Vec::new(),
+                commit: None,
+                passthrough: true,
+                page: PageInfo::default(),
+            };
+        }
+
+        if let Some(index) = delete_candidate_index(keysym, mods) {
+            if !self.letters.is_empty() {
+                self.delete_candidate(index);
+                let (preedit, candidates, page) = self.candidates_of(self.active());
+                return EngineOutput {
+                    mode: self.mode,
+                    preedit,
+                    candidates,
+                    commit: None,
+                    passthrough: false,
+                    page,
+                };
+            }
             return EngineOutput {
                 mode: self.mode,
                 preedit: String::new(),
@@ -574,5 +631,14 @@ mod status_tests {
         assert_eq!(status_label_for(false, Mode::Wubi), "中 五");
         assert_eq!(status_label_for(false, Mode::Pinyin), "中 拼");
         assert_eq!(status_label_for(true, Mode::Wubi), "英");
+    }
+    #[test]
+    fn ctrl_shift_digit_selects_candidate_index() {
+        assert_eq!(delete_candidate_index(0x31, MOD_CTRL | MOD_SHIFT), Some(0));
+        assert_eq!(delete_candidate_index(0x39, MOD_CTRL | MOD_SHIFT), Some(8));
+        assert_eq!(delete_candidate_index(0x21, MOD_CTRL | MOD_SHIFT), Some(0));
+        assert_eq!(delete_candidate_index(0x28, MOD_CTRL | MOD_SHIFT), Some(8));
+        assert_eq!(delete_candidate_index(0x31, MOD_CTRL), None);
+        assert_eq!(delete_candidate_index(0x31, MOD_SHIFT), None);
     }
 }

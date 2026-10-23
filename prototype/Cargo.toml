@@ -1,6 +1,6 @@
 [package]
 name = "ime-probe"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 license = "GPL-3.0-or-later"
 description = "Native COSMIC/Wayland Wubi and Pinyin input method"
@@ -15,6 +15,7 @@ categories = ["gui", "internationalization"]
 cosmic-protocols = "0.2.0"
 cosmic-text = "0.19.0"
 libc = "0.2.191"
+librime-sys = "0.4.0"
 memmap2 = "0.9.11"
 png = "0.18.1"
 rime-api = "0.12.2"

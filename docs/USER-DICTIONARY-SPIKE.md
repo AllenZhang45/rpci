@@ -459,7 +459,8 @@ GPL-3 组件；RPCI 整体 GPL-3.0-or-later，兼容。
 - stop → export → start
 - 导出到 `~/.local/share/rpci/exports/`
 
-删除、调频、自造词仍未实现。删除方案见 [ADR 0006](adr/0006-user-dictionary-deletion.md)：优先候选内删除，不做词库页面任意删除。
+候选内删除已实现：`Ctrl+Shift+1..9` 删除当前候选页对应候选。
+词库页面任意删除、调频、自造词仍未实现。删除方案见 [ADR 0006](adr/0006-user-dictionary-deletion.md)：优先候选内删除，不做词库页面任意删除。
 
 ## 开放问题
 
