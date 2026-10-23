@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn apply_restarts_after_save() {
-        let mut backend = FakeBackend::ok();
+        let backend = FakeBackend::ok();
         let log = backend.log.clone();
         let mut controller = controller(backend);
         log.borrow_mut().clear();
@@ -456,8 +456,7 @@ mod tests {
 
     #[test]
     fn failed_list_does_not_block_startup() {
-        let mut controller =
-            SettingsController::new(Config::default(), Box::new(FakeBackend::ok()));
+        let controller = SettingsController::new(Config::default(), Box::new(FakeBackend::ok()));
         assert!(controller.backups().is_empty());
         assert_eq!(controller.status(), "就绪");
     }

@@ -14,7 +14,7 @@ use wayland_client::{
 #[derive(Default)]
 struct State {
     seat: Option<wl_seat::WlSeat>,
-    info: Option<ZcosmicToplevelInfoV1>,
+    _info: Option<ZcosmicToplevelInfoV1>,
     manager: Option<ZcosmicToplevelManagerV1>,
     toplevels: Vec<Toplevel>,
 }
@@ -134,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut state = State {
         seat: Some(seat),
-        info: Some(info),
+        _info: Some(info),
         manager: Some(manager),
         toplevels: Vec::new(),
     };
