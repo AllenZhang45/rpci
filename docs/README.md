@@ -30,6 +30,7 @@
 | 文档 | 内容 |
 |---|---|
 | [ROADMAP.md](ROADMAP.md) | 唯一路线图：完成项、下一步优先级、里程碑、非目标 |
+| [USER-DICTIONARY-SPIKE.md](USER-DICTIONARY-SPIKE.md) | RIME 用户词库 API、LevelDB、导出/删除可行性与第一版范围 |
 
 `NEXT-STEPS.md` 已合并进 ROADMAP，不再单独维护。
 
