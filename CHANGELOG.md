@@ -2,11 +2,17 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [0.1.8] - 2026-10-23
 
 ### Added
 
 - 设置界面新增只读用户词库查看与导出，使用 `rime_dict_manager` 读取 `wubi86` / `pinyin_simp` 用户词条。
+- 用户词库导出到 `~/.local/share/rpci/exports/<dict>-userdict.tsv`。
+- `.deb` 增加 `librime-bin` 依赖，提供 `rime_dict_manager`。
+
+### Changed
+
+- 用户词库加载走 stop → export → start；失败也会尝试恢复输入法。
 
 ## [0.1.7] - 2026-10-23
 
