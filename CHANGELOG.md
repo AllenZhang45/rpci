@@ -2,6 +2,12 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+
+- 设置界面新增只读用户词库查看与导出，使用 `rime_dict_manager` 读取 `wubi86` / `pinyin_simp` 用户词条。
+
 ## [0.1.7] - 2026-10-23
 
 ### Changed

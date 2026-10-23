@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-VERSION="${VERSION:-0.1.7}"
+VERSION="${VERSION:-0.1.8}"
 DIST="$ROOT/dist"
 STAGE="$DIST/rpci-ime"
 PACKAGE="$DIST/rpci-ime_${VERSION}_amd64.deb"
@@ -106,7 +106,7 @@ Priority: optional
 Architecture: amd64
 Installed-Size: $INSTALLED_SIZE
 Maintainer: rpci local build <root@localhost>
-Depends: libc6, libgcc-s1, libstdc++6, libxkbcommon0, librime1t64, librime-data, libwayland-client0, libegl1, libgl1, libvulkan1, bash
+Depends: libc6, libgcc-s1, libstdc++6, libxkbcommon0, librime1t64, librime-data, librime-bin, libwayland-client0, libegl1, libgl1, libvulkan1, bash
 Recommends: git
 Description: COSMIC native Wubi/Pinyin input method
  A Wayland input-method-v2 client with RIME Wubi86 and Pinyin fallback,

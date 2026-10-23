@@ -449,6 +449,18 @@ GPL-3 组件；RPCI 整体 GPL-3.0-or-later，兼容。
 - 导出过程中取消/失败
 - 输入法在操作后仍可正常输入
 
+## 当前实现状态
+
+第一版只读查看/导出已落地：
+
+- `prototype/src/user_dictionary.rs`
+- 设置界面“用户词库（只读）”卡片
+- `rime_dict_manager` 列表/导出
+- stop → export → start
+- 导出到 `~/.local/share/rpci/exports/`
+
+删除、调频、自造词仍未实现。
+
 ## 开放问题
 
 1. 只读页面是否应该显示全部 170+ 条，还是搜索/分页？

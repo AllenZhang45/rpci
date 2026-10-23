@@ -7,6 +7,7 @@ use iced::widget::{
 use iced::{Alignment, Border, Color, Element, Length, Task, Theme};
 use ime_probe::config::{CandidateLayout, Config, ThemePreference};
 use ime_probe::settings_controller::{RealSettingsBackend, SettingsAction, SettingsController};
+use ime_probe::user_dictionary::{RealUserDictionaryBackend, UserDictionary};
 
 const THEMES: [ThemeChoice; 3] = [ThemeChoice::Auto, ThemeChoice::Dark, ThemeChoice::Light];
 const LAYOUTS: [LayoutChoice; 3] = [
@@ -106,6 +107,9 @@ enum Message {
     BackupSelected(Backup),
     Restore,
     Reload,
+    UserDictSelected(String),
+    UserDictLoad,
+    UserDictExport,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -126,12 +130,14 @@ impl fmt::Display for Backup {
 
 struct App {
     controller: SettingsController,
+    user_dictionary: UserDictionary,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
             controller: SettingsController::new(Config::load(), Box::new(RealSettingsBackend)),
+            user_dictionary: UserDictionary::new(Box::new(RealUserDictionaryBackend)),
         }
     }
 }
@@ -150,6 +156,20 @@ impl App {
             Message::BackupSelected(value) => SettingsAction::SelectBackup(value.path),
             Message::Restore => SettingsAction::Restore,
             Message::Reload => SettingsAction::Reload,
+            Message::UserDictSelected(value) => {
+                self.user_dictionary.select(value);
+                return Task::none();
+            }
+            Message::UserDictLoad => {
+                self.user_dictionary.load();
+                return Task::none();
+            }
+            Message::UserDictExport => {
+                if let Err(err) = self.user_dictionary.export() {
+                    self.user_dictionary.set_status(format!("导出失败: {err}"));
+                }
+                return Task::none();
+            }
         };
         self.controller.update(action);
         Task::none()
@@ -167,6 +187,10 @@ impl App {
             .selected_backup()
             .map(|path| Backup { path: path.clone() });
         let pending_restore = self.controller.pending_restore();
+        let user_dicts = self.user_dictionary.dicts().to_vec();
+        let selected_user_dict = self.user_dictionary.selected().map(str::to_string);
+        let user_entries = self.user_dictionary.entries().to_vec();
+        let user_status = self.user_dictionary.status().to_string();
         let title = column![
             text("COSMIC IME 设置").size(26),
             text("五笔 / 拼音输入法 · COSMIC")
@@ -227,6 +251,51 @@ impl App {
             .spacing(14),
         );
 
+        let user_dictionary = card(
+            "用户词库（只读）",
+            column![
+                row![
+                    pick_list(user_dicts, selected_user_dict, Message::UserDictSelected,)
+                        .placeholder("没有用户词典")
+                        .width(Length::Fill),
+                    button("加载").on_press(Message::UserDictLoad),
+                    button("导出").on_press(Message::UserDictExport),
+                ]
+                .spacing(10)
+                .align_y(Alignment::Center),
+                text(user_status).size(13),
+                scrollable(
+                    column![
+                        row![
+                            text("词条").width(Length::FillPortion(2)),
+                            text("编码").width(Length::FillPortion(2)),
+                            text("词频").width(Length::FillPortion(1)),
+                        ]
+                        .spacing(8),
+                        column(
+                            user_entries
+                                .iter()
+                                .map(|entry| {
+                                    row![
+                                        text(entry.text.clone()).width(Length::FillPortion(2)),
+                                        text(entry.code.clone()).width(Length::FillPortion(2)),
+                                        text(entry.commits.to_string())
+                                            .width(Length::FillPortion(1)),
+                                    ]
+                                    .spacing(8)
+                                    .into()
+                                })
+                                .collect::<Vec<_>>()
+                        )
+                        .spacing(6),
+                    ]
+                    .spacing(8),
+                )
+                .height(Length::Fixed(180.0)),
+            ]
+            .spacing(12),
+        );
+
         let dictionary = card(
             "词库",
             column![
@@ -279,9 +348,16 @@ impl App {
 
         container(
             scrollable(
-                column![title, general, dictionary, candidates, footer]
-                    .spacing(20)
-                    .width(Length::Fill),
+                column![
+                    title,
+                    general,
+                    user_dictionary,
+                    dictionary,
+                    candidates,
+                    footer
+                ]
+                .spacing(20)
+                .width(Length::Fill),
             )
             .height(Length::Fill),
         )
@@ -354,6 +430,7 @@ mod tests {
     fn update_changes_controller_config() {
         let mut app = App {
             controller: SettingsController::new(Config::default(), Box::new(RealSettingsBackend)),
+            user_dictionary: UserDictionary::new(Box::new(RealUserDictionaryBackend)),
         };
         let _ = app.update(Message::AsciiToggled(true));
         assert!(app.controller.config().ascii_mode_default);

@@ -87,6 +87,10 @@ pub fn rime_user_dir() -> PathBuf {
         .join("rime")
 }
 
+pub fn exports_dir() -> Option<PathBuf> {
+    app_data_dir().map(|dir| dir.join("exports"))
+}
+
 pub fn backups_dir() -> Option<PathBuf> {
     app_data_dir().map(|dir| dir.join("backups"))
 }

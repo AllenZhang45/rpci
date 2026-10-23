@@ -132,3 +132,13 @@ cargo test -p rpci-settings-iced
 - 增加拼音兜底/默认英文模式热加载。
 - 增加恢复确认对话框和失败回滚提示。
 - 评估 libcosmic 迁移。
+
+## 用户词库
+
+设置窗口提供只读用户词库视图：
+
+- 选择 `wubi86` / `pinyin_simp`
+- 加载后显示词条、编码、词频
+- 导出到 `~/.local/share/rpci/exports/<dict>-userdict.tsv`
+
+加载会先停止输入法，导出后重新启动；删除词条不在当前范围内。
