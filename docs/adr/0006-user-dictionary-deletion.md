@@ -1,4 +1,4 @@
-# ADR 0006：用户词库删除采用导出-过滤-重建
+# ADR 0006：用户词库删除优先采用候选内删除
 
 > 状态：Proposed（2026-10-23）
 > 关联：[USER-DICTIONARY-SPIKE.md](../USER-DICTIONARY-SPIKE.md)、[0005-system-apt-readonly-applet.md](0005-system-apt-readonly-applet.md)
@@ -15,79 +15,96 @@
 
 ## 决策
 
-**删除单条词条采用“导出 → 过滤 → 重建 userdb → 验证 → 启动”的流程，使用官方 `rime_dict_manager`，不在 RPCI 内直接操作 LevelDB。**
+**删除能力只做“当前候选内删除”，词库页面继续保持只读。**
 
-固定流程：
+采用与 fcitx5-rime 相同的模式：
 
 ```text
-1. 停止输入法
-2. 在 RPCI 备份目录创建完整快照（复用现有 backup）
-3. 在临时目录执行 rime_dict_manager --export <dict> full.tsv
-4. 解析 TSV，删除目标词条，保留 #@ 元数据头
-5. 将 live <dict>.userdb 重命名为 <dict>.userdb.deleting-<timestamp>
-6. 在用户目录执行 rime_dict_manager --import <dict> filtered.tsv
-7. 再次 --export 验证：
-   - 条目数 = 原条目数 - 1
-   - 目标词条不存在
-   - db_name / user_id 未变
-8. 验证通过：删除旧目录，启动输入法
-9. 任一步失败：删除新目录，恢复旧目录，启动输入法
+用户输入编码
+→ 候选列表出现目标词
+→ 用户在候选窗上触发删除动作
+→ RIME 从用户词典删除该候选
 ```
 
-不自动删除任何内容，UI 必须二次确认。
+实现约束：
 
-## 为什么不用其它方案
+1. 使用 RIME 的 `delete_candidate` / `delete_candidate_on_current_page` API。
+2. 不直接操作 LevelDB。
+3. 不重建 userdb。
+4. 不需要停止输入法。
+5. 候选窗保持只读；删除是按键动作，不增加可点击词库编辑器。
+6. 只有来自用户词典的候选可以删除；底层词库候选删除失败时给出反馈。
 
-### 直接 LevelDB 删除
+## 为什么这是更安全的方法
 
-**拒绝。** 需要自己理解 key/value 编码、`UserDbValue`、metadata 和 LevelDB 锁；RIME 升级后可能失效。
+- RIME 自己持有 userdb 锁和元数据
+- 不需要 stop/start
+- 不需要完整复制或重建词库
+- 不会出现“导入成功但元数据丢失”
+- 与 fcitx5-rime 的成熟行为一致
 
-### C++ helper 调用 `Db::Erase`
+## 暂不采用
 
-**暂不采用。** 可行，但会引入本地编译产物、librime ABI 依赖和新的崩溃面。第一版优先复用已有工具。
+### 导出-过滤-重建
 
-### 只保留当前候选删除
+**暂不实现。**
 
-**不作为唯一方案。** 它符合 fcitx5-rime 的模式，但只覆盖“正在输入的候选”，不能从只读词库页面删除任意词条。
-
-### 不提供删除
-
-**暂不作为最终决策。** 只读查看已经可用；删除若长期缺失，用户词库管理仍不完整。若后续验收认为重建风险过高，可退回此方案。
-
-## 已验证
-
-在用户数据副本上实测：
+在用户数据副本上验证过：
 
 ```text
-导出 170 条
+170 条
 删除 1 条
-移除 wubi86.userdb
-rime_dict_manager --import filtered.tsv
-→ imported 169 entries
-再次导出
-→ exported 169 entries
-→ 目标词条不存在
+移除 userdb
+--import 后
+169 条
 ```
 
-重建后 metadata 中 `db_name`、`db_type`、`rime_version`、`user_id` 保留；`tick` 可能重新生成。RPCI 当前不同步用户词典，因此可以接受。
+技术上可行，但需要重建整个数据库，且有 tick/元数据、磁盘空间、失败恢复风险。只有未来确实需要“从词库页面删除任意词条”时，才重新评估。
+
+### 直接 LevelDB
+
+**拒绝。** 需要理解 key/value 编码、`UserDbValue`、metadata 和 LevelDB 锁；RIME 升级后可能失效。
+
+### C++ helper 调 `Db::Erase`
+
+**暂不采用。** 虽然只改一条，但引入本地编译产物、librime ABI 依赖和新的崩溃面。
+
+### 从读者页面删除任意词条
+
+**暂不实现。** 当前不提供。
+
+## 候选删除的接口方向
+
+`rime-api 0.12.2` 没有封装 `delete_candidate`，需要：
+
+- 增加一个最小 FFI/wrapper；或
+- 在现有 RIME adapter 内调用 C API
+
+删除动作应落在 InputSession/引擎中，而不是候选窗 UI 里，保持：
+
+```text
+按键/命令 → Action → RIME adapter
+```
+
+具体快捷键和反馈方式另行设计，不在本 ADR 决定。
 
 ## 后果
 
-- 删除会重建整个 userdb；操作期间输入法必须停止。
-- 需要保证磁盘空间足够存放导出文件和重建数据库。
-- 删除失败必须恢复旧目录，不能留下半成品。
-- 用户词库备份仍由现有 `backup::backup_now` 负责；删除前强制创建。
-- 需要为重建流程写 fake backend 测试，真实操作只做手工验收。
-- `.deb` 继续依赖 `librime-bin`；不能用纯 Rust 独立运行。
+- 用户不能从只读词库页面删除任意词条。
+- 删除只能在目标词作为当前候选出现时执行。
+- 删除失败必须有反馈，不能静默。
+- 不需要新增 `librime-bin` 之外的工具依赖。
+- 不需要改现有备份/恢复流程。
 
 ## 待确认
 
-- 是否接受“删除 = 重建整个 userdb”的代价。
-- 是否需要在删除前显示目标词条和“将重建词库”的确认文案。
-- `tick` 重置是否会影响用户未来使用 RIME sync；当前 RPCI 未实现 sync。
+- 删除快捷键用 `Ctrl+Delete` 还是候选窗动作。
+- RIME 返回删除失败时，候选窗如何提示。
+- 是否需要后续再做临时目录原子重建，作为“词库页面删除”的升级路径。
 
 ## 参考
 
 - [USER-DICTIONARY-SPIKE.md](../USER-DICTIONARY-SPIKE.md)
+- [fcitx5-rime rimecandidate.cpp](https://github.com/fcitx/fcitx5-rime/blob/master/src/rimecandidate.cpp)
+- [fcitx5-rime rimestate.cpp](https://github.com/fcitx/fcitx5-rime/blob/master/src/rimestate.cpp)
 - [rime_dict_manager.cc](https://github.com/rime/librime/blob/master/tools/rime_dict_manager.cc)
-- [Weasel DictManagementDialog](https://github.com/rime/weasel/blob/master/WeaselDeployer/DictManagementDialog.cpp)

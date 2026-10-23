@@ -9,7 +9,7 @@
 3. [PROTOTYPE.md](PROTOTYPE.md) — 原型范围与验收标准
 4. [ARCHITECTURE.md](ARCHITECTURE.md) — 分层与组件职责
 5. [ADR 0004](adr/0004-three-layer.md) — 三层架构约定
-6. [ADR 0006](adr/0006-user-dictionary-deletion.md) — 用户词库删除采用导出/重建（Proposed）
+6. [ADR 0006](adr/0006-user-dictionary-deletion.md) — 用户词库删除优先采用候选内删除（Proposed）
 6. [ROADMAP.md](ROADMAP.md) — 已完成事项与下一阶段优先级
 
 ## 当前事实与验证
