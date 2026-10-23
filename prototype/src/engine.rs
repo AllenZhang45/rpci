@@ -252,6 +252,18 @@ impl HybridEngine {
         self.mode = Mode::Wubi;
     }
 
+    fn refresh_composition(&mut self) {
+        let letters = self.letters.clone();
+        self.reset();
+        for ch in letters.chars() {
+            let keysym = ch as u32;
+            self.feed(&self.wubi, keysym);
+            self.feed_pinyin(keysym);
+            self.letters.push(ch);
+            self.recur_mode();
+        }
+    }
+
     fn delete_candidate(&mut self, index: usize) -> bool {
         let session_id = self.active().session_id;
         unsafe {
@@ -308,7 +320,9 @@ impl HybridEngine {
 
         if let Some(index) = delete_candidate_index(keysym, mods) {
             if !self.letters.is_empty() {
-                self.delete_candidate(index);
+                if self.delete_candidate(index) {
+                    self.refresh_composition();
+                }
                 let (preedit, candidates, page) = self.candidates_of(self.active());
                 return EngineOutput {
                     mode: self.mode,
