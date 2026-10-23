@@ -43,6 +43,7 @@ jobs:
             libclang-dev \
             librime-dev \
             librime-data \
+            librime-bin \
             libwayland-dev \
             wayland-protocols \
             libxkbcommon-dev \
