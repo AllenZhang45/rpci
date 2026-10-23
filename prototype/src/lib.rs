@@ -5,4 +5,5 @@ pub mod input_session;
 pub mod paths;
 pub mod popup;
 pub mod service;
+pub mod settings_controller;
 pub mod settings_model;

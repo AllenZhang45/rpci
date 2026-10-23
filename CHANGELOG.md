@@ -2,6 +2,12 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Changed
+
+- 设置界面的配置状态与副作用收进 `SettingsController`；新增 `SettingsBackend` seam，备份/恢复/重启流程可脱离 iced 测试。
+
 ## [0.1.6] - 2026-10-23
 
 ### Added

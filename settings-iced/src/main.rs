@@ -5,10 +5,8 @@ use iced::widget::{
     Space, button, checkbox, column, container, pick_list, row, scrollable, slider, text,
 };
 use iced::{Alignment, Border, Color, Element, Length, Task, Theme};
-use ime_probe::backup::{self, KEEP_BACKUPS, default_paths};
 use ime_probe::config::{CandidateLayout, Config, ThemePreference};
-use ime_probe::service;
-use ime_probe::settings_model::SettingsModel;
+use ime_probe::settings_controller::{RealSettingsBackend, SettingsAction, SettingsController};
 
 const THEMES: [ThemeChoice; 3] = [ThemeChoice::Auto, ThemeChoice::Dark, ThemeChoice::Light];
 const LAYOUTS: [LayoutChoice; 3] = [
@@ -126,134 +124,49 @@ impl fmt::Display for Backup {
     }
 }
 
-fn load_backups() -> Vec<Backup> {
-    backup::list_backups(&default_paths())
-        .unwrap_or_default()
-        .into_iter()
-        .rev()
-        .map(|path| Backup { path })
-        .collect()
-}
-
 struct App {
-    model: SettingsModel,
-    backups: Vec<Backup>,
-    selected_backup: Option<Backup>,
-    pending_restore: bool,
+    controller: SettingsController,
 }
 
 impl Default for App {
     fn default() -> Self {
-        let backups = load_backups();
         Self {
-            model: SettingsModel::new(Config::load()),
-            selected_backup: backups.first().cloned(),
-            backups,
-            pending_restore: false,
+            controller: SettingsController::new(Config::load(), Box::new(RealSettingsBackend)),
         }
     }
 }
 
 impl App {
-    fn refresh_backups(&mut self, preferred: Option<PathBuf>) {
-        self.backups = load_backups();
-        self.selected_backup = preferred
-            .and_then(|path| {
-                self.backups
-                    .iter()
-                    .find(|backup| backup.path == path)
-                    .cloned()
-            })
-            .or_else(|| self.backups.first().cloned());
-    }
-
     fn update(&mut self, message: Message) -> Task<Message> {
-        match message {
-            Message::AsciiToggled(value) => {
-                self.model.config.ascii_mode_default = value;
-                self.model.mark_dirty();
-            }
-            Message::PinyinToggled(value) => {
-                self.model.config.pinyin_fallback = value;
-                self.model.mark_dirty();
-            }
-            Message::CountChanged(value) => {
-                self.model.config.candidate_count = value as usize;
-                self.model.mark_dirty();
-            }
-            Message::LayoutSelected(value) => {
-                self.model.config.candidate_layout = value.to_config();
-                self.model.mark_dirty();
-            }
-            Message::ThemeSelected(value) => {
-                self.model.config.theme = value.to_config();
-                self.model.mark_dirty();
-            }
-            Message::Save => match self.model.config.save() {
-                Ok(path) => self.model.mark_saved(&path),
-                Err(err) => self.model.mark_error(err),
-            },
-            Message::Apply => match self.model.config.save() {
-                Ok(path) => {
-                    self.model.mark_saved(&path);
-                    match service::restart_input_method() {
-                        Ok(()) => self.model.status = "已保存并重启输入法".to_string(),
-                        Err(err) => self.model.status = format!("已保存；重启失败: {err}"),
-                    }
-                }
-                Err(err) => self.model.mark_error(err),
-            },
-            Message::Backup => match backup::backup_now(&default_paths(), KEEP_BACKUPS) {
-                Ok(path) => {
-                    self.model.status = format!("已备份到 {}", path.display());
-                    self.pending_restore = false;
-                    self.refresh_backups(Some(path));
-                }
-                Err(err) => self.model.mark_error(err),
-            },
-            Message::BackupSelected(value) => {
-                self.selected_backup = Some(value);
-                self.pending_restore = false;
-            }
-            Message::Restore => {
-                let Some(selected) = self.selected_backup.clone() else {
-                    self.model.status = "没有可恢复的备份".to_string();
-                    return Task::none();
-                };
-                if !self.pending_restore {
-                    self.pending_restore = true;
-                    self.model.status = "再次点击“恢复所选”确认恢复".to_string();
-                    return Task::none();
-                }
-                self.pending_restore = false;
-                let paths = default_paths();
-                let stopped = service::stop_input_method().is_ok();
-                match backup::import_from(&paths, &selected.path) {
-                    Ok(()) => {
-                        let started = service::start_input_method().is_ok();
-                        self.model.status = match (stopped, started) {
-                            (true, true) => "已恢复备份并重启输入法".to_string(),
-                            (true, false) => "已恢复备份；输入法启动失败，请手动启动".to_string(),
-                            (false, true) => "已恢复备份并启动输入法".to_string(),
-                            (false, false) => "已恢复备份；请手动重启输入法".to_string(),
-                        };
-                        self.refresh_backups(None);
-                    }
-                    Err(err) => {
-                        let _ = service::start_input_method();
-                        self.model.mark_error(err);
-                    }
-                }
-            }
-            Message::Reload => {
-                self.pending_restore = false;
-                self.model.mark_reloaded(Config::load());
-            }
-        }
+        let action = match message {
+            Message::AsciiToggled(value) => SettingsAction::SetAscii(value),
+            Message::PinyinToggled(value) => SettingsAction::SetPinyin(value),
+            Message::CountChanged(value) => SettingsAction::SetCandidateCount(value as usize),
+            Message::LayoutSelected(value) => SettingsAction::SetLayout(value.to_config()),
+            Message::ThemeSelected(value) => SettingsAction::SetTheme(value.to_config()),
+            Message::Save => SettingsAction::Save,
+            Message::Apply => SettingsAction::Apply,
+            Message::Backup => SettingsAction::Backup,
+            Message::BackupSelected(value) => SettingsAction::SelectBackup(value.path),
+            Message::Restore => SettingsAction::Restore,
+            Message::Reload => SettingsAction::Reload,
+        };
+        self.controller.update(action);
         Task::none()
     }
 
     fn view(&self) -> Element<'_, Message> {
+        let backups = self
+            .controller
+            .backups()
+            .iter()
+            .map(|path| Backup { path: path.clone() })
+            .collect::<Vec<_>>();
+        let selected_backup = self
+            .controller
+            .selected_backup()
+            .map(|path| Backup { path: path.clone() });
+        let pending_restore = self.controller.pending_restore();
         let title = column![
             text("COSMIC IME 设置").size(26),
             text("五笔 / 拼音输入法 · COSMIC")
@@ -267,17 +180,17 @@ impl App {
         let general = card(
             "常规",
             column![
-                checkbox(self.model.config.ascii_mode_default)
+                checkbox(self.controller.config().ascii_mode_default)
                     .label("默认英文模式")
                     .on_toggle(Message::AsciiToggled),
-                checkbox(self.model.config.pinyin_fallback)
+                checkbox(self.controller.config().pinyin_fallback)
                     .label("拼音兜底（超过 4 码或没有五笔候选时启用）")
                     .on_toggle(Message::PinyinToggled),
             ]
             .spacing(14),
         );
 
-        let count = self.model.config.candidate_count as u8;
+        let count = self.controller.config().candidate_count as u8;
         let candidates = card(
             "候选",
             column![
@@ -294,7 +207,7 @@ impl App {
                     pick_list(
                         LAYOUTS,
                         Some(LayoutChoice::from_config(
-                            self.model.config.candidate_layout
+                            self.controller.config().candidate_layout
                         )),
                         Message::LayoutSelected,
                     ),
@@ -305,7 +218,7 @@ impl App {
                     Space::new().width(Length::Fill),
                     pick_list(
                         THEMES,
-                        Some(ThemeChoice::from_config(self.model.config.theme)),
+                        Some(ThemeChoice::from_config(self.controller.config().theme)),
                         Message::ThemeSelected,
                     ),
                 ]
@@ -317,17 +230,17 @@ impl App {
         let dictionary = card(
             "词库",
             column![
-                text(format!("{} 个备份（最近 5 个）", self.backups.len())).size(13),
+                text(format!(
+                    "{} 个备份（最近 5 个）",
+                    self.controller.backups().len()
+                ))
+                .size(13),
                 row![
-                    pick_list(
-                        self.backups.clone(),
-                        self.selected_backup.clone(),
-                        Message::BackupSelected,
-                    )
-                    .placeholder("没有备份")
-                    .width(Length::Fill),
+                    pick_list(backups, selected_backup, Message::BackupSelected)
+                        .placeholder("没有备份")
+                        .width(Length::Fill),
                     button("立即备份").on_press(Message::Backup),
-                    button(if self.pending_restore {
+                    button(if pending_restore {
                         "确认恢复"
                     } else {
                         "恢复所选"
@@ -349,11 +262,13 @@ impl App {
 
         let footer = column![
             actions,
-            text(&self.model.status).size(13).style(|theme: &Theme| {
-                text::Style {
-                    color: Some(theme.palette().text.scale_alpha(0.7)),
-                }
-            }),
+            text(self.controller.status())
+                .size(13)
+                .style(|theme: &Theme| {
+                    text::Style {
+                        color: Some(theme.palette().text.scale_alpha(0.7)),
+                    }
+                }),
             text("“保存并应用”会通过 systemd 重启输入法")
                 .size(12)
                 .style(|theme: &Theme| text::Style {
@@ -421,20 +336,10 @@ mod tests {
     }
 
     #[test]
-    fn restore_requires_confirmation() {
-        let mut app = App {
-            model: SettingsModel::new(Config::default()),
-            backups: vec![Backup {
-                path: PathBuf::from("/tmp/backups/1"),
-            }],
-            selected_backup: Some(Backup {
-                path: PathBuf::from("/tmp/backups/1"),
-            }),
-            pending_restore: false,
-        };
-        let _ = app.update(Message::Restore);
-        assert!(app.pending_restore);
-        assert!(app.model.status.contains("确认"));
+    fn layout_choice_roundtrip() {
+        for choice in LAYOUTS {
+            assert_eq!(LayoutChoice::from_config(choice.to_config()), choice);
+        }
     }
 
     #[test]
@@ -446,22 +351,22 @@ mod tests {
     }
 
     #[test]
-    fn update_changes_config() {
+    fn update_changes_controller_config() {
         let mut app = App {
-            model: SettingsModel::new(Config::default()),
-            backups: Vec::new(),
-            selected_backup: None,
-            pending_restore: false,
+            controller: SettingsController::new(Config::default(), Box::new(RealSettingsBackend)),
         };
         let _ = app.update(Message::AsciiToggled(true));
-        assert!(app.model.config.ascii_mode_default);
+        assert!(app.controller.config().ascii_mode_default);
         let _ = app.update(Message::PinyinToggled(false));
-        assert!(!app.model.config.pinyin_fallback);
+        assert!(!app.controller.config().pinyin_fallback);
         let _ = app.update(Message::CountChanged(7));
-        assert_eq!(app.model.config.candidate_count, 7);
+        assert_eq!(app.controller.config().candidate_count, 7);
         let _ = app.update(Message::LayoutSelected(LayoutChoice::TwoRow));
-        assert_eq!(app.model.config.candidate_layout, CandidateLayout::TwoRow);
+        assert_eq!(
+            app.controller.config().candidate_layout,
+            CandidateLayout::TwoRow
+        );
         let _ = app.update(Message::ThemeSelected(ThemeChoice::Light));
-        assert_eq!(app.model.config.theme, ThemePreference::Light);
+        assert_eq!(app.controller.config().theme, ThemePreference::Light);
     }
 }
