@@ -32,6 +32,7 @@
 |---|---|
 | [ROADMAP.md](ROADMAP.md) | 唯一路线图：完成项、下一步优先级、里程碑、非目标 |
 | [USER-DICTIONARY-SPIKE.md](USER-DICTIONARY-SPIKE.md) | RIME 用户词库 API、LevelDB、导出/删除可行性与第一版范围 |
+| [MIXED-INPUT-SPIKE.md](MIXED-INPUT-SPIKE.md) | 五笔/拼音单 session 混输 schema 实测与落地约束 |
 
 `NEXT-STEPS.md` 已合并进 ROADMAP，不再单独维护。
 

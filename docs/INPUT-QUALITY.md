@@ -125,6 +125,10 @@ candidate_layout = "single"  # single | two-row | auto
 
 ## 3. 五笔/拼音混输（P2，先 spike）
 
+### Spike 状态
+
+已用单 session `wubi_mixed` schema 实测通过；详见 [MIXED-INPUT-SPIKE.md](MIXED-INPUT-SPIKE.md)。
+
 ### 目标语义
 
 - 1–4 码：同时考虑五笔和拼音候选
