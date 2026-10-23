@@ -10,6 +10,8 @@
 >
 > `rime-api 0.12.2` 没有用户词典接口；`rime_dict_manager` 有受支持的
 > `--list` / `--export` / `--backup` / `--import`，但**没有删词命令**。
+> Weasel、Squirrel、fcitx5-rime 的处理方式也支持这个边界：成熟前端提供
+> 列出/备份/恢复/导出/导入，删除通常只发生在当前候选上下文。
 > 直接改 LevelDB 或绕过 RIME 生命周期风险过高，应单独设计并先用 ADR 固化。
 
 ## 已验证事实
@@ -233,6 +235,93 @@ stop → import_from → start
 ```
 
 不要绕过 `SettingsController` / `SettingsBackend` 的流程。
+
+## 其它 RIME 前端怎么做
+
+| 前端 | 用户词库管理 | 删除词条 | 结论 |
+|---|---|---|---|
+| Weasel（Windows） | 独立词典管理对话框：列出、备份、恢复、导出、导入 | 无 | 与本项目建议的只读/导出范围最接近 |
+| Squirrel（macOS） | 打包 `rime_dict_manager`，未发现独立词典管理窗口 | 无独立入口 | 依赖官方维护工具 |
+| fcitx5-rime（Linux） | 没有独立词典管理 UI | 仅在当前候选上调用 `delete_candidate` | 删除是候选动作，不是词库浏览器 |
+| RIME 官方工具 | `rime_dict_manager`：list/backup/restore/export/import | 无 | 受支持能力边界 |
+
+### Weasel
+
+Weasel 的 `WeaselDeployer/DictManagementDialog` 提供：
+
+- 列出 user dict
+- backup
+- restore
+- export
+- import
+
+源码：
+
+- https://github.com/rime/weasel/blob/master/WeaselDeployer/DictManagementDialog.cpp
+- https://github.com/rime/weasel/blob/master/WeaselDeployer/Configurator.cpp
+
+它通过 `RimeLeversApi` 的：
+
+```text
+user_dict_iterator_init
+next_user_dict
+backup_user_dict
+restore_user_dict
+export_user_dict
+import_user_dict
+```
+
+实现，而不是直接打开 LevelDB。
+
+这些 API 定义在：
+
+```text
+/usr/include/rime_levers_api.h
+```
+
+注意：`RimeLeversApi` 不是 `RimeApi`，需要 `find_module("levers")` 获取；
+`rime-api 0.12.2` 没有封装。Weasel 同时使用 maintenance mode 在操作前暂停服务。
+
+Weasel 的管理对话框**没有删除**用户词条的功能。
+
+### Squirrel
+
+Squirrel 的构建脚本把 `rime_dict_manager` 复制进 app：
+
+```text
+Makefile:52
+cp $(RIME_BIN_DIR)/rime_dict_manager bin/
+```
+
+源码中未发现类似 Weasel 的独立用户词典管理窗口；它沿用官方工具的能力边界。
+
+### fcitx5-rime
+
+fcitx5-rime 的删除入口是候选词的 `forget`：
+
+```text
+RimeCandidateWord::forget()
+  → RimeState::deleteCandidate()
+  → api->delete_candidate(session, idx)
+```
+
+源码：
+
+- https://github.com/fcitx/fcitx5-rime/blob/master/src/rimecandidate.cpp
+- https://github.com/fcitx/fcitx5-rime/blob/master/src/rimestate.cpp
+
+它没有“离线浏览全部用户词条”的界面；删除只针对当前输入会话中的候选。
+
+### 对 RPCI 的含义
+
+生态里的成熟前端并没有把“任意浏览 + 任意删除”做成一个通用词库编辑器。
+它们普遍：
+
+1. 用 RIME 的 userdb/levers API 或官方工具做 list/backup/restore/export/import
+2. 把删除限制在当前候选上下文
+3. 不直接碰 LevelDB
+
+这支持本 spike 的结论：第一版做只读查看/导出是符合生态做法的；删除应单独设计。
 
 ## API 清单
 
