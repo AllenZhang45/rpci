@@ -2,7 +2,7 @@
 
 所有值得记录的变更都在这里。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [0.1.7] - 2026-10-23
 
 ### Changed
 
